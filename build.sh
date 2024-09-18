@@ -21,5 +21,6 @@ base_dir="$(git rev-parse --show-toplevel)"
 
 "$base_dir/src/cuda.py" -v --cuda="$cuda" --cudnn="$cudnn"
 "$base_dir/src/uv.py" -v --python="$python" --torch="$torch"
+"$base_dir/src/optimize.py" -v
 
 docker build --tag monobase:latest "$base_dir"
