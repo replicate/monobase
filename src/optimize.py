@@ -47,7 +47,7 @@ def build(args):
     cmd = ['rdfind', '-minsize', str(1024*1024),
            '-deterministic', 'true',
            '-makehardlinks', 'true',
-           '-outputname', '/usr/local/rdfind.txt',
+           '-outputname', '/dev/null',
            '/usr/local/']
     run(cmd, args)
 
