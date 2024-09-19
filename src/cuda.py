@@ -11,7 +11,7 @@ import subprocess
 import sys
 import urllib.parse
 
-from config import cuda_urls, cudnn_urls
+from config import cuda_urls, cudnn_urls, torch_cuda_deps, torch_cudnn_deps
 from util import run, Version
 
 
@@ -37,6 +37,9 @@ def select_cudas(versions):
         matrix[k].append(Cuda(u, f, cuda, driver))
     cudas = {}
     for k, v in matrix.items():
+        tv = torch_cuda_deps.get(k)
+        if tv:
+            v = list(filter(lambda x: tv in x.filename, v))
         cudas[k] = sorted(v, key=lambda x: x.cuda_version, reverse=True)[0]
     return cudas
 
@@ -61,6 +64,9 @@ def select_cudnns(versions, cuda_majors):
         matrix[k].append(CuDNN(u, f, cudnn, cuda))
     cudnns = {}
     for k, v in matrix.items():
+        tv = torch_cudnn_deps.get(k.split('-')[0])
+        if tv:
+            v = list(filter(lambda x: tv in x.filename, v))
         cudnns[k] = sorted(v, key=lambda x: x.cudnn_version, reverse=True)[0]
     return cudnns
 

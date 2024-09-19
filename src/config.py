@@ -72,6 +72,21 @@ cudnn_urls = [
         ]
 
 
+# Torch releases bundle specific versions of CUDA and CuDNN
+# https://github.com/pytorch/pytorch/blob/main/.ci/docker/common/install_cuda.sh
+torch_cuda_deps = {
+        '12.4': '12.4.1_550.54.15',
+        '12.1': '12.1.1_530.30.02',
+        '11.8': '11.8.0_520.61.05',
+        }
+
+# https://github.com/pytorch/pytorch/commits/main/.ci/docker/common/install_cudnn.sh
+torch_cudnn_deps = {
+        '9': '9.1.0.70',
+        '8': '8.9.7.29',
+        }
+
+
 ####################
 # uv
 ####################
