@@ -13,4 +13,5 @@ docker run -it --rm \
     --env UV_COMPILE_BYTECODE=true \
     --env UV_LINK_MODE=hardlink \
     --env UV_PYTHON_PREFERENCE=only-managed \
-    ubuntu:jammy
+    --entrypoint /bin/bash \
+    monobase:build

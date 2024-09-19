@@ -171,6 +171,6 @@ if __name__ == '__main__':
                '--volume', f'{src_dir}:/src',
                '--volume', f'{build_dir}:/usr/local/cuda',
                '--volume', f'{cache_dir}:/mnt/cache',
-               'python:latest',
+               'monobase:build',
                f'/src/{os.path.basename(__file__)}'] + sys.argv[1:]
         run(cmd, args)

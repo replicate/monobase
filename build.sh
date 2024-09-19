@@ -19,6 +19,8 @@ torch="$(csv "${TORCH[@]}")"
 
 base_dir="$(git rev-parse --show-toplevel)"
 
+docker build --tag monobase:build --file "$base_dir"/Dockerfile.build "$base_dir"
+
 "$base_dir/src/cuda.py" -v --cuda="$cuda" --cudnn="$cudnn"
 "$base_dir/src/uv.py" -v --python="$python" --torch="$torch"
 "$base_dir/src/optimize.py" -v

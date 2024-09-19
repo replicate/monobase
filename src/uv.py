@@ -119,6 +119,6 @@ if __name__ == '__main__':
                '--user', f'{os.getuid()}:{os.getgid()}',
                '--volume', f'{src_dir}:/src',
                '--volume', f'{build_dir}:/usr/local',
-               'python:latest',
+               'monobase:build',
                f'/src/{os.path.basename(__file__)}'] + sys.argv[1:]
         run(cmd, args)
