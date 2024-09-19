@@ -9,11 +9,8 @@ import re
 import subprocess
 import sys
 
-from matrix import torch_deps, torch_specs
+from config import pip_packages, torch_deps, torch_specs, uv_url
 from util import run, Version
-
-
-uv_url = 'https://github.com/astral-sh/uv/releases/download/0.4.10/uv-x86_64-unknown-linux-gnu.tar.gz'
 
 
 def build(args):
@@ -80,7 +77,7 @@ def build(args):
                        '--extra-index-url', f'https://download.pytorch.org/whl/{cu}',
                        f'torch=={t}+{cu}',
                        f'torchaudio=={deps.torchaudio}+{cu}',
-                       f'torchvision=={deps.torchvision}+{cu}',]
+                       f'torchvision=={deps.torchvision}+{cu}',] + pip_packages
                 run(cmd, args)
 
     # Versions

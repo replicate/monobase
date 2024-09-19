@@ -11,7 +11,7 @@ import subprocess
 import sys
 import urllib.parse
 
-from matrix import cuda_urls, cudnn_urls
+from config import cuda_urls, cudnn_urls
 from util import run, Version
 
 

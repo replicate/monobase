@@ -3,6 +3,10 @@
 from collections import namedtuple
 from util import Version
 
+####################
+# CUDA + CuDNN
+####################
+
 # https://developer.nvidia.com/cuda-downloads
 cuda_prefix = 'https://developer.download.nvidia.com/compute/cuda'
 
@@ -65,6 +69,18 @@ cudnn_urls = [
         f'{cudnn_prefix}/cudnn-linux-x86_64-8.9.1.23_cuda11-archive.tar.xz',
         f'{cudnn_prefix}/cudnn-linux-x86_64-8.9.0.131_cuda12-archive.tar.xz',
         f'{cudnn_prefix}/cudnn-linux-x86_64-8.9.0.131_cuda11-archive.tar.xz',
+        ]
+
+
+####################
+# uv
+####################
+
+uv_url = 'https://github.com/astral-sh/uv/releases/download/0.4.10/uv-x86_64-unknown-linux-gnu.tar.gz'
+
+pip_packages = [
+        'cog==0.9.23',
+        'opencv-python==4.10.0.84',
         ]
 
 TorchSpec = namedtuple('TorchSpec', ['python_min', 'python_max', 'cudas'])
