@@ -43,11 +43,13 @@ def build(args):
                 os.makedirs(cache_dir, exist_ok=True)
                 run(['ldconfig', '-C', f'{cache_dir}/{k}'] + dirs, args)
 
-    venvs = os.listdir('/usr/local/uv/venv')
-    p = re.compile(r'^python(?P<python>\d+\.\d+)-torch\d+\.\d+\.\d+-cu\d+$')
-    for venv in venvs:
-        pv = p.search(venv).group('python')
-        # FIXME: implement this
+    print('De-duplicating with rdfind...')
+    cmd = ['rdfind', '-minsize', str(1024*1024),
+           '-deterministic', 'true',
+           '-makehardlinks', 'true',
+           '-outputname', '/usr/local/rdfind.txt',
+           '/usr/local/']
+    run(cmd, args)
 
 
 parser = argparse.ArgumentParser(description='Optimize build for monobase image')
