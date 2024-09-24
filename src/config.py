@@ -94,7 +94,7 @@ torch_cudnn_deps = {
 uv_url = 'https://github.com/astral-sh/uv/releases/download/0.4.10/uv-x86_64-unknown-linux-gnu.tar.gz'
 
 pip_packages = [
-        'cog==0.9.23',
+        'https://github.com/replicate/cog/archive/refs/heads/add-waiting-env.zip',
         'opencv-python==4.10.0.84',
         ]
 
