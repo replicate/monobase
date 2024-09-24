@@ -9,7 +9,7 @@ ENV UV_COMPILE_BYTECODE=true
 ENV UV_LINK_MODE=hardlink
 ENV UV_PYTHON_PREFERENCE=only-managed
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y --no-install-recommends \
         build-essential \
         ca-certificates \
         cmake \

@@ -12,12 +12,14 @@ csv() {
     echo "$*"
 }
 
-cuda="$(csv "${CUDA[@]}")"
-cudnn="$(csv "${CUDNN[@]}")"
-python="$(csv "${PYTHON[@]}")"
-torch="$(csv "${TORCH[@]}")"
+cuda=${1:-"$(csv "${CUDA[@]}")"}
+cudnn=${2:-"$(csv "${CUDNN[@]}")"}
+python=${3:-"$(csv "${PYTHON[@]}")"}
+torch=${4:-"$(csv "${TORCH[@]}")"}
+tag=${5:-"monobase:latest"}
 
 base_dir="$(git rev-parse --show-toplevel)"
+cd "$base_dir"
 
 docker build --tag monobase:build --file "$base_dir"/Dockerfile.build "$base_dir"
 
@@ -25,4 +27,4 @@ docker build --tag monobase:build --file "$base_dir"/Dockerfile.build "$base_dir
 "$base_dir/src/uv.py" -v --python="$python" --torch="$torch"
 "$base_dir/src/optimize.py" -v
 
-docker build --tag monobase:latest "$base_dir"
+docker build --tag "$tag" "$base_dir"

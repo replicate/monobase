@@ -1,0 +1,19 @@
+steps:
+  - name: 'ubuntu'
+    id: "build"
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        apt-get update && \
+        DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y git curl gcc g++ build-essential rdfind && \
+        curl -sSL https://get.docker.com/ | sh && \
+        mkdir -p /mnt/cache && \
+        ./build.sh 11.8 9 3.11 2.0.1 us-docker.pkg.dev/replicate-production/replicate-us/monobase/monobase:mini
+    env:
+      - IN_CLOUDBUILD=1
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['image', 'push', 'us-docker.pkg.dev/replicate-production/replicate-us/monobase/monobase:mini']
+options:
+  diskSizeGb: '1000'
+timeout: 7200s

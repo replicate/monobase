@@ -110,7 +110,7 @@ def build(args):
         print(f'Installing CUDA {k}...')
         runfile = os.path.join(cache_dir, cuda.filename)
         cmd = ['/bin/sh', runfile, '--silent', f'--installpath={out}',
-               '--toolkit', '--no-opengl-libs', '--no-man-page', '--no-drm']
+               '--toolkit', '--no-opengl-libs', '--no-man-page', '--no-drm', '--override']
         run(cmd, args)
 
         # Remove unused files
@@ -159,7 +159,7 @@ parser.add_argument('-v', '--verbose', default=False, action='store_true',
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    if os.path.exists('/.dockerenv'):
+    if os.path.exists('/.dockerenv') and "IN_CLOUDBUILD" not in os.environ:
         # Build inside a container for:
         # - Absolute paths
         # - Sandboxing
@@ -172,7 +172,7 @@ if __name__ == '__main__':
         os.makedirs(build_dir, exist_ok=True)
         os.makedirs(cache_dir, exist_ok=True)
 
-        cmd = ['docker', 'run', '-it', '--rm',
+        cmd = ['docker', 'run', '--rm',
                '--user', f'{os.getuid()}:{os.getgid()}',
                '--volume', f'{src_dir}:/src',
                '--volume', f'{build_dir}:/usr/local/cuda',

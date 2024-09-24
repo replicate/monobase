@@ -60,14 +60,14 @@ parser.add_argument('-v', '--verbose', default=False, action='store_true',
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    if os.path.exists('/.dockerenv'):
+    if os.path.exists('/.dockerenv') and "IN_CLOUDBUILD" not in os.environ:
         build(args)
     else:
         src_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.realpath(os.path.join(src_dir, os.path.pardir))
         build_dir = os.path.join(base_dir, 'build')
 
-        cmd = ['docker', 'run', '-it', '--rm',
+        cmd = ['docker', 'run', '--rm',
                '--user', f'{os.getuid()}:{os.getgid()}',
                '--volume', f'{src_dir}:/src',
                '--volume', f'{build_dir}:/usr/local',

@@ -1,2 +1,2 @@
 FROM ubuntu:jammy
-RUN apt-get update && apt-get install -y python3 rdfind
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y python3 rdfind git curl gcc g++ build-essential libxml2
