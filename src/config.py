@@ -129,3 +129,10 @@ torch_deps = {
         '2.0.1': TorchDeps('2.0.2', '0.15.2'),
         '2.0.0': TorchDeps('2.0.0', '0.15.0'),
         }
+
+
+####################
+# other
+####################
+
+pget_url = 'https://github.com/replicate/pget/releases/latest/download/pget_Linux_x86_64'

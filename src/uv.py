@@ -6,10 +6,9 @@ import json
 import os
 import os.path
 import re
-import subprocess
 import sys
 
-from config import pip_packages, torch_deps, torch_specs, uv_url
+from config import pip_packages, torch_deps, torch_specs, uv_url, pget_url
 from util import run, Version
 
 
@@ -23,6 +22,14 @@ def build(args):
         print('Downloading uv...')
         os.makedirs('/usr/local/bin', exist_ok=True)
         cmd = ['bash', '-c', f'curl -fsSL {uv_url} | tar -xz --strip-components=1 -C /usr/local/bin']
+        run(cmd, args)
+
+    # Downloading pget
+    pget = '/usr/local/bin/pget'
+    if not os.path.exists(pget):
+        print('Downloading pget...')
+        os.makedirs('/usr/local/bin', exist_ok=True)
+        cmd = ['bash', '-c', f'curl -o /usr/local/bin/pget -L {pget_url} && chmod +x /usr/local/bin/pget']
         run(cmd, args)
 
     # Cache must be in the same volume mount for hardlink to work
