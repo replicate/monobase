@@ -47,5 +47,8 @@ if ! [ -d "$VENV_PATH" ]; then
     exit 1
 fi
 
+# shellcheck disable=SC1091
+source "$VENV_PATH/bin/activate"
+
 LD_CACHE_PATH="/usr/local/etc/ld.so.cache.d/cuda$CUDA_VERSION-cudnn$CUDNN_VERSION-python$PYTHON_VERSION"
 ln -f "$LD_CACHE_PATH" /etc/ld.so.cache
