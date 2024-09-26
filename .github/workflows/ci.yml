@@ -1,0 +1,15 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build + release
+    permissions:
+      contents: read
+      id-token: write
+    uses: replicate/actions/.github/workflows/buildx.yml@main
+    with:
+      image: monobase

@@ -1,0 +1,3 @@
+local/uv/cache
+src/__pycache__
+src/requirements-test
