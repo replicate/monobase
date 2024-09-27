@@ -9,7 +9,7 @@ steps:
         DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y git curl gcc g++ build-essential rdfind && \
         curl -sSL https://get.docker.com/ | sh && \
         mkdir -p /mnt/cache && \
-        ./build.sh 11.8 9 3.11 2.0.1 us-docker.pkg.dev/replicate-production/replicate-us/monobase/monobase:mini
+        ./build.sh 11.7,11.8,12.1,12.4 9 3.8,3.9,3.10,3.11,3.12 2.0.1,2.1.1,2.2.0,2.3.1,2.4.0,2.4.1 us-docker.pkg.dev/replicate-production/replicate-us/monobase/monobase:mini
     env:
       - IN_CLOUDBUILD=1
   - name: 'gcr.io/cloud-builders/docker'
