@@ -44,7 +44,10 @@ builder() {
         touch "$DONE_FILE"
     fi
 
-    sleep 86400
+    # Sleep inside K8S to keep pod alive
+    if [ -n "${KUBERNETES_SERVICE_HOST:-}" ]; then
+        sleep 86400
+    fi
 }
 
 model() {
