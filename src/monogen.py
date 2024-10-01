@@ -43,7 +43,7 @@ PROD_MONOGENS: list[MonoGen] = [
         pip_pkgs=[
             'https://github.com/replicate/cog/archive/refs/heads/add-waiting-env.zip',
             'opencv-python==4.10.0.84',
-        ]
+        ],
     ),
 ]
 
