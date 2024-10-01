@@ -92,6 +92,8 @@ def build(args: argparse.Namespace) -> None:
     cmd = ['du', '-ch', '-d', '1', args.prefix]
     subprocess.run(cmd, check=True)
 
+    logger.info('Monobase build completed')
+
 
 if __name__ == '__main__':
     args = parser.parse_args()

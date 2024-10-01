@@ -35,6 +35,8 @@ def update(args: argparse.Namespace) -> None:
             continue
         update_generation(args, tmp, mg)
 
+    logger.info('Monobase update completed')
+
 
 if __name__ == '__main__':
     args = parser.parse_args()
