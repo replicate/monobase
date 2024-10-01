@@ -93,6 +93,7 @@ def build(args: argparse.Namespace) -> None:
     subprocess.run(cmd, check=True)
 
     logger.info('Monobase build completed')
+    mark_done('/srv/r8/monobase')
 
 
 if __name__ == '__main__':
