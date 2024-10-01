@@ -101,7 +101,7 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
     subprocess.run(cmd, check=True)
 
     logger.info(f'Installing CuDNN {key}...')
-    os.makedirs(cdir)
+    os.makedirs(cdir, exist_ok=True)
     cmd = ['tar', '-xf', file, '--strip-components=1', '--exclude=lib*.a', '-C', cdir]
     subprocess.run(cmd, check=True)
     os.remove(file)

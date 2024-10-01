@@ -40,7 +40,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
         return
 
     logger.info(f'Building monobase generation {mg.id}...')
-    os.makedirs(gdir)
+    os.makedirs(gdir, exist_ok=True)
 
     for k, v in mg.cuda.items():
         src = install_cuda(args, v)
@@ -72,7 +72,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
 
 
 def build(args: argparse.Namespace) -> None:
-    os.makedirs(args.cache)
+    os.makedirs(args.cache, exist_ok=True)
 
     for mg in MONOGENS[args.environment]:
         if mg.id < args.min_gen_id or mg.id > args.max_gen_id:
