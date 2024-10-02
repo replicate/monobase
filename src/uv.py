@@ -49,26 +49,15 @@ def update_venv(
         return
 
     venv = f'python{python_version}-torch{torch_version}-{cuda_suffix(cuda_version)}'
-    venv_dir = f'/root/{venv}'
+    vdir = f'{tmp}/{venv}'
 
     logger.info(f'Creating venv {venv}...')
-    cmd = [
-        'docker', 'run', '--rm',
-        '--volume', f'{tmp}:/root',
-        '--workdir', '/root',
-        'ghcr.io/astral-sh/uv:debian',
-        'uv', 'venv', '--python', python_full_version, venv_dir,
-    ]
+    cmd = ['uv', 'venv', '--python', python_full_version, vdir]
     subprocess.run(cmd, check=True)
 
     logger.info(f'Running pip compile in {venv}...')
     url = pip_index_url(t, cuda_version)
     cmd = [
-        'docker', 'run', '-i', '--rm',
-        '--env', f'VIRTUAL_ENV={venv_dir}',
-        '--volume', f'{tmp}:/root',
-        '--workdir', '/root',
-        'ghcr.io/astral-sh/uv:debian',
         'uv', 'pip', 'compile',
         '--python-platform', 'x86_64-unknown-linux-gnu',
         '--extra-index-url', url,
@@ -79,7 +68,9 @@ def update_venv(
         '-',
     ]
     pkgs = pip_packages(t, cuda_version, pip_pkgs)
-    proc = subprocess.run(cmd, check=True, input='\n'.join(pkgs), capture_output=True, text=True)
+    env = os.environ.copy()
+    env['VIRTUAL_ENV'] = vdir
+    proc = subprocess.run(cmd, check=True, env=env, input='\n'.join(pkgs), capture_output=True, text=True)
 
     requirements = os.path.join(rdir, f'{venv}.txt')
     with open(requirements, 'w') as f:
