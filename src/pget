@@ -5,6 +5,7 @@
 set -euo pipefail
 
 PGET_BIN="/usr/local/bin/pget-bin"
+PROC_FILE="/srv/r8/fuse-rpc/proc/pget"
 
 url=''
 dst=''
@@ -20,8 +21,8 @@ for arg in "$@"; do
     fi
 done
 
-if [ -z "$url" ] || [ -z "$dst" ]; then
-    # Fail to parse arguments, use vanilla PGET
+if [ ! -f "$PROC_FILE" ] || [ -z "$url" ] || [ -z "$dst" ]; then
+    # No proc file or fail to parse arguments, use vanilla PGET
     exec "$PGET_BIN" "$@"
 else
     # Finger print object name with URL, size, ETag, and last modified
@@ -41,7 +42,7 @@ else
     size="$(echo "$fingerprint" | grep -oP '(?<=^content-length: )[0-9]+')"
 
     # Request file from FUSE
-    echo "{\"name\":\"$name\",\"size\":$size,\"url\":\"$url\"}" > /srv/r8/fuse-rpc/proc/pget
+    echo "{\"name\":\"$name\",\"size\":$size,\"url\":\"$url\"}" > "$PROC_FILE"
 
     # Symlink file to destination
     mkdir -p "$(dirname "$dst")"

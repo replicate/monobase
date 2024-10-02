@@ -54,7 +54,7 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
     logger.info(f'Downloading CUDA {version}...')
     cuda = cudas[version]
     file = os.path.join(args.cache, cuda.filename)
-    cmd = ['pget', '--force', cuda.url, file]
+    cmd = ['/usr/local/bin/pget', '--force', cuda.url, file]
     subprocess.run(cmd, check=True)
 
     logger.info(f'Installing CUDA {version}...')
@@ -97,7 +97,7 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
     logger.info(f'Downloading CuDNN {key}...')
     cudnn = cudnns[key]
     file = os.path.join(args.cache, cudnn.filename)
-    cmd = ['pget', '--force', cudnn.url, file]
+    cmd = ['/usr/local/bin/pget', '--force', cudnn.url, file]
     subprocess.run(cmd, check=True)
 
     logger.info(f'Installing CuDNN {key}...')
