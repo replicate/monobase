@@ -31,6 +31,7 @@ def update_venv(
         rdir: str,
         tmp: str,
         python_version: str,
+        python_full_version: str,
         torch_version: str,
         cuda_version: str,
         pip_pkgs: list[str]):
@@ -53,7 +54,7 @@ def update_venv(
         '--volume', f'{tmp}:/root',
         '--workdir', '/root',
         'ghcr.io/astral-sh/uv:debian',
-        'uv', 'venv', '--python', python_version, venv_dir,
+        'uv', 'venv', '--python', python_full_version, venv_dir,
     ]
     subprocess.run(cmd, check=True)
 

@@ -22,10 +22,10 @@ def update_generation(args: argparse.Namespace, tmp: TemporaryDirectory, mg: Mon
     rdir = os.path.join(os.path.dirname(__file__), f'requirements{suffix}', 'g%05d' % mg.id)
     os.makedirs(rdir, exist_ok=True)
 
-    for p in mg.python:
+    for p, pf in mg.python.items():
         for t in mg.torch:
             for c in mg.cuda.keys():
-                update_venv(rdir, tmp.name, p, t, c, mg.pip_pkgs)
+                update_venv(rdir, tmp.name, p, pf, t, c, mg.pip_pkgs)
 
 
 def update(args: argparse.Namespace) -> None:
