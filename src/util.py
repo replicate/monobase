@@ -14,8 +14,8 @@ handler.setFormatter(logging.Formatter(
 logger.addHandler(handler)
 
 
-class Version(namedtuple('Version', ['major', 'minor', 'patch', 'repr'])):
-    p = re.compile(r'^(?P<major>\d+)(\.(?P<minor>\d+)(\.(?P<patch>\d+))?)?')
+class Version(namedtuple('Version', ['major', 'minor', 'patch', 'extra','repr'])):
+    p = re.compile(r'^(?P<major>\d+)(\.(?P<minor>\d+)(\.(?P<patch>\d+)(\.(?P<extra>.+))?)?)?')
 
     @classmethod
     def parse(cls, s):
@@ -23,7 +23,8 @@ class Version(namedtuple('Version', ['major', 'minor', 'patch', 'repr'])):
         major = int(m.group('major'))
         minor = int(m.group('minor') or 0)
         patch = int(m.group('patch') or 0)
-        return cls(major, minor, patch, s)
+        extra = m.group('extra')
+        return cls(major, minor, patch, extra, s)
 
     def __repr__(self):
         return self.repr

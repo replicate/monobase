@@ -8,6 +8,9 @@ TorchDeps = namedtuple('TorchDeps', ['torchaudio', 'torchvision'])
 
 # https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix
 torch_specs_dict = {
+    # Nightly
+    '2.6': ('3.11', '3.12', ['12.4']),
+    # Releases
     '2.5': ('3.9', '3.12', ['11.8', '12.1', '12.4']),
     '2.4': ('3.8', '3.12', ['11.8', '12.1', '12.4']),
     '2.3': ('3.8', '3.11', ['11.8', '12.1']),
@@ -17,6 +20,9 @@ torch_specs_dict = {
 }
 
 torch_deps_dict = {
+    # Nightly
+    '2.6.0.dev20240918': TorchDeps('2.5.0.dev20240918', '0.20.0.dev20240918'),
+    # Releases
     '2.4.1': TorchDeps('2.4.1', '0.19.1'),
     '2.4.0': TorchDeps('2.4.0', '0.19.0'),
     '2.3.1': TorchDeps('2.3.1', '0.18.1'),
