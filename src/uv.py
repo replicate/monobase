@@ -10,8 +10,11 @@ def cuda_suffix(cuda_version: str) -> str:
     return f'cu{cuda_version.replace('.', '')}'
 
 
-def pip_index_url(cuda_version: str):
-    return f'https://download.pytorch.org/whl/{cuda_suffix(cuda_version)}'
+def pip_index_url(torch_version: Version, cuda_version: str):
+    prefix = 'https://download.pytorch.org/whl'
+    if torch_version.extra:
+        prefix = f'{prefix}/nightly'
+    return f'{prefix}/{cuda_suffix(cuda_version)}'
 
 
 def pip_packages(torch_version: Version,
@@ -59,6 +62,7 @@ def update_venv(
     subprocess.run(cmd, check=True)
 
     logger.info(f'Running pip compile in {venv}...')
+    url = pip_index_url(t, cuda_version)
     cmd = [
         'docker', 'run', '-i', '--rm',
         '--env', f'VIRTUAL_ENV={venv_dir}',
@@ -67,7 +71,7 @@ def update_venv(
         'ghcr.io/astral-sh/uv:debian',
         'uv', 'pip', 'compile',
         '--python-platform', 'x86_64-unknown-linux-gnu',
-        '--extra-index-url', pip_index_url(cuda_version),
+        '--extra-index-url', url,
         '--emit-index-url',
         '--emit-find-links',
         '--emit-build-options',
@@ -75,7 +79,7 @@ def update_venv(
         '-',
     ]
     pkgs = pip_packages(t, cuda_version, pip_pkgs)
-    proc = subprocess.run(cmd, input='\n'.join(pkgs), capture_output=True, text=True)
+    proc = subprocess.run(cmd, check=True, input='\n'.join(pkgs), capture_output=True, text=True)
 
     requirements = os.path.join(rdir, f'{venv}.txt')
     with open(requirements, 'w') as f:
@@ -111,7 +115,7 @@ def install_venv(args: argparse.Namespace,
 
     logger.info(f'Installing Torch {t} in {venv}...')
 
-    url = pip_index_url(cuda_version)
+    url = pip_index_url(t, cuda_version)
     requirements = os.path.join(rdir, f'{venv}.txt')
     cmd = [
         uv, 'pip', 'install',

@@ -9,7 +9,7 @@ TEST_MONOGENS: list[MonoGen] = [
         cuda={'12.4': '12.4.1_550.54.15'},
         cudnn={'9': '9.1.0.70'},
         python={'3.12': '3.12.6'},
-        torch=['2.4.1'],
+        torch=['2.4.1', '2.6.0.dev20240918'],
         pip_pkgs=['cog==0.9.23', 'opencv-python==4.10.0.84']
     ),
 ]
