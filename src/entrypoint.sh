@@ -34,9 +34,12 @@ builder() {
         "$PREFIX/bin/uv" --version
 
         log "Installing pget..."
-        curl -fsSL -o "$PREFIX/bin/pget" "$PGET_URL"
-        chmod +x "$PREFIX/bin/pget"
-        "$PREFIX/bin/pget" version
+        curl -fsSL -o "$PREFIX/bin/pget-bin" "$PGET_URL"
+        chmod +x "$PREFIX/bin/pget-bin"
+        "$PREFIX/bin/pget-bin" version
+
+        # PGET FUSE wrapper
+        cp /srv/r8/monobase/pget "$PREFIX/bin/pget"
 
         log "Running builder..."
         uv run --python "$BUILDER_PYTHON" /srv/r8/monobase/build.py "$@"

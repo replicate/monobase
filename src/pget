@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Hijack PGET and serve file lazily with FUSE RPC
+
+set -euo pipefail
+
+PGET_BIN="/usr/local/bin/pget-bin"
+
+url=''
+dst=''
+for arg in "$@"; do
+    if [[ $arg == https://* ]]; then
+        url="$arg"
+        continue
+    fi
+    # Destination is right after URL
+    if [ -n "$url" ]; then
+        dst="$arg"
+        break
+    fi
+done
+
+if [ -z "$url" ] || [ -z "$dst" ]; then
+    # Fail to parse arguments, use vanilla PGET
+    exec "$PGET_BIN" "$@"
+else
+    # Finger print object name with URL, size, ETag, and last modified
+    echo "$(date --iso-8601=seconds --utc) pget $*"
+    out="$(curl -fsSL -I "$url" | tr '[:upper:]' '[:lower:]' | grep '^\(content-length:\|etag:\|last-modified:\)')"
+    fingerprint="$({
+        echo "URL: $url"
+        echo "$out" | grep "^content-length:" | tail -n 1
+        echo "$out" | grep "^etag:" | tail -n 1
+        echo "$out" | grep "^last-modified:" | tail -n 1
+    })"
+    echo "Fingerprint:"
+    echo "$fingerprint"
+
+    sha256="$(echo "$fingerprint" | sha256sum | cut -d ' ' -f 1)"
+    name="pget/sha256/$sha256"
+    size="$(echo "$fingerprint" | grep -oP '(?<=^content-length: )[0-9]+')"
+
+    # Request file from FUSE
+    echo "{\"name\":\"$name\",\"size\":$size,\"url\":\"$url\"}" > /srv/r8/fuse-rpc/proc/pget
+
+    # Symlink file to destination
+    mkdir -p "$(dirname "$dst")"
+    ln -sf "/srv/r8/fuse-rpc/$name" "$dst"
+fi
