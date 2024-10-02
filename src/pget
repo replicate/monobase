@@ -7,22 +7,26 @@ set -euo pipefail
 PGET_BIN="/usr/local/bin/pget-bin"
 PROC_FILE="/srv/r8/fuse-rpc/proc/pget"
 
+# No FUSE proc file, use vanilla PGET
+if [ ! -f "$PROC_FILE" ]; then
+    exec "$PGET_BIN" "$@"
+fi
+
 url=''
 dst=''
+extract=0
+unknown=0
 for arg in "$@"; do
-    if [[ $arg == https://* ]]; then
-        url="$arg"
-        continue
-    fi
-    # Destination is right after URL
-    if [ -n "$url" ]; then
-        dst="$arg"
-        break
-    fi
+    case "$arg" in
+        http://*|https://*) url="$arg" ;;
+        -x|--extract) extract=1 ;;
+        --*|-*) unknown=1 ;;
+        *) dst="$arg" ;;
+    esac
 done
 
-if [ ! -f "$PROC_FILE" ] || [ -z "$url" ] || [ -z "$dst" ]; then
-    # No proc file or fail to parse arguments, use vanilla PGET
+# Fail to parse arguments, use vanilla PGET
+if [ "$unknown" -eq 1 ] || [ -z "$url" ] || [ -z "$dst" ]; then
     exec "$PGET_BIN" "$@"
 else
     # Finger print object name with URL, size, ETag, and last modified
@@ -34,17 +38,26 @@ else
         echo "$out" | grep "^etag:" | tail -n 1
         echo "$out" | grep "^last-modified:" | tail -n 1
     })"
-    echo "Fingerprint:"
-    echo "$fingerprint"
 
     sha256="$(echo "$fingerprint" | sha256sum | cut -d ' ' -f 1)"
     name="pget/sha256/$sha256"
     size="$(echo "$fingerprint" | grep -oP '(?<=^content-length: )[0-9]+')"
 
+    echo "FUSE object: $name"
+    echo "Fingerprint:"
+    echo "$fingerprint"
+
+
     # Request file from FUSE
     echo "{\"name\":\"$name\",\"size\":$size,\"url\":\"$url\"}" > "$PROC_FILE"
 
-    # Symlink file to destination
-    mkdir -p "$(dirname "$dst")"
-    ln -sf "/srv/r8/fuse-rpc/$name" "$dst"
+    if [ "$extract" -eq 0 ]; then
+        # Symlink file to destination
+        mkdir -p "$(dirname "$dst")"
+        ln -sf "/srv/r8/fuse-rpc/$name" "$dst"
+    else
+        # Extract tarball to destination
+        mkdir -p "$dst"
+        tar -xf "/srv/r8/fuse-rpc/$name" -C "$dst"
+    fi
 fi
