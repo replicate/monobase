@@ -14,6 +14,11 @@ TEST_MONOGENS: list[MonoGen] = [
     ),
 ]
 
+# Generations are immutable
+# Never edit an existing one in place
+# Always create a new one for any change
+# Run after adding generation X:
+# ./update.sh --min-gen-id=X
 PROD_MONOGENS: list[MonoGen] = [
     MonoGen(
         id=0,
@@ -39,6 +44,38 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.2.0', '2.2.1', '2.2.2',
             '2.3.0', '2.3.1',
             '2.4.0', '2.4.1',
+        ],
+        pip_pkgs=[
+            'https://github.com/replicate/cog/archive/refs/heads/add-waiting-env.zip',
+            'opencv-python==4.10.0.84',
+        ],
+    ),
+    MonoGen(
+        id=1,
+        cuda={
+            '11.8': '11.8.0_520.61.05',
+            '12.1': '12.1.1_530.30.02',
+            '12.4': '12.4.1_550.54.15',
+        },
+        cudnn={
+            '8': '8.9.7.29',
+            '9': '9.1.0.70',
+        },
+        python={
+            '3.8': '3.8.20',
+            '3.9': '3.9.20',
+            '3.10': '3.10.15',
+            '3.11': '3.11.10',
+            '3.12': '3.12.6',
+        },
+        torch=[
+            '2.0.0', '2.0.1',
+            '2.1.0', '2.1.1', '2.1.2',
+            '2.2.0', '2.2.1', '2.2.2',
+            '2.3.0', '2.3.1',
+            '2.4.0', '2.4.1',
+            # Nightly,
+            '2.6.0.dev20240918',
         ],
         pip_pkgs=[
             'https://github.com/replicate/cog/archive/refs/heads/add-waiting-env.zip',
