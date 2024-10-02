@@ -74,7 +74,7 @@ if ! [ -d "$VIRTUAL_ENV" ]; then
 fi
 
 export PATH="$VIRTUAL_ENV/bin:$CUDA_PATH/bin${PATH:+:${PATH}}"
-export LD_LIBRARY_PATH="$CUDA_PATH/lib64:$CUDNN_PATH/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$CUDA_PATH/lib64:$CUDNN_PATH/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 export LIBRARY_PATH="$CUDA_PATH/lib64/stubs"
 
 LD_CACHE_PATH="$MONOBASE_PATH/ld.so.cache.d/cuda$CUDA_VERSION-cudnn$CUDNN_VERSION-python$PYTHON_VERSION"
