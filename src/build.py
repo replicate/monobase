@@ -42,7 +42,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     logger.info(f'Building monobase generation {mg.id}...')
     os.makedirs(gdir, exist_ok=True)
 
-    for k, v in mg.cuda.items():
+    for k, v in sorted(mg.cuda.items(), reverse=True):
         src = install_cuda(args, v)
         dst = f'{gdir}/cuda{k}'
         os.symlink(os.path.relpath(src, gdir), dst)
@@ -50,8 +50,8 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
 
     cuda_major_p = re.compile(r'\.\d+$')
     cuda_majors = set(cuda_major_p.sub('', k) for k in mg.cuda.keys())
-    for k, v in mg.cudnn.items():
-        for m in cuda_majors:
+    for k, v in sorted(mg.cudnn.items(), reverse=True):
+        for m in sorted(cuda_majors, reverse=True):
             src = install_cudnn(args, v, m)
             dst = f'{gdir}/cudnn{k}-cuda{m}'
             os.symlink(os.path.relpath(src, gdir), dst)
@@ -59,9 +59,9 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
 
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
     rdir = os.path.join('/srv/r8/monobase', f'requirements{suffix}', 'g%05d' % mg.id)
-    for p, pf in mg.python.items():
-        for t in mg.torch:
-            for c in mg.cuda.keys():
+    for p, pf in sorted(mg.python.items(), reverse=True):
+        for t in sorted(mg.torch, reverse=True):
+            for c in sorted(mg.cuda.keys(), reverse=True):
                 install_venv(args, rdir, gdir, p, pf, t, c)
 
     optimize_ld_cache(args, gdir, mg)
@@ -74,7 +74,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
 def build(args: argparse.Namespace) -> None:
     os.makedirs(args.cache, exist_ok=True)
 
-    for mg in MONOGENS[args.environment]:
+    for mg in sorted(MONOGENS[args.environment], reverse=True):
         if mg.id < args.min_gen_id or mg.id > args.max_gen_id:
             continue
         build_generation(args, mg)

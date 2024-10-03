@@ -22,15 +22,15 @@ def update_generation(args: argparse.Namespace, tmp: TemporaryDirectory, mg: Mon
     rdir = os.path.join(os.path.dirname(__file__), f'requirements{suffix}', 'g%05d' % mg.id)
     os.makedirs(rdir, exist_ok=True)
 
-    for p, pf in mg.python.items():
-        for t in mg.torch:
-            for c in mg.cuda.keys():
+    for p, pf in sorted(mg.python.items(), reverse=True):
+        for t in sorted(mg.torch, reverse=True):
+            for c in sorted(mg.cuda.keys(), reverse=True):
                 update_venv(rdir, tmp.name, p, pf, t, c, mg.pip_pkgs)
 
 
 def update(args: argparse.Namespace) -> None:
     tmp = TemporaryDirectory(prefix='monobase-')
-    for mg in MONOGENS[args.environment]:
+    for mg in sorted(MONOGENS[args.environment], reverse=True):
         if mg.id < args.min_gen_id or mg.id > args.max_gen_id:
             continue
         update_generation(args, tmp, mg)
