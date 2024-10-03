@@ -74,10 +74,12 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
 def build(args: argparse.Namespace) -> None:
     os.makedirs(args.cache, exist_ok=True)
 
+    gens = []
     for mg in sorted(MONOGENS[args.environment], reverse=True):
         if mg.id < args.min_gen_id or mg.id > args.max_gen_id:
             continue
         build_generation(args, mg)
+        gens.append(mg.id)
 
     if args.prune_old_gen:
         prune_old_gen(args.min_gen_id)
@@ -92,7 +94,7 @@ def build(args: argparse.Namespace) -> None:
     cmd = ['du', '-ch', '-d', '1', args.prefix]
     subprocess.run(cmd, check=True)
 
-    logger.info('Monobase build completed')
+    logger.info(f'Monobase build completed: {gens}')
     mark_done('/srv/r8/monobase')
 
 

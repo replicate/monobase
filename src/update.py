@@ -30,12 +30,14 @@ def update_generation(args: argparse.Namespace, tmp: TemporaryDirectory, mg: Mon
 
 def update(args: argparse.Namespace) -> None:
     tmp = TemporaryDirectory(prefix='monobase-')
+    gens = []
     for mg in sorted(MONOGENS[args.environment], reverse=True):
         if mg.id < args.min_gen_id or mg.id > args.max_gen_id:
             continue
         update_generation(args, tmp, mg)
+        gens.append(mg.id)
 
-    logger.info('Monobase update completed')
+    logger.info(f'Monobase update completed: {gens}')
 
 
 if __name__ == '__main__':
