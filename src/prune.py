@@ -7,7 +7,7 @@ from util import logger
 
 def prune_old_gen(min_gen_id: int) -> None:
     for id in range(min_gen_id):
-        gdir = os.path.join('/usr/local', 'g%05d' % id)
+        gdir = os.path.join('/usr/local/monobase', 'g%05d' % id)
         if os.path.exists(gdir):
             logger.info(f'Pruning old generation {id} in {gdir}')
             shutil.rmtree(gdir, ignore_errors=True)
