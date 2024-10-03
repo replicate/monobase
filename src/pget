@@ -31,17 +31,17 @@ if [ "$unknown" -eq 1 ] || [ -z "$url" ] || [ -z "$dst" ]; then
 else
     # Finger print object name with URL, size, ETag, and last modified
     echo "$(date --iso-8601=seconds --utc) pget $*"
-    out="$(curl -fsSL -I "$url" | tr '[:upper:]' '[:lower:]' | grep '^\(content-length:\|etag:\|last-modified:\)')"
+    out="$(curl -fsSL -I "$url" | grep -i '^\(content-length:\|etag:\|last-modified:\)')"
     fingerprint="$({
         echo "URL: $url"
-        echo "$out" | grep "^content-length:" | tail -n 1
-        echo "$out" | grep "^etag:" | tail -n 1
-        echo "$out" | grep "^last-modified:" | tail -n 1
+        echo "$out" | grep -i '^content-length:' | tail -n 1
+        echo "$out" | grep -i '^etag:' | tail -n 1
+        echo "$out" | grep -i '^last-modified:' | tail -n 1
     })"
 
     sha256="$(echo "$fingerprint" | sha256sum | cut -d ' ' -f 1)"
     name="pget/sha256/$sha256"
-    size="$(echo "$fingerprint" | grep -oP '(?<=^content-length: )[0-9]+')"
+    size="$(echo "$fingerprint" | grep -ioP '(?<=^content-length: )[0-9]+')"
 
     echo "FUSE object: $name"
     echo "Fingerprint:"
