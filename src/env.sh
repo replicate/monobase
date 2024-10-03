@@ -27,8 +27,9 @@ if [ -n "${MONOBASE_LATEST:-}" ]; then
 fi
 
 if [ -z "${MONOBASE_GEN_ID:-}" ]; then
-    echo "MONOBASE_GEN_ID not set"
-    return 1
+    gdir="$(find /usr/local/monobase -mindepth 2 -maxdepth 2 -name .done -type f -exec dirname {} \; | sort | tail -n 1)"
+    MONOBASE_GEN_ID="$(basename "$gdir" | sed 's/^g0\{0,4\}//')"
+    echo "MONOBASE_GEN_ID not set, using latest $MONOBASE_GEN_ID"
 fi
 
 if [ -z "${CUDA_VERSION:-}" ]; then
