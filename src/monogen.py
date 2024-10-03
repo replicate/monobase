@@ -74,7 +74,7 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.2.0', '2.2.1', '2.2.2',
             '2.3.0', '2.3.1',
             '2.4.0', '2.4.1',
-            # Nightly,
+            # Nightly
             '2.6.0.dev20240918',
         ],
         pip_pkgs=[
@@ -106,7 +106,7 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.2.0', '2.2.1', '2.2.2',
             '2.3.0', '2.3.1',
             '2.4.0', '2.4.1',
-            # Nightly,
+            # Nightly
             '2.6.0.dev20240918',
         ],
         pip_pkgs=[
@@ -138,7 +138,7 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.2.0', '2.2.1', '2.2.2',
             '2.3.0', '2.3.1',
             '2.4.0', '2.4.1',
-            # Nightly,
+            # Nightly
             '2.6.0.dev20240918',
         ],
         pip_pkgs=[

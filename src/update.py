@@ -4,7 +4,7 @@ import os.path
 import sys
 
 from monogen import MONOGENS, MonoGen
-from util import logger
+from util import Version, logger
 from uv import update_venv
 
 parser = argparse.ArgumentParser(description='Update monobase requirements')
@@ -22,9 +22,9 @@ def update_generation(args: argparse.Namespace, tmp: TemporaryDirectory, mg: Mon
     rdir = os.path.join(os.path.dirname(__file__), f'requirements{suffix}', 'g%05d' % mg.id)
     os.makedirs(rdir, exist_ok=True)
 
-    for p, pf in sorted(mg.python.items(), reverse=True):
-        for t in sorted(mg.torch, reverse=True):
-            for c in sorted(mg.cuda.keys(), reverse=True):
+    for p, pf in sorted(mg.python.items(), key=lambda kv: Version.parse(kv[0]), reverse=True):
+        for t in sorted(mg.torch, key=Version.parse, reverse=True):
+            for c in sorted(mg.cuda.keys(), key=Version.parse, reverse=True):
                 update_venv(rdir, tmp.name, p, pf, t, c, mg.pip_pkgs)
 
 
