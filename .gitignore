@@ -1,4 +1,5 @@
-__pycache__
 /cache
 /local
+/src/.done
 /src/requirements-test
+__pycache__
