@@ -37,7 +37,7 @@ def update(args: argparse.Namespace) -> None:
         update_generation(args, tmp, mg)
         gens.append(mg.id)
 
-    logger.info(f'Monobase update completed: {gens}')
+    logger.info(f'Monobase update completed: {sorted(gens)}')
 
 
 if __name__ == '__main__':

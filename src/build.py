@@ -94,7 +94,7 @@ def build(args: argparse.Namespace) -> None:
     cmd = ['du', '-ch', '-d', '1', args.prefix]
     subprocess.run(cmd, check=True)
 
-    logger.info(f'Monobase build completed: {gens}')
+    logger.info(f'Monobase build completed: {sorted(gens)}')
     mark_done('/srv/r8/monobase')
 
 
