@@ -3,7 +3,7 @@
 # Source this in entry point
 
 if [ -n "${MONOBASE_LATEST:-}" ]; then
-    gdir="$(find /usr/local/monobase -mindepth 1 -maxdepth 1 -type d -name 'g*')"
+    gdir="$(find "$MONOBASE_PREFIX/monobase" -mindepth 1 -maxdepth 1 -type d -name 'g*')"
     MONOBASE_GEN_ID="$(basename "$gdir" | sed 's/^g0\{0,4\}//')"
 
     CUDA_VERSION="$(basename "$(find "$gdir" -mindepth 1 -maxdepth 1 -type l -name 'cuda*')" | sed 's/^cuda//')"
@@ -27,7 +27,7 @@ if [ -n "${MONOBASE_LATEST:-}" ]; then
 fi
 
 if [ -z "${MONOBASE_GEN_ID:-}" ]; then
-    gdir="$(find /usr/local/monobase -mindepth 2 -maxdepth 2 -name .done -type f -exec dirname {} \; | sort | tail -n 1)"
+    gdir="$(find "$MONOBASE_PREFIX/monobase" -mindepth 2 -maxdepth 2 -name .done -type f -exec dirname {} \; | sort | tail -n 1)"
     MONOBASE_GEN_ID="$(basename "$gdir" | sed 's/^g0\{0,4\}//')"
     echo "MONOBASE_GEN_ID not set, using latest $MONOBASE_GEN_ID"
 fi
@@ -52,7 +52,7 @@ if [ -z "${TORCH_VERSION:-}" ]; then
     return 1
 fi
 
-MONOBASE_PATH="/usr/local/monobase/$(printf 'g%05d' "$MONOBASE_GEN_ID")"
+MONOBASE_PATH="$MONOBASE_PREFIX/monobase/$(printf 'g%05d' "$MONOBASE_GEN_ID")"
 CUDA_PATH="$MONOBASE_PATH/cuda$CUDA_VERSION"
 CUDA_MAJOR="$(echo "$CUDA_VERSION" | sed 's/\..\+//')"
 CUDA_SUFFIX="$(echo "$CUDA_VERSION" | sed 's/\.//')"

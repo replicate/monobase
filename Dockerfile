@@ -2,18 +2,19 @@
 
 # - If hostname is monobase-builder-*
 #   - Runs as a DaemonSet on each worker
-#   - Builds /usr/local for model images
+#   - Builds PREFIX for model images
 # - Else
 #   - Runs as base image for models
-#   - Mounts /usr/local as host path
+#   - Mounts PREFIX as host path
 
 FROM ubuntu:jammy
 
-ARG PREFIX=/usr/local
+ARG PREFIX=/srv/r8/monobase
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 
+ENV MONOBASE_PREFIX=$PREFIX
 ENV UV_CACHE_DIR=$PREFIX/uv/cache
 ENV UV_PYTHON_INSTALL_DIR=$PREFIX/uv/python
 ENV UV_TOOL_BIN_DIR=$PREFIX/bin
@@ -78,5 +79,5 @@ RUN apt-get update \
         zstd \
     && rm -rf /var/lib/apt/lists/*
 
-COPY src /srv/r8/monobase
-ENTRYPOINT [ "/srv/r8/monobase/entrypoint.sh" ]
+COPY src /opt/r8/monobase
+ENTRYPOINT [ "/opt/r8/monobase/entrypoint.sh" ]

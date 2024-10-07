@@ -2,4 +2,4 @@
 
 FROM monobase:latest
 
-COPY local /usr/local
+COPY monobase /srv/r8/monobase

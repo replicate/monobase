@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-PGET_BIN="/usr/local/bin/pget-bin"
+PGET_BIN="$MONOBASE_PREFIX/bin/pget-bin"
 PROC_FILE="/srv/r8/fuse-rpc/proc/pget"
 
 # No FUSE proc file, use vanilla PGET

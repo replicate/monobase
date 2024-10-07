@@ -4,9 +4,8 @@
 
 set -euo pipefail
 
-PREFIX='/usr/local'
 BUILDER_PYTHON='3.12'
-DONE_FILE='/srv/r8/monobase/.done'
+DONE_FILE='/opt/r8/monobase/.done'
 
 UV_URL='https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz'
 PGET_URL='https://github.com/replicate/pget/releases/latest/download/pget_Linux_x86_64'
@@ -17,32 +16,32 @@ log() {
 
 builder() {
     if [ -n "${MONOBASE_CLEAN:-}" ]; then
-        log "Cleaning up $PREFIX..."
-        rm -rf "${PREFIX:?}"/{bin,cuda,monobase,uv}
+        log "Cleaning up $MONOBASE_PREFIX..."
+        rm -rf "${MONOBASE_PREFIX:?}"/{bin,cuda,monobase,uv}
         rm -f "$DONE_FILE"
     fi
 
     if [ -f "$DONE_FILE" ]; then
         log "Monobase ready, skipping build"
     else
-        mkdir -p "$PREFIX/bin"
+        mkdir -p "$MONOBASE_PREFIX/bin"
 
         # Always install latest uv and pget first
 
         log "Installing uv..."
-        curl -fsSL "$UV_URL" | tar -xz --strip-components=1 -C "$PREFIX/bin"
-        "$PREFIX/bin/uv" --version
+        curl -fsSL "$UV_URL" | tar -xz --strip-components=1 -C "$MONOBASE_PREFIX/bin"
+        "$MONOBASE_PREFIX/bin/uv" --version
 
         log "Installing pget..."
-        curl -fsSL -o "$PREFIX/bin/pget-bin" "$PGET_URL"
-        chmod +x "$PREFIX/bin/pget-bin"
-        "$PREFIX/bin/pget-bin" version
+        curl -fsSL -o "$MONOBASE_PREFIX/bin/pget-bin" "$PGET_URL"
+        chmod +x "$MONOBASE_PREFIX/bin/pget-bin"
+        "$MONOBASE_PREFIX/bin/pget-bin" version
 
         # PGET FUSE wrapper
-        cp /srv/r8/monobase/pget "$PREFIX/bin/pget"
+        cp /opt/r8/monobase/pget "$MONOBASE_PREFIX/bin/pget"
 
         log "Running builder..."
-        uv run --python "$BUILDER_PYTHON" /srv/r8/monobase/build.py "$@"
+        uv run --python "$BUILDER_PYTHON" /opt/r8/monobase/build.py "$@"
 
         touch "$DONE_FILE"
     fi
@@ -53,9 +52,11 @@ builder() {
     fi
 }
 
+export PATH="$MONOBASE_PREFIX/bin:$PATH"
+
 model() {
     # shellcheck disable=SC1091
-    . /srv/r8/monobase/env.sh
+    . /opt/r8/monobase/env.sh
     exec "$@"
 }
 

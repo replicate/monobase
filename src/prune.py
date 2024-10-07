@@ -1,3 +1,4 @@
+import argparse
 import os.path
 import shutil
 import subprocess
@@ -5,17 +6,17 @@ import subprocess
 from util import logger
 
 
-def prune_old_gen(min_gen_id: int) -> None:
-    for id in range(min_gen_id):
-        gdir = os.path.join('/usr/local/monobase', 'g%05d' % id)
+def prune_old_gen(args: argparse.Namespace) -> None:
+    for id in range(args.min_gen_id):
+        gdir = os.path.join(args.prefix, 'monobase', 'g%05d' % id)
         if os.path.exists(gdir):
             logger.info(f'Pruning old generation {id} in {gdir}')
             shutil.rmtree(gdir, ignore_errors=True)
 
 
-def prune_cuda() -> None:
+def prune_cuda(args: argparse.Namespace) -> None:
     cmd = [
-        'find', '/usr/local/monobase',
+        'find', f'{args.prefix}/monobase',
         '-type', 'l',
         '-maxdepth', '2',
         '(', '-name', 'cuda*', '-or', '-name', 'cudnn*', ')',
@@ -25,7 +26,7 @@ def prune_cuda() -> None:
     links = set(filter(None, proc.stdout.split('\0')))
     sources = set(map(os.path.realpath, links))
 
-    cdir = '/usr/local/cuda'
+    cdir = os.path.join(args.prefix, 'cuda')
     prefixes = set(['cuda', 'cudnn'])
     for e in os.listdir(cdir):
         prefix = e.split('-')[0]

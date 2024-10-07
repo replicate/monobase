@@ -20,7 +20,7 @@ parser.add_argument('--min-gen-id', metavar='N', type=int, default=0,
                     help='minimum generation ID, default=0')
 parser.add_argument('--max-gen-id', metavar='N', type=int, default=sys.maxsize,
                     help='maximum generation ID, default=inf')
-parser.add_argument('--prefix', metavar='PATH', default='/usr/local',
+parser.add_argument('--prefix', metavar='PATH', default='/srv/r8/monobase',
                     help='prefix for monobase')
 parser.add_argument('--cache', metavar='PATH', default='/var/cache/monobase',
                     help='cache for monobase')
@@ -58,7 +58,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
             logger.info(f'CuDNN symlinked in {dst}')
 
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
-    rdir = os.path.join('/srv/r8/monobase', f'requirements{suffix}', 'g%05d' % mg.id)
+    rdir = os.path.join('/opt/r8/monobase', f'requirements{suffix}', 'g%05d' % mg.id)
     for p, pf in sorted(mg.python.items(), key=lambda kv: Version.parse(kv[0]), reverse=True):
         for t in sorted(mg.torch, key=Version.parse, reverse=True):
             for c in sorted(mg.cuda.keys(), key=Version.parse, reverse=True):
@@ -82,9 +82,9 @@ def build(args: argparse.Namespace) -> None:
         gens.append(mg.id)
 
     if args.prune_old_gen:
-        prune_old_gen(args.min_gen_id)
+        prune_old_gen(args)
     if args.prune_cuda:
-        prune_cuda()
+        prune_cuda(args)
     if args.prune_uv_cache:
         prune_uv_cache()
     if args.clean_uv_cache:

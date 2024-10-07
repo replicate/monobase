@@ -9,12 +9,12 @@ BUILDER_PYTHON="3.12"
 # Build test requirements
 uv run --python "$BUILDER_PYTHON" src/update.py --environment test
 
-# Build test /usr/local
-mkdir -p local cache
+# Build test PREFIX
+mkdir -p monobase cache
 docker run --rm \
     --hostname monobase-builder \
-    --volume "$PWD/src:/srv/r8/monobase" \
-    --volume "$PWD/local:/usr/local" \
+    --volume "$PWD/src:/opt/r8/monobase" \
+    --volume "$PWD/monobase:/srv/r8/monobase" \
     --volume "$PWD/cache:/var/cache/monobase" \
     monobase:latest \
     --environment test \
@@ -23,7 +23,7 @@ docker run --rm \
 fail=0
 test() {
     op="$1"
-    f="$PWD/local/$2"
+    f="$PWD/monobase/$2"
     r=0
     case "$op" in
         -d) [ -d "$f" ] || r=1 ;;
@@ -33,14 +33,14 @@ test() {
     esac
 
     if [ "$r" -eq 0 ]; then
-        echo "PASS: [ $op /usr/local/$2 ]"
+        echo "PASS: [ $op /srv/r8/monobase/$2 ]"
     else
-        echo "FAIL: [ $op /usr/local/$2 ]"
+        echo "FAIL: [ $op /srv/r8/monobase/$2 ]"
         fail=$((fail+1))
     fi
 }
 
-# Test /usr/local structure
+# Test /srv/r8/monobase structure
 test -x 'bin/uv'
 test -x 'bin/pget'
 test -d 'monobase/g00000'
@@ -63,15 +63,17 @@ import sys, cog, torch
 assert sys.version.startswith('3.12.6'), f'sys.version is not 3.12.6: {sys.version}'
 assert cog.__version__ == '0.9.23', f'cog.__version__ is not 0.9.23: {cog.__version__}'
 assert torch.__version__ == '2.4.1+cu124', f'torch.__version__ is not 2.4.1+cu124: {torch.__version__}'
+print('PASS: Python imports')
 EOF
 
 docker run --rm \
-    --volume "$PWD/src:/srv/r8/monobase" \
-    --volume "$PWD/local:/usr/local" \
-    --env MONOBASE_GEN_ID=0 \
+    --volume "$PWD/src:/opt/r8/monobase" \
+    --volume "$PWD/monobase:/srv/r8/monobase" \
     --env CUDA_VERSION=12.4 \
     --env CUDNN_VERSION=9 \
     --env PYTHON_VERSION=3.12 \
     --env TORCH_VERSION=2.4.1 \
     monobase:latest \
     python -c "$SCRIPT"
+
+echo 'DONE: all tests passed'
