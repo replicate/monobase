@@ -70,7 +70,8 @@ def update_venv(
     pkgs = pip_packages(t, cuda_version, pip_pkgs)
     env = os.environ.copy()
     env['VIRTUAL_ENV'] = vdir
-    proc = subprocess.run(cmd, check=True, env=env, input='\n'.join(pkgs), capture_output=True, text=True)
+    proc = subprocess.run(
+            cmd, check=True, env=env, input='\n'.join(pkgs), capture_output=True, text=True)
 
     requirements = os.path.join(rdir, f'{venv}.txt')
     with open(requirements, 'w') as f:

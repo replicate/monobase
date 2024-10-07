@@ -14,7 +14,7 @@ handler.setFormatter(logging.Formatter(
 logger.addHandler(handler)
 
 
-class Version(namedtuple('Version', ['major', 'minor', 'patch', 'extra','repr'])):
+class Version(namedtuple('Version', ['major', 'minor', 'patch', 'extra', 'repr'])):
     p = re.compile(r'^(?P<major>\d+)(\.(?P<minor>\d+)(\.(?P<patch>\d+)(\.(?P<extra>.+))?)?)?')
 
     @classmethod
