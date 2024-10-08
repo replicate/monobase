@@ -27,7 +27,7 @@ def prune_cuda(args: argparse.Namespace) -> None:
     sources = set(map(os.path.realpath, links))
 
     cdir = os.path.join(args.prefix, 'cuda')
-    prefixes = set(['cuda', 'cudnn'])
+    prefixes = {'cuda', 'cudnn'}
     for e in os.listdir(cdir):
         prefix = e.split('-')[0]
         if prefix not in prefixes:
