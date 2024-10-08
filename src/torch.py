@@ -42,5 +42,5 @@ torch_specs: dict[Version, TorchSpec] = dict(
     for k, (pmin, pmax, cudas) in torch_specs_dict.items()
 )
 
-torch_deps: dict[Version, TorchSpec] = dict(
+torch_deps: dict[Version, TorchDeps] = dict(
     (Version.parse(k), v) for k, v in torch_deps_dict.items())

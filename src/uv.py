@@ -19,7 +19,7 @@ def pip_index_url(torch_version: Version, cuda_version: str):
 
 def pip_packages(torch_version: Version,
                  cuda_version: str,
-                 pip_pkgs: list[str]) -> tuple[str, list[str]]:
+                 pip_pkgs: list[str]) -> list[str]:
     deps = torch_deps[torch_version]
     cu = cuda_suffix(cuda_version)
     pkgs = [

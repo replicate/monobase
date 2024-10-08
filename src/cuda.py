@@ -22,6 +22,8 @@ def build_cudas() -> dict[str, Cuda]:
         url = urllib.parse.urlparse(u)
         f = os.path.basename(url.path)
         m = p.search(f)
+        if m is None:
+            raise ValueError(f'Invalid CUDA file name {f}')
         cuda = Version.parse(m.group('cuda'))
         driver = Version.parse(m.group('driver'))
         cudas[f'{cuda}_{driver}'] = Cuda(u, f, cuda, driver)
@@ -36,6 +38,8 @@ def build_cudnns() -> dict[str, CuDNN]:
         url = urllib.parse.urlparse(u)
         f = os.path.basename(url.path)
         m = p.search(f)
+        if m is None:
+            raise ValueError(f'Invalid CuDNN file name {f}')
         cudnn = Version.parse(m.group('cudnn'))
         cuda_major = int(m.group('cuda_major'))
         cudnns[f'{cudnn}-cuda{cuda_major}'] = CuDNN(u, f, cudnn, cuda_major)
