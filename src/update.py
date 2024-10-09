@@ -1,19 +1,13 @@
 from tempfile import TemporaryDirectory
 import argparse
 import os.path
-import sys
 
 from monogen import MONOGENS, MonoGen
-from util import Version, logger
+from util import Version, add_arguments, logger
 from uv import update_venv
 
 parser = argparse.ArgumentParser(description='Update monobase requirements')
-parser.add_argument('--environment', metavar='ENV', default='prod', choices=['test', 'prod'],
-                    help='environment [test, prod], default=prod')
-parser.add_argument('--min-gen-id', metavar='N', type=int, default=0,
-                    help='minimum generation ID, default=0')
-parser.add_argument('--max-gen-id', metavar='N', type=int, default=sys.maxsize,
-                    help='maximum generation ID, default=inf')
+add_arguments(parser)
 
 
 def update_generation(args: argparse.Namespace, tmp: TemporaryDirectory, mg: MonoGen) -> None:
@@ -41,5 +35,4 @@ def update(args: argparse.Namespace) -> None:
 
 
 if __name__ == '__main__':
-    args = parser.parse_args()
-    update(args)
+    update(parser.parse_args())

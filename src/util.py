@@ -1,4 +1,5 @@
 from collections import namedtuple
+import argparse
 import logging
 import os.path
 import re
@@ -28,6 +29,15 @@ class Version(namedtuple('Version', ['major', 'minor', 'patch', 'extra', 'repr']
 
     def __repr__(self):
         return self.repr
+
+
+def add_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument('--environment', metavar='ENV', default='prod', choices=['test', 'prod'],
+                        help='environment [test, prod], default=prod')
+    parser.add_argument('--min-gen-id', metavar='N', type=int, default=0,
+                        help='minimum generation ID, default=0')
+    parser.add_argument('--max-gen-id', metavar='N', type=int, default=sys.maxsize,
+                        help='maximum generation ID, default=inf')
 
 
 def is_done(d: str) -> bool:

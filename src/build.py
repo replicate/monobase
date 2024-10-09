@@ -3,23 +3,16 @@ import os
 import os.path
 import re
 import subprocess
-import sys
 
 from monogen import MONOGENS, MonoGen
 from cuda import install_cuda, install_cudnn
 from optimize import optimize_ld_cache, optimize_rdfind
 from prune import clean_uv_cache, prune_cuda, prune_old_gen, prune_uv_cache
-from util import Version, is_done, logger, mark_done
+from util import Version, add_arguments, is_done, logger, mark_done
 from uv import install_venv
 
-
 parser = argparse.ArgumentParser(description='Build monobase enviroment')
-parser.add_argument('--environment', metavar='ENV', default='prod', choices=['test', 'prod'],
-                    help='environment [test, prod], default=prod')
-parser.add_argument('--min-gen-id', metavar='N', type=int, default=0,
-                    help='minimum generation ID, default=0')
-parser.add_argument('--max-gen-id', metavar='N', type=int, default=sys.maxsize,
-                    help='maximum generation ID, default=inf')
+add_arguments(parser)
 parser.add_argument('--prefix', metavar='PATH', default='/srv/r8/monobase',
                     help='prefix for monobase')
 parser.add_argument('--cache', metavar='PATH', default='/var/cache/monobase',
@@ -98,5 +91,4 @@ def build(args: argparse.Namespace) -> None:
 
 
 if __name__ == '__main__':
-    args = parser.parse_args()
-    build(args)
+    build(parser.parse_args())

@@ -46,8 +46,8 @@ def build_cudnns() -> dict[str, CuDNN]:
     return cudnns
 
 
-cudas: dict[str, Cuda] = build_cudas()
-cudnns: dict[str, CuDNN] = build_cudnns()
+CUDAS: dict[str, Cuda] = build_cudas()
+CUDNNS: dict[str, CuDNN] = build_cudnns()
 
 
 def install_cuda(args: argparse.Namespace, version: str) -> str:
@@ -56,7 +56,7 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
         return cdir
 
     logger.info(f'Downloading CUDA {version}...')
-    cuda = cudas[version]
+    cuda = CUDAS[version]
     file = os.path.join(args.cache, cuda.filename)
     cmd = [f'{args.prefix}/bin/pget', '--force', cuda.url, file]
     subprocess.run(cmd, check=True)
@@ -99,7 +99,7 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
         return cdir
 
     logger.info(f'Downloading CuDNN {key}...')
-    cudnn = cudnns[key]
+    cudnn = CUDNNS[key]
     file = os.path.join(args.cache, cudnn.filename)
     cmd = [f'{args.prefix}/bin/pget', '--force', cudnn.url, file]
     subprocess.run(cmd, check=True)

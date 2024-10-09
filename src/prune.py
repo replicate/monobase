@@ -7,10 +7,10 @@ from util import logger
 
 
 def prune_old_gen(args: argparse.Namespace) -> None:
-    for id in range(args.min_gen_id):
-        gdir = os.path.join(args.prefix, 'monobase', 'g%05d' % id)
+    for gid in range(args.min_gen_id):
+        gdir = os.path.join(args.prefix, 'monobase', 'g%05d' % gid)
         if os.path.exists(gdir):
-            logger.info(f'Pruning old generation {id} in {gdir}')
+            logger.info(f'Pruning old generation {gid} in {gdir}')
             shutil.rmtree(gdir, ignore_errors=True)
 
 
