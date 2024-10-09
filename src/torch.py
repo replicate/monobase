@@ -8,7 +8,7 @@ TorchDeps = namedtuple('TorchDeps', ['torchaudio', 'torchvision'])
 
 # https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix
 torch_specs_dict = {
-    # Nightly
+    # Nightly with a subset of Python and CUDA combinations
     '2.6': ('3.11', '3.12', ['12.4']),
     # Releases
     '2.5': ('3.9', '3.12', ['11.8', '12.1', '12.4']),
