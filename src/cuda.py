@@ -58,8 +58,9 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
     logger.info(f'Downloading CUDA {version}...')
     cuda = CUDAS[version]
     file = os.path.join(args.cache, cuda.filename)
-    cmd = [f'{args.prefix}/bin/pget', '--force', cuda.url, file]
-    subprocess.run(cmd, check=True)
+    if not os.path.exists(file):
+        cmd = [f'{args.prefix}/bin/pget', '--pid-file', '/tmp/pget.pid', cuda.url, file]
+        subprocess.run(cmd, check=True)
 
     logger.info(f'Installing CUDA {version}...')
     cmd = [
@@ -101,8 +102,9 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
     logger.info(f'Downloading CuDNN {key}...')
     cudnn = CUDNNS[key]
     file = os.path.join(args.cache, cudnn.filename)
-    cmd = [f'{args.prefix}/bin/pget', '--force', cudnn.url, file]
-    subprocess.run(cmd, check=True)
+    if not os.path.exists(file):
+        cmd = [f'{args.prefix}/bin/pget', '--pid-file', '/tmp/pget.pid', cudnn.url, file]
+        subprocess.run(cmd, check=True)
 
     logger.info(f'Installing CuDNN {key}...')
     os.makedirs(cdir, exist_ok=True)
