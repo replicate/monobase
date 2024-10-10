@@ -13,6 +13,7 @@ uv run --python "$BUILDER_PYTHON" src/update.py --environment test
 mkdir -p monobase cache
 docker run --rm \
     --hostname monobase-builder \
+    --user "$(id -u):$(id -g)" \
     --volume "$PWD/src:/opt/r8/monobase" \
     --volume "$PWD/monobase:/srv/r8/monobase" \
     --volume "$PWD/cache:/var/cache/monobase" \
