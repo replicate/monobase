@@ -55,10 +55,10 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
     if is_done(cdir):
         return cdir
 
-    logger.info(f'Downloading CUDA {version}...')
     cuda = CUDAS[version]
     file = os.path.join(args.cache, cuda.filename)
     if not os.path.exists(file):
+        logger.info(f'Downloading CUDA {version}...')
         cmd = [f'{args.prefix}/bin/pget', '--pid-file', '/tmp/pget.pid', cuda.url, file]
         subprocess.run(cmd, check=True)
 
@@ -69,7 +69,6 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
         '--no-opengl-libs', '--no-man-page', '--no-drm'
     ]
     subprocess.run(cmd, check=True)
-    os.remove(file)
 
     # Remove unused files
     logger.info(f'Deleting unused files for CUDA {version}...')
@@ -99,10 +98,10 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
     if is_done(cdir):
         return cdir
 
-    logger.info(f'Downloading CuDNN {key}...')
     cudnn = CUDNNS[key]
     file = os.path.join(args.cache, cudnn.filename)
     if not os.path.exists(file):
+        logger.info(f'Downloading CuDNN {key}...')
         cmd = [f'{args.prefix}/bin/pget', '--pid-file', '/tmp/pget.pid', cudnn.url, file]
         subprocess.run(cmd, check=True)
 
@@ -110,7 +109,6 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
     os.makedirs(cdir, exist_ok=True)
     cmd = ['tar', '-xf', file, '--strip-components=1', '--exclude=lib*.a', '-C', cdir]
     subprocess.run(cmd, check=True)
-    os.remove(file)
 
     mark_done(cdir)
     logger.info(f'CuDNN {key} installed in {cdir}')
