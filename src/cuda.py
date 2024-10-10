@@ -1,4 +1,4 @@
-from collections import namedtuple
+from dataclasses import dataclass
 from urls import cuda_urls, cudnn_urls
 
 import argparse
@@ -11,8 +11,20 @@ import subprocess
 from util import Version, is_done, logger, mark_done
 
 
-Cuda = namedtuple('Cuda', ['url', 'filename', 'cuda_version', 'driver_version'])
-CuDNN = namedtuple('CuDNN', ['url', 'filename', 'cudnn_version', 'cuda_major'])
+@dataclass(frozen=True, order=True)
+class Cuda:
+    url: str
+    filename: str
+    cuda_version: str
+    driver_version: str
+
+
+@dataclass(frozen=True, order=True)
+class CuDNN:
+    url: str
+    filename: str
+    cudnn_version: str
+    cuda_major: int
 
 
 def build_cudas() -> dict[str, Cuda]:

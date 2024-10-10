@@ -1,4 +1,4 @@
-from collections import namedtuple
+from dataclasses import dataclass
 import argparse
 import logging
 import os.path
@@ -14,13 +14,21 @@ handler.setFormatter(logging.Formatter(
     '%(asctime)s\t%(levelname)s\t%(filename)s:%(lineno)d\t%(message)s'))
 logger.addHandler(handler)
 
+VERSION_REGEX = re.compile(
+        r'^(?P<major>\d+)(\.(?P<minor>\d+)(\.(?P<patch>\d+)(\.(?P<extra>.+))?)?)?')
 
-class Version(namedtuple('Version', ['major', 'minor', 'patch', 'extra', 'repr'])):
-    p = re.compile(r'^(?P<major>\d+)(\.(?P<minor>\d+)(\.(?P<patch>\d+)(\.(?P<extra>.+))?)?)?')
+
+@dataclass(frozen=True, order=True)
+class Version:
+    major: int
+    minor: int
+    patch: int
+    extra: str
+    repr: str
 
     @classmethod
     def parse(cls, s):
-        m = Version.p.search(s)
+        m = VERSION_REGEX.search(s)
         major = int(m.group('major'))
         minor = int(m.group('minor') or 0)
         patch = int(m.group('patch') or 0)

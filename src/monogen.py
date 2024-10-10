@@ -1,7 +1,15 @@
-from collections import namedtuple
+from dataclasses import dataclass
 
 
-MonoGen = namedtuple('MonoGen', ['id', 'cuda', 'cudnn', 'python', 'torch', 'pip_pkgs'])
+@dataclass(frozen=True, order=True)
+class MonoGen:
+    id: int
+    cuda: dict[str, str]
+    cudnn: dict[str, str]
+    python: dict[str, str]
+    torch: list[str]
+    pip_pkgs: list[str]
+
 
 TEST_MONOGENS: list[MonoGen] = [
     MonoGen(

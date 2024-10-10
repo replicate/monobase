@@ -3,7 +3,6 @@ import os
 import re
 import subprocess
 
-
 from monogen import MonoGen
 from util import logger
 

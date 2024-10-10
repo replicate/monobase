@@ -1,10 +1,20 @@
-from collections import namedtuple
+from dataclasses import dataclass
 
 from util import Version
 
 
-TorchSpec = namedtuple('TorchSpec', ['python_min', 'python_max', 'cudas'])
-TorchDeps = namedtuple('TorchDeps', ['torchaudio', 'torchvision'])
+@dataclass(frozen=True, order=True)
+class TorchSpec:
+    python_min: Version
+    python_max: Version
+    cudas: list[str]
+
+
+@dataclass(frozen=True, order=True)
+class TorchDeps:
+    torchaudio: str
+    torchvision: str
+
 
 # https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix
 torch_specs_dict = {
