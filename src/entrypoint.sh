@@ -5,6 +5,7 @@
 set -euo pipefail
 
 BUILDER_PYTHON='3.12'
+DONE_FILE='/opt/r8/monobase/.done'
 
 UV_URL='https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz'
 PGET_URL='https://github.com/replicate/pget/releases/latest/download/pget_Linux_x86_64'
@@ -39,8 +40,11 @@ builder() {
     log "Running builder..."
     uv run --python "$BUILDER_PYTHON" /opt/r8/monobase/build.py "$@"
 
-    # Sleep inside K8S to keep pod alive
+    # Inside K8S
+    # Write done file to signal pod ready
+    # Sleep keep pod alive
     if [ -n "${KUBERNETES_SERVICE_HOST:-}" ]; then
+        touch "$DONE_FILE"
         sleep 86400
     fi
 }
