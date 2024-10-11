@@ -10,7 +10,7 @@ def cuda_suffix(cuda_version: str) -> str:
     return f'cu{cuda_version.replace('.', '')}'
 
 
-def pip_index_url(torch_version: Version, cuda_version: str):
+def pip_index_url(torch_version: Version, cuda_version: str) -> str:
     prefix = 'https://download.pytorch.org/whl'
     if torch_version.extra:
         prefix = f'{prefix}/nightly'
@@ -37,7 +37,7 @@ def update_venv(
         python_full_version: str,
         torch_version: str,
         cuda_version: str,
-        pip_pkgs: list[str]):
+        pip_pkgs: list[str]) -> None:
     p = Version.parse(python_version)
     t = Version.parse(torch_version)
     tv = Version.parse(f'{t.major}.{t.minor}')

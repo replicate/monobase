@@ -15,15 +15,15 @@ from util import Version, is_done, logger, mark_done
 class Cuda:
     url: str
     filename: str
-    cuda_version: str
-    driver_version: str
+    cuda_version: Version
+    driver_version: Version
 
 
 @dataclass(frozen=True, order=True)
 class CuDNN:
     url: str
     filename: str
-    cudnn_version: str
+    cudnn_version: Version
     cuda_major: int
 
 

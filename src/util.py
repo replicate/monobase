@@ -27,8 +27,10 @@ class Version:
     repr: str
 
     @classmethod
-    def parse(cls, s):
+    def parse(cls, s:str) -> 'Version':
         m = VERSION_REGEX.search(s)
+        if m is None:
+            raise ValueError(f'Invalid version string: {s}')
         major = int(m.group('major'))
         minor = int(m.group('minor') or 0)
         patch = int(m.group('patch') or 0)
