@@ -8,23 +8,39 @@ from monogen import MONOGENS, MonoGen
 from cuda import install_cuda, install_cudnn
 from optimize import optimize_ld_cache, optimize_rdfind
 from prune import clean_uv_cache, prune_cuda, prune_old_gen, prune_uv_cache
-from util import Version, add_arguments, is_done, logger, mark_done
+from util import (
+    add_arguments,
+    desc_version,
+    desc_version_key,
+    is_done,
+    logger,
+    mark_done,
+)
 from uv import install_venv
 
 parser = argparse.ArgumentParser(description='Build monobase enviroment')
 add_arguments(parser)
-parser.add_argument('--prefix', metavar='PATH', default='/srv/r8/monobase',
-                    help='prefix for monobase')
-parser.add_argument('--cache', metavar='PATH', default='/var/cache/monobase',
-                    help='cache for monobase')
-parser.add_argument('--prune-old-gen', default=False, action='store_true',
-                    help='prune old generations')
-parser.add_argument('--prune-cuda', default=False, action='store_true',
-                    help='prune unused CUDAs and CuDNNs')
-parser.add_argument('--prune-uv-cache', default=True, action='store_true',
-                    help='prune uv cache')
-parser.add_argument('--clean-uv-cache', default=False, action='store_true',
-                    help='clean uv cache')
+parser.add_argument(
+    '--prefix', metavar='PATH', default='/srv/r8/monobase', help='prefix for monobase'
+)
+parser.add_argument(
+    '--cache', metavar='PATH', default='/var/cache/monobase', help='cache for monobase'
+)
+parser.add_argument(
+    '--prune-old-gen', default=False, action='store_true', help='prune old generations'
+)
+parser.add_argument(
+    '--prune-cuda',
+    default=False,
+    action='store_true',
+    help='prune unused CUDAs and CuDNNs',
+)
+parser.add_argument(
+    '--prune-uv-cache', default=True, action='store_true', help='prune uv cache'
+)
+parser.add_argument(
+    '--clean-uv-cache', default=False, action='store_true', help='clean uv cache'
+)
 
 
 def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
@@ -35,7 +51,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     logger.info(f'Building monobase generation {mg.id}...')
     os.makedirs(gdir, exist_ok=True)
 
-    for k, v in sorted(mg.cuda.items(), key=lambda kv: Version.parse(kv[0]), reverse=True):
+    for k, v in desc_version_key(mg.cuda):
         src = install_cuda(args, v)
         dst = f'{gdir}/cuda{k}'
         os.symlink(os.path.relpath(src, gdir), dst)
@@ -43,8 +59,8 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
 
     cuda_major_p = re.compile(r'\.\d+$')
     cuda_majors = set(cuda_major_p.sub('', k) for k in mg.cuda.keys())
-    for k, v in sorted(mg.cudnn.items(), key=lambda kv: Version.parse(kv[0]), reverse=True):
-        for m in sorted(cuda_majors, key=Version.parse, reverse=True):
+    for k, v in desc_version_key(mg.cudnn):
+        for m in desc_version(cuda_majors):
             src = install_cudnn(args, v, m)
             dst = f'{gdir}/cudnn{k}-cuda{m}'
             os.symlink(os.path.relpath(src, gdir), dst)
@@ -52,9 +68,9 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
 
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
     rdir = os.path.join('/opt/r8/monobase', f'requirements{suffix}', 'g%05d' % mg.id)
-    for p, pf in sorted(mg.python.items(), key=lambda kv: Version.parse(kv[0]), reverse=True):
-        for t in sorted(mg.torch, key=Version.parse, reverse=True):
-            for c in sorted(mg.cuda.keys(), key=Version.parse, reverse=True):
+    for p, pf in desc_version_key(mg.python):
+        for t in desc_version(mg.torch):
+            for c in desc_version(mg.cuda.keys()):
                 install_venv(args, rdir, gdir, p, pf, t, c)
 
     optimize_ld_cache(args, gdir, mg)

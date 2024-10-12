@@ -3,22 +3,26 @@ import argparse
 import os.path
 
 from monogen import MONOGENS, MonoGen
-from util import Version, add_arguments, logger
+from util import add_arguments, desc_version, desc_version_key, logger
 from uv import update_venv
 
 parser = argparse.ArgumentParser(description='Update monobase requirements')
 add_arguments(parser)
 
 
-def update_generation(args: argparse.Namespace, tmp: TemporaryDirectory, mg: MonoGen) -> None:
+def update_generation(
+    args: argparse.Namespace, tmp: TemporaryDirectory, mg: MonoGen
+) -> None:
     logger.info(f'Updating monobase generation {mg.id}')
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
-    rdir = os.path.join(os.path.dirname(__file__), f'requirements{suffix}', 'g%05d' % mg.id)
+    rdir = os.path.join(
+        os.path.dirname(__file__), f'requirements{suffix}', 'g%05d' % mg.id
+    )
     os.makedirs(rdir, exist_ok=True)
 
-    for p, pf in sorted(mg.python.items(), key=lambda kv: Version.parse(kv[0]), reverse=True):
-        for t in sorted(mg.torch, key=Version.parse, reverse=True):
-            for c in sorted(mg.cuda.keys(), key=Version.parse, reverse=True):
+    for p, pf in desc_version_key(mg.python):
+        for t in desc_version(mg.torch):
+            for c in desc_version(mg.cuda.keys()):
                 update_venv(rdir, tmp.name, p, pf, t, c, mg.pip_pkgs)
 
 

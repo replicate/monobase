@@ -44,7 +44,8 @@ def build_cudas() -> dict[str, Cuda]:
 
 def build_cudnns() -> dict[str, CuDNN]:
     p = re.compile(
-            r'^cudnn-linux-x86_64-(?P<cudnn>[^_]+)_cuda(?P<cuda_major>[^-]+)-archive.tar.xz$')
+        r'^cudnn-linux-x86_64-(?P<cudnn>[^_]+)_cuda(?P<cuda_major>[^-]+)-archive.tar.xz$'
+    )
     cudnns = {}
     for u in cudnn_urls:
         url = urllib.parse.urlparse(u)
@@ -76,9 +77,15 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
 
     logger.info(f'Installing CUDA {version}...')
     cmd = [
-        '/bin/sh', file, f'--installpath={cdir}',
-        '--toolkit', '--override', '--silent',
-        '--no-opengl-libs', '--no-man-page', '--no-drm'
+        '/bin/sh',
+        file,
+        f'--installpath={cdir}',
+        '--toolkit',
+        '--override',
+        '--silent',
+        '--no-opengl-libs',
+        '--no-man-page',
+        '--no-drm',
     ]
     subprocess.run(cmd, check=True)
 
@@ -114,7 +121,13 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
     file = os.path.join(args.cache, cudnn.filename)
     if not os.path.exists(file):
         logger.info(f'Downloading CuDNN {key}...')
-        cmd = [f'{args.prefix}/bin/pget', '--pid-file', '/tmp/pget.pid', cudnn.url, file]
+        cmd = [
+            f'{args.prefix}/bin/pget',
+            '--pid-file',
+            '/tmp/pget.pid',
+            cudnn.url,
+            file,
+        ]
         subprocess.run(cmd, check=True)
 
     logger.info(f'Installing CuDNN {key}...')

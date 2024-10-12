@@ -4,10 +4,12 @@
 
 set -euo pipefail
 
-BUILDER_PYTHON="3.12"
+MONOBASE_PYTHON='3.12'
+
+cd "$(git rev-parse --show-toplevel)"
 
 # Build test requirements
-uv run --python "$BUILDER_PYTHON" src/update.py --environment test
+uv run --python "$MONOBASE_PYTHON" src/update.py --environment test
 
 # Build test PREFIX
 mkdir -p monobase cache

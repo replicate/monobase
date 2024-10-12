@@ -28,10 +28,15 @@ def optimize_ld_cache(args: argparse.Namespace, gdir: str, mg: MonoGen) -> None:
 def optimize_rdfind(args: argparse.Namespace, gdir: str, mg: MonoGen) -> None:
     logger.info(f'Running rdfind for generation {mg.id}...')
     cmd = [
-        'rdfind', '-minsize', str(1024*1024),
-        '-deterministic', 'true',
-        '-makehardlinks', 'true',
-        '-outputname', '/dev/null',
+        'rdfind',
+        '-minsize',
+        str(1024 * 1024),
+        '-deterministic',
+        'true',
+        '-makehardlinks',
+        'true',
+        '-outputname',
+        '/dev/null',
         f'{args.prefix}/uv/cache',
         f'{args.prefix}/cuda',
         gdir,
