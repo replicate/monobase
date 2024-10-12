@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-MONOBASE_PYTHON='3.12'
+PYTHON_VERSION='3.12'
 
 cd "$(git rev-parse --show-toplevel)"
 
@@ -15,4 +15,4 @@ else
     uv tool run ruff check
     uv tool run ruff format --check
 fi
-uv run --python "$MONOBASE_PYTHON" --with mypy mypy src
+uv run --python "$PYTHON_VERSION" --with mypy mypy src
