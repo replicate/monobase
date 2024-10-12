@@ -53,4 +53,5 @@ torch_specs: dict[Version, TorchSpec] = dict(
 )
 
 torch_deps: dict[Version, TorchDeps] = dict(
-    (Version.parse(k), v) for k, v in torch_deps_dict.items())
+    (Version.parse(k), v) for k, v in torch_deps_dict.items()
+)

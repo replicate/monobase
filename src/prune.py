@@ -16,11 +16,20 @@ def prune_old_gen(args: argparse.Namespace) -> None:
 
 def prune_cuda(args: argparse.Namespace) -> None:
     cmd = [
-        'find', f'{args.prefix}/monobase',
-        '-type', 'l',
-        '-maxdepth', '2',
-        '(', '-name', 'cuda*', '-or', '-name', 'cudnn*', ')',
-        '-print0'
+        'find',
+        f'{args.prefix}/monobase',
+        '-type',
+        'l',
+        '-maxdepth',
+        '2',
+        '(',
+        '-name',
+        'cuda*',
+        '-or',
+        '-name',
+        'cudnn*',
+        ')',
+        '-print0',
     ]
     proc = subprocess.run(cmd, check=True, capture_output=True, text=True)
     links = set(filter(None, proc.stdout.split('\0')))

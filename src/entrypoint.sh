@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-BUILDER_PYTHON='3.12'
+MONOBASE_PYTHON='3.12'
 DONE_FILE='/opt/r8/monobase/.done'
 
 UV_URL='https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz'
@@ -38,7 +38,7 @@ builder() {
     cp /opt/r8/monobase/pget "$MONOBASE_PREFIX/bin/pget"
 
     log "Running builder..."
-    uv run --python "$BUILDER_PYTHON" /opt/r8/monobase/build.py "$@"
+    uv run --python "$MONOBASE_PYTHON" /opt/r8/monobase/build.py "$@"
 
     # Inside K8S
     # Write done file to signal pod ready

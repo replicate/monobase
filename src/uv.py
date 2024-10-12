@@ -17,9 +17,9 @@ def pip_index_url(torch_version: Version, cuda_version: str) -> str:
     return f'{prefix}/{cuda_suffix(cuda_version)}'
 
 
-def pip_packages(torch_version: Version,
-                 cuda_version: str,
-                 pip_pkgs: list[str]) -> list[str]:
+def pip_packages(
+    torch_version: Version, cuda_version: str, pip_pkgs: list[str]
+) -> list[str]:
     deps = torch_deps[torch_version]
     cu = cuda_suffix(cuda_version)
     pkgs = [
@@ -31,13 +31,14 @@ def pip_packages(torch_version: Version,
 
 
 def update_venv(
-        rdir: str,
-        tmp: str,
-        python_version: str,
-        python_full_version: str,
-        torch_version: str,
-        cuda_version: str,
-        pip_pkgs: list[str]) -> None:
+    rdir: str,
+    tmp: str,
+    python_version: str,
+    python_full_version: str,
+    torch_version: str,
+    cuda_version: str,
+    pip_pkgs: list[str],
+) -> None:
     p = Version.parse(python_version)
     t = Version.parse(torch_version)
     tv = Version.parse(f'{t.major}.{t.minor}')
@@ -58,9 +59,13 @@ def update_venv(
     logger.info(f'Running pip compile in {venv}...')
     url = pip_index_url(t, cuda_version)
     cmd = [
-        'uv', 'pip', 'compile',
-        '--python-platform', 'x86_64-unknown-linux-gnu',
-        '--extra-index-url', url,
+        'uv',
+        'pip',
+        'compile',
+        '--python-platform',
+        'x86_64-unknown-linux-gnu',
+        '--extra-index-url',
+        url,
         '--emit-index-url',
         '--emit-find-links',
         '--emit-build-options',
@@ -71,20 +76,23 @@ def update_venv(
     env = os.environ.copy()
     env['VIRTUAL_ENV'] = vdir
     proc = subprocess.run(
-            cmd, check=True, env=env, input='\n'.join(pkgs), capture_output=True, text=True)
+        cmd, check=True, env=env, input='\n'.join(pkgs), capture_output=True, text=True
+    )
 
     requirements = os.path.join(rdir, f'{venv}.txt')
     with open(requirements, 'w') as f:
         f.write(proc.stdout)
 
 
-def install_venv(args: argparse.Namespace,
-                 rdir: str,
-                 gdir: str,
-                 python_version: str,
-                 python_full_version: str,
-                 torch_version: str,
-                 cuda_version: str) -> None:
+def install_venv(
+    args: argparse.Namespace,
+    rdir: str,
+    gdir: str,
+    python_version: str,
+    python_full_version: str,
+    torch_version: str,
+    cuda_version: str,
+) -> None:
     p = Version.parse(python_version)
     t = Version.parse(torch_version)
     tv = Version.parse(f'{t.major}.{t.minor}')
@@ -110,10 +118,14 @@ def install_venv(args: argparse.Namespace,
     url = pip_index_url(t, cuda_version)
     requirements = os.path.join(rdir, f'{venv}.txt')
     cmd = [
-        uv, 'pip', 'install',
+        uv,
+        'pip',
+        'install',
         '--no-deps',
-        '--extra-index-url', url,
-        '--requirement', requirements,
+        '--extra-index-url',
+        url,
+        '--requirement',
+        requirements,
     ]
     env = os.environ.copy()
     env['VIRTUAL_ENV'] = vdir
