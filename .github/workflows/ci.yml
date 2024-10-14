@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: ${{ github.ref != format('refs/heads/{0}', github.event.repository.default_branch) }}
 
 jobs:
-  ruff:
+  check:
     name: Check
     runs-on: ubuntu-latest
     steps:
@@ -35,6 +35,7 @@ jobs:
   build:
     name: Build + release
     needs:
+      - check
       - test
     permissions:
       contents: read
