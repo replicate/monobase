@@ -61,7 +61,7 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.4.1',
         ],
         pip_pkgs=[
-            'https://github.com/replicate/cog/archive/refs/heads/add-waiting-env.zip',
+            'cog @ https://github.com/replicate/cog/archive/refs/heads/add-waiting-env.zip',
             'opencv-python==4.10.0.84',
         ],
     ),
@@ -100,7 +100,7 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.6.0.dev20240918',
         ],
         pip_pkgs=[
-            'https://github.com/replicate/cog/archive/refs/heads/add-waiting-env.zip',
+            'cog @ https://github.com/replicate/cog/archive/refs/heads/add-waiting-env.zip',
             'opencv-python==4.10.0.84',
         ],
     ),
@@ -139,7 +139,7 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.6.0.dev20240918',
         ],
         pip_pkgs=[
-            'https://github.com/replicate/cog/archive/a522a0f90600fbf8004f7748ca6bada5a3878a3e.zip',
+            'cog @ https://github.com/replicate/cog/archive/a522a0f90600fbf8004f7748ca6bada5a3878a3e.zip',
             'opencv-python==4.10.0.84',
         ],
     ),
@@ -178,7 +178,7 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.6.0.dev20240918',
         ],
         pip_pkgs=[
-            'https://github.com/replicate/cog/archive/4598529b07c620fd3a1d7e01746cf02ff5a641ef.zip',
+            'cog @ https://github.com/replicate/cog/archive/4598529b07c620fd3a1d7e01746cf02ff5a641ef.zip',
             'opencv-python==4.10.0.84',
         ],
     ),
@@ -201,9 +201,7 @@ def validate():
             for k, v in g.python.items():
                 assert v.startswith(f'{k}.'), f'[{env}] Python {v} is not {k}'
             for p in g.pip_pkgs:
-                assert '==' in p or p.startswith(
-                    'https://'
-                ), f'PIP package {p} is not pinned'
+                assert '==' in p or '@' in p, f'PIP package {p} is not pinned'
 
 
 validate()
