@@ -10,11 +10,24 @@ def cuda_suffix(cuda_version: str) -> str:
     return f'cu{cuda_version.replace('.', '')}'
 
 
-def pip_index_url(torch_version: Version, cuda_version: str) -> str:
+def torch_index_url(torch_version: Version, cuda_version: str) -> str:
     prefix = 'https://download.pytorch.org/whl'
     if torch_version.extra:
         prefix = f'{prefix}/nightly'
     return f'{prefix}/{cuda_suffix(cuda_version)}'
+
+
+def index_args(torch_version: Version, cuda_version: str) -> list[str]:
+    # --extra-index-url has high priority than --index-url
+    # Prefer packages from PyPI, fallback for Torch
+    return [
+        '--extra-index-url',
+        'https://pypi.org/simple',
+        '--index-url',
+        torch_index_url(torch_version, cuda_version),
+        '--index-strategy',
+        'unsafe-best-match',
+    ]
 
 
 def pip_packages(
@@ -57,21 +70,15 @@ def update_venv(
     subprocess.run(cmd, check=True)
 
     logger.info(f'Running pip compile in {venv}...')
-    url = pip_index_url(t, cuda_version)
-    cmd = [
-        'uv',
-        'pip',
-        'compile',
-        '--python-platform',
-        'x86_64-unknown-linux-gnu',
-        '--extra-index-url',
-        url,
+    # Emit extra info for debugging
+    emit_args = [
         '--emit-index-url',
         '--emit-find-links',
         '--emit-build-options',
         '--emit-index-annotation',
-        '-',
     ]
+    cmd = ['uv', 'pip', 'compile', '--python-platform', 'x86_64-unknown-linux-gnu']
+    cmd = cmd + emit_args + index_args(t, cuda_version) + ['-']
     pkgs = pip_packages(t, cuda_version, pip_pkgs)
     env = os.environ.copy()
     env['VIRTUAL_ENV'] = vdir
@@ -115,18 +122,9 @@ def install_venv(
 
     logger.info(f'Installing Torch {t} in {venv}...')
 
-    url = pip_index_url(t, cuda_version)
     requirements = os.path.join(rdir, f'{venv}.txt')
-    cmd = [
-        uv,
-        'pip',
-        'install',
-        '--no-deps',
-        '--extra-index-url',
-        url,
-        '--requirement',
-        requirements,
-    ]
+    cmd = [uv, 'pip', 'install', '--no-deps', '--requirement', requirements]
+    cmd += index_args(t, cuda_version)
     env = os.environ.copy()
     env['VIRTUAL_ENV'] = vdir
     subprocess.run(cmd, check=True, env=env)
