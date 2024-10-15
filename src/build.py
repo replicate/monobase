@@ -83,6 +83,9 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
 def build(args: argparse.Namespace) -> None:
     os.makedirs(args.cache, exist_ok=True)
 
+    if args.clean_uv_cache:
+        clean_uv_cache()
+
     gens = []
     for mg in sorted(MONOGENS[args.environment], reverse=True):
         if mg.id < args.min_gen_id or mg.id > args.max_gen_id:
@@ -96,8 +99,6 @@ def build(args: argparse.Namespace) -> None:
         prune_cuda(args)
     if args.prune_uv_cache:
         prune_uv_cache()
-    if args.clean_uv_cache:
-        clean_uv_cache()
 
     logger.info(f'Calculating disk usage in {args.prefix}...')
     cmd = ['du', '-ch', '-d', '1', args.prefix]

@@ -15,12 +15,6 @@ log() {
 }
 
 builder() {
-    if [ -n "${MONOBASE_CLEAN:-}" ]; then
-        log "Cleaning up $MONOBASE_PREFIX..."
-        rm -rf "${MONOBASE_PREFIX:?}"/{bin,cuda,monobase,uv}
-        rm -f "$DONE_FILE"
-    fi
-
     mkdir -p "$MONOBASE_PREFIX/bin"
 
     # Always install latest uv and pget first
