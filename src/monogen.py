@@ -343,7 +343,7 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.6.0.dev20240918',
         ],
         pip_pkgs=[
-            'cog @ https://github.com/replicate/cog/archive/bf222ce3d262e8f7dd215cd11a8fe91c3ca891f6.zip',
+            'cog @ https://github.com/replicate/cog/archive/0c3c6f18d0871cab0470ceb5301a550e85d61567.zip',
         ]
         + SEED_PKGS,
     ),
