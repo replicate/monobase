@@ -2,13 +2,14 @@ from dataclasses import dataclass
 from urls import cuda_urls, cudnn_urls
 
 import argparse
+import logging
 import os
 import urllib.parse
 import re
 import shutil
 import subprocess
 
-from util import Version, is_done, logger, mark_done
+from util import Version, is_done, mark_done
 
 
 @dataclass(frozen=True, order=True)
@@ -71,11 +72,11 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
     cuda = CUDAS[version]
     file = os.path.join(args.cache, cuda.filename)
     if not os.path.exists(file):
-        logger.info(f'Downloading CUDA {version}...')
+        logging.info(f'Downloading CUDA {version}...')
         cmd = [f'{args.prefix}/bin/pget', '--pid-file', '/tmp/pget.pid', cuda.url, file]
         subprocess.run(cmd, check=True)
 
-    logger.info(f'Installing CUDA {version}...')
+    logging.info(f'Installing CUDA {version}...')
     cmd = [
         '/bin/sh',
         file,
@@ -90,7 +91,7 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
     subprocess.run(cmd, check=True)
 
     # Remove unused files
-    logger.info(f'Deleting unused files for CUDA {version}...')
+    logging.info(f'Deleting unused files for CUDA {version}...')
     shutil.rmtree(os.path.join(cdir, 'compute-sanitizer'), ignore_errors=True)
     shutil.rmtree(os.path.join(cdir, 'extras'), ignore_errors=True)
     shutil.rmtree(os.path.join(cdir, 'gds'), ignore_errors=True)
@@ -107,7 +108,7 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
     subprocess.run(cmd, check=True)
 
     mark_done(cdir)
-    logger.info(f'CUDA {version} installed in {cdir}')
+    logging.info(f'CUDA {version} installed in {cdir}')
     return cdir
 
 
@@ -120,7 +121,7 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
     cudnn = CUDNNS[key]
     file = os.path.join(args.cache, cudnn.filename)
     if not os.path.exists(file):
-        logger.info(f'Downloading CuDNN {key}...')
+        logging.info(f'Downloading CuDNN {key}...')
         cmd = [
             f'{args.prefix}/bin/pget',
             '--pid-file',
@@ -130,11 +131,11 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
         ]
         subprocess.run(cmd, check=True)
 
-    logger.info(f'Installing CuDNN {key}...')
+    logging.info(f'Installing CuDNN {key}...')
     os.makedirs(cdir, exist_ok=True)
     cmd = ['tar', '-xf', file, '--strip-components=1', '--exclude=lib*.a', '-C', cdir]
     subprocess.run(cmd, check=True)
 
     mark_done(cdir)
-    logger.info(f'CuDNN {key} installed in {cdir}')
+    logging.info(f'CuDNN {key} installed in {cdir}')
     return cdir

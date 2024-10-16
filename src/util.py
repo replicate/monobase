@@ -8,16 +8,6 @@ import shutil
 import sys
 
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(
-    logging.Formatter(
-        '%(asctime)s\t%(levelname)s\t%(filename)s:%(lineno)d\t%(message)s'
-    )
-)
-logger.addHandler(handler)
-
 VERSION_REGEX = re.compile(
     r'^(?P<major>\d+)(\.(?P<minor>\d+)(\.(?P<patch>\d+)(\.(?P<extra>.+))?)?)?'
 )
@@ -89,3 +79,15 @@ def desc_version(it: Iterable[str]) -> list[str]:
 
 def desc_version_key(d: dict[str, str]) -> list[tuple[str, str]]:
     return sorted(d.items(), key=lambda kv: Version.parse(kv[0]), reverse=True)
+
+
+def setup_logging() -> None:
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(
+        logging.Formatter(
+            '%(asctime)s\t%(levelname)s\t%(filename)s:%(lineno)d\t%(message)s'
+        )
+    )
+    logger.addHandler(handler)

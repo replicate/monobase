@@ -1,16 +1,15 @@
 import argparse
+import logging
 import os.path
 import shutil
 import subprocess
-
-from util import logger
 
 
 def prune_old_gen(args: argparse.Namespace) -> None:
     for gid in range(args.min_gen_id):
         gdir = os.path.join(args.prefix, 'monobase', 'g%05d' % gid)
         if os.path.exists(gdir):
-            logger.info(f'Pruning old generation {gid} in {gdir}')
+            logging.info(f'Pruning old generation {gid} in {gdir}')
             shutil.rmtree(gdir, ignore_errors=True)
 
 
@@ -44,17 +43,17 @@ def prune_cuda(args: argparse.Namespace) -> None:
 
         src = os.path.join(cdir, e)
         if src not in sources:
-            logger.info(f'Pruning unused {prefix} in {src}...')
+            logging.info(f'Pruning unused {prefix} in {src}...')
             shutil.rmtree(src, ignore_errors=True)
 
 
 def prune_uv_cache() -> None:
-    logger.info('Pruning uv cache...')
+    logging.info('Pruning uv cache...')
     cmd = ['uv', 'cache', 'prune']
     subprocess.run(cmd, check=True)
 
 
 def clean_uv_cache() -> None:
-    logger.info('Cleaning uv cache...')
+    logging.info('Cleaning uv cache...')
     cmd = ['uv', 'cache', 'clean']
     subprocess.run(cmd, check=True)

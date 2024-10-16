@@ -1,14 +1,14 @@
 import argparse
+import logging
 import os
 import re
 import subprocess
 
 from monogen import MonoGen
-from util import logger
 
 
 def optimize_ld_cache(args: argparse.Namespace, gdir: str, mg: MonoGen) -> None:
-    logger.info(f'Generating ld.so.cache for generation {mg.id}...')
+    logging.info(f'Generating ld.so.cache for generation {mg.id}...')
     cuda_major_p = re.compile(r'\.\d+$')
     for cuda in mg.cuda.keys():
         for cudnn in mg.cudnn.keys():
@@ -26,7 +26,7 @@ def optimize_ld_cache(args: argparse.Namespace, gdir: str, mg: MonoGen) -> None:
 
 
 def optimize_rdfind(args: argparse.Namespace, gdir: str, mg: MonoGen) -> None:
-    logger.info(f'Running rdfind for generation {mg.id}...')
+    logging.info(f'Running rdfind for generation {mg.id}...')
     cmd = [
         'rdfind',
         '-minsize',

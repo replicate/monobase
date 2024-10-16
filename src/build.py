@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import os.path
 import re
@@ -13,8 +14,8 @@ from util import (
     desc_version,
     desc_version_key,
     is_done,
-    logger,
     mark_done,
+    setup_logging,
 )
 from uv import install_venv
 
@@ -48,14 +49,14 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     if is_done(gdir):
         return
 
-    logger.info(f'Building monobase generation {mg.id}...')
+    logging.info(f'Building monobase generation {mg.id}...')
     os.makedirs(gdir, exist_ok=True)
 
     for k, v in desc_version_key(mg.cuda):
         src = install_cuda(args, v)
         dst = f'{gdir}/cuda{k}'
         os.symlink(os.path.relpath(src, gdir), dst)
-        logger.info(f'CUDA symlinked in {dst}')
+        logging.info(f'CUDA symlinked in {dst}')
 
     cuda_major_p = re.compile(r'\.\d+$')
     cuda_majors = set(cuda_major_p.sub('', k) for k in mg.cuda.keys())
@@ -64,7 +65,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
             src = install_cudnn(args, v, m)
             dst = f'{gdir}/cudnn{k}-cuda{m}'
             os.symlink(os.path.relpath(src, gdir), dst)
-            logger.info(f'CuDNN symlinked in {dst}')
+            logging.info(f'CuDNN symlinked in {dst}')
 
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
     rdir = os.path.join('/opt/r8/monobase', f'requirements{suffix}', 'g%05d' % mg.id)
@@ -77,7 +78,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     optimize_rdfind(args, gdir, mg)
 
     mark_done(gdir)
-    logger.info(f'Generation {mg.id} installed in {gdir}')
+    logging.info(f'Generation {mg.id} installed in {gdir}')
 
 
 def build(args: argparse.Namespace) -> None:
@@ -100,12 +101,13 @@ def build(args: argparse.Namespace) -> None:
     if args.prune_uv_cache:
         prune_uv_cache()
 
-    logger.info(f'Calculating disk usage in {args.prefix}...')
+    logging.info(f'Calculating disk usage in {args.prefix}...')
     cmd = ['du', '-ch', '-d', '1', args.prefix]
     subprocess.run(cmd, check=True)
 
-    logger.info(f'Monobase build completed: {sorted(gens)}')
+    logging.info(f'Monobase build completed: {sorted(gens)}')
 
 
 if __name__ == '__main__':
+    setup_logging()
     build(parser.parse_args())

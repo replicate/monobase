@@ -1,6 +1,8 @@
 from dataclasses import dataclass
-from util import logger
+import logging
 import os.path
+
+from util import setup_logging
 
 
 @dataclass(frozen=True, order=True)
@@ -358,7 +360,7 @@ MONOGENS: dict[str, list[MonoGen]] = {
 
 
 def validate() -> None:
-    logger.info('Validating monobase generations...')
+    logging.info('Validating monobase generations...')
     for env, gens in MONOGENS.items():
         for i, g in enumerate(gens):
             assert g.id == i, f'[{env}] MonoGen.id {g.id} does not equal index {i}'
@@ -375,11 +377,12 @@ def validate() -> None:
     for mg in MONOGENS['prod']:
         rdir = os.path.join(os.path.dirname(__file__), 'requirements', 'g%05d' % mg.id)
         if not os.path.exists(rdir):
-            logger.error(
+            logging.error(
                 f'Missing monobase generation {mg.id}, did you forget to run script/update.sh?'
             )
             raise IOError('Missing monobase generation')
 
 
 if __name__ == '__main__':
+    setup_logging()
     validate()

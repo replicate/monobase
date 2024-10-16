@@ -1,9 +1,10 @@
 from tempfile import TemporaryDirectory
 import argparse
+import logging
 import os.path
 
 from monogen import MONOGENS, MonoGen
-from util import add_arguments, desc_version, desc_version_key, logger
+from util import add_arguments, desc_version, desc_version_key, setup_logging
 from uv import update_venv
 
 parser = argparse.ArgumentParser(description='Update monobase requirements')
@@ -13,7 +14,7 @@ add_arguments(parser)
 def update_generation(
     args: argparse.Namespace, tmp: TemporaryDirectory, mg: MonoGen
 ) -> None:
-    logger.info(f'Updating monobase generation {mg.id}')
+    logging.info(f'Updating monobase generation {mg.id}')
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
     rdir = os.path.join(
         os.path.dirname(__file__), f'requirements{suffix}', 'g%05d' % mg.id
@@ -35,8 +36,9 @@ def update(args: argparse.Namespace) -> None:
         update_generation(args, tmp, mg)
         gens.append(mg.id)
 
-    logger.info(f'Monobase update completed: {sorted(gens)}')
+    logging.info(f'Monobase update completed: {sorted(gens)}')
 
 
 if __name__ == '__main__':
+    setup_logging()
     update(parser.parse_args())
