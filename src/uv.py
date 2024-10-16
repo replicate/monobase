@@ -19,15 +19,17 @@ def torch_index_url(torch_version: Version, cuda_version: str) -> str:
 
 
 def index_args(torch_version: Version, cuda_version: str) -> list[str]:
-    # --extra-index-url has high priority than --index-url
-    # Prefer packages from PyPI, fallback for Torch
     return [
+        # --extra-index-url has high priority than --index-url
         '--extra-index-url',
-        'https://pypi.org/simple',
-        '--index-url',
         torch_index_url(torch_version, cuda_version),
+        # PyPI is the default index URL
+        '--index-url',
+        'https://pypi.org/simple',
+        # Prefer first index i.e. Torch, as it might pin some transitives
+        # e.g. numpy 1.x over 2.x
         '--index-strategy',
-        'unsafe-best-match',
+        'first-index',
     ]
 
 
@@ -85,7 +87,12 @@ def update_venv(
     env['VIRTUAL_ENV'] = vdir
     try:
         proc = subprocess.run(
-            cmd, check=True, env=env, input='\n'.join(pkgs), capture_output=True, text=True
+            cmd,
+            check=True,
+            env=env,
+            input='\n'.join(pkgs),
+            capture_output=True,
+            text=True,
         )
 
         requirements = os.path.join(rdir, f'{venv}.txt')

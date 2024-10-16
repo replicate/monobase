@@ -22,6 +22,11 @@ TEST_MONOGENS: list[MonoGen] = [
     ),
 ]
 
+# uv venv --seed does not install deprecated setuptools or wheel for Python 3.12
+# Explicitly declare them here
+# Versions are not pinned and we will use whatever Torch index has
+SEED_PKGS = ['pip', 'setuptools', 'wheel']
+
 # Generations are immutable
 # Never edit an existing one in place
 # Always create a new one for any change
@@ -264,6 +269,45 @@ PROD_MONOGENS: list[MonoGen] = [
             'wheel==0.44.0',
         ],
     ),
+    MonoGen(
+        id=6,
+        cuda={
+            '11.8': '11.8.0_520.61.05',
+            '12.1': '12.1.1_530.30.02',
+            '12.4': '12.4.1_550.54.15',
+        },
+        cudnn={
+            '8': '8.9.7.29',
+            '9': '9.1.0.70',
+        },
+        python={
+            '3.8': '3.8.20',
+            '3.9': '3.9.20',
+            '3.10': '3.10.15',
+            '3.11': '3.11.10',
+            '3.12': '3.12.7',
+        },
+        torch=[
+            '2.0.0',
+            '2.0.1',
+            '2.1.0',
+            '2.1.1',
+            '2.1.2',
+            '2.2.0',
+            '2.2.1',
+            '2.2.2',
+            '2.3.0',
+            '2.3.1',
+            '2.4.0',
+            '2.4.1',
+            # Nightly
+            '2.6.0.dev20240918',
+        ],
+        pip_pkgs=[
+            'cog @ https://github.com/replicate/cog/archive/2f883e462e0e0606e38a1d05ef5d02bfe43fa19e.zip',
+        ]
+        + SEED_PKGS,
+    ),
 ]
 
 MONOGENS: dict[str, list[MonoGen]] = {
@@ -283,7 +327,9 @@ def validate():
             for k, v in g.python.items():
                 assert v.startswith(f'{k}.'), f'[{env}] Python {v} is not {k}'
             for p in g.pip_pkgs:
-                assert '==' in p or '@' in p, f'PIP package {p} is not pinned'
+                assert (
+                    p in SEED_PKGS or '==' in p or '@' in p
+                ), f'PIP package {p} is not pinned'
 
 
 validate()
