@@ -1,5 +1,4 @@
 import argparse
-import logging
 import os.path
 import subprocess
 
@@ -99,8 +98,8 @@ def update_venv(
         with open(requirements, 'w') as f:
             f.write(proc.stdout)
     except subprocess.CalledProcessError as e:
-        logging.error(e.stdout)
-        logging.error(e.stderr)
+        logger.error(e.stdout)
+        logger.error(e.stderr)
         raise e
 
 
