@@ -7,7 +7,7 @@ import subprocess
 
 def prune_old_gen(args: argparse.Namespace) -> None:
     for gid in range(args.min_gen_id):
-        gdir = os.path.join(args.prefix, 'monobase', 'g%05d' % gid)
+        gdir = os.path.join(args.prefix, 'monobase', f'g{gid:%05d}')
         if os.path.exists(gdir):
             logging.info(f'Pruning old generation {gid} in {gdir}')
             shutil.rmtree(gdir, ignore_errors=True)

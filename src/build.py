@@ -45,7 +45,7 @@ parser.add_argument(
 
 
 def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
-    gdir = os.path.join(args.prefix, 'monobase', 'g%05d' % mg.id)
+    gdir = os.path.join(args.prefix, 'monobase', f'g{mg.id:05d}')
     if is_done(gdir):
         return
 
@@ -68,7 +68,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
             logging.info(f'CuDNN symlinked in {dst}')
 
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
-    rdir = os.path.join('/opt/r8/monobase', f'requirements{suffix}', 'g%05d' % mg.id)
+    rdir = os.path.join('/opt/r8/monobase', f'requirements{suffix}', f'g{mg.id:05d}')
     for p, pf in desc_version_key(mg.python):
         for t in desc_version(mg.torch):
             for c in desc_version(mg.cuda.keys()):
@@ -98,7 +98,7 @@ def build(args: argparse.Namespace) -> None:
             latest = os.path.join(args.prefix, 'monobase', 'latest')
             if os.path.exists(latest):
                 os.remove(latest)
-            os.symlink('g%05d' % mg.id, latest)
+            os.symlink(f'g{mg.id:05d}', latest)
 
     if args.prune_old_gen:
         prune_old_gen(args)

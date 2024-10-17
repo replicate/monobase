@@ -17,7 +17,7 @@ def update_generation(
     logging.info(f'Updating monobase generation {mg.id}')
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
     rdir = os.path.join(
-        os.path.dirname(__file__), f'requirements{suffix}', 'g%05d' % mg.id
+        os.path.dirname(__file__), f'requirements{suffix}', f'g{mg.id:05d}'
     )
     os.makedirs(rdir, exist_ok=True)
 

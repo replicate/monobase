@@ -415,7 +415,7 @@ def validate() -> None:
                     p in SEED_PKGS or '==' in p or '@' in p
                 ), f'PIP package {p} is not pinned'
     for mg in MONOGENS['prod']:
-        rdir = os.path.join(os.path.dirname(__file__), 'requirements', 'g%05d' % mg.id)
+        rdir = os.path.join(os.path.dirname(__file__), 'requirements', f'g{mg.id:05d}')
         if not os.path.exists(rdir):
             logging.error(
                 f'Missing monobase generation {mg.id}, did you forget to run script/update.sh?'
