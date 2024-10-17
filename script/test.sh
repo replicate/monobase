@@ -46,6 +46,7 @@ test() {
 # Test /srv/r8/monobase structure
 test -x 'bin/uv'
 test -x 'bin/pget'
+test -h 'monobase/latest'
 test -d 'monobase/g00000'
 test -f 'monobase/g00000/.done'
 test -h 'monobase/g00000/cuda12.4'

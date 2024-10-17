@@ -2,32 +2,13 @@
 
 # Source this in entry point
 
-if [ -n "${MONOBASE_LATEST:-}" ]; then
-    gdir="$(find "$MONOBASE_PREFIX/monobase" -mindepth 1 -maxdepth 1 -type d -name 'g*')"
-    MONOBASE_GEN_ID="$(basename "$gdir" | sed 's/^g0\{0,4\}//')"
-
-    CUDA_VERSION="$(basename "$(find "$gdir" -mindepth 1 -maxdepth 1 -type l -name 'cuda*')" | sed 's/^cuda//')"
-    CUDNN_VERSION="$(basename "$(find "$gdir" -mindepth 1 -maxdepth 1 -type l -name 'cudnn*')" | sed 's/^cudnn\([^-]*\)-cuda.*$/\1/')"
-
-    venv="$(find "$gdir" -mindepth 1 -maxdepth 1 -type d -name 'python*-torch*-cu*')"
-    PYTHON_VERSION="$(basename "$venv" | sed 's/python\([^-]*\)-torch[^-]*-cu[^-]*/\1/')"
-    TORCH_VERSION="$(basename "$venv" | sed 's/python[^-]*-torch\([^-]*\)-cu[^-]*/\1/')"
-
-    echo "MONOBASE_GEN_ID=$MONOBASE_GEN_ID"
-    echo "CUDA_VERSION=$CUDA_VERSION"
-    echo "CUDNN_VERSION=$CUDNN_VERSION"
-    echo "PYTHON_VERSION=$PYTHON_VERSION"
-    echo "TORCH_VERSION=$TORCH_VERSION"
-
-    export MONOBASE_GEN_ID
-    export CUDA_VERSION
-    export CUDNN_VERSION
-    export PYTHON_VERSION
-    export TORCH_VERSION
-fi
-
 if [ -z "${MONOBASE_GEN_ID:-}" ]; then
-    gdir="$(find "$MONOBASE_PREFIX/monobase" -mindepth 2 -maxdepth 2 -name .done -type f -exec dirname {} \; | sort | tail -n 1)"
+    latest="$MONOBASE_PREFIX/monobase/latest"
+    if [ -h "$latest" ]; then
+        gdir="$(readlink -f "$latest")"
+    else
+        gdir="$(find "$MONOBASE_PREFIX/monobase" -mindepth 2 -maxdepth 2 -name .done -type f -exec dirname {} \; | sort | tail -n 1)"
+    fi
     MONOBASE_GEN_ID="$(basename "$gdir" | sed 's/^g0\{0,4\}//')"
     echo "MONOBASE_GEN_ID not set, using latest $MONOBASE_GEN_ID"
 fi

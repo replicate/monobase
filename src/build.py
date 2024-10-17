@@ -88,11 +88,17 @@ def build(args: argparse.Namespace) -> None:
         clean_uv_cache()
 
     gens = []
-    for mg in sorted(MONOGENS[args.environment], reverse=True):
+    for i, mg in enumerate(sorted(MONOGENS[args.environment], reverse=True)):
         if mg.id < args.min_gen_id or mg.id > args.max_gen_id:
             continue
         build_generation(args, mg)
         gens.append(mg.id)
+
+        if i == 0:
+            latest = os.path.join(args.prefix, 'monobase', 'latest')
+            if os.path.exists(latest):
+                os.remove(latest)
+            os.symlink('g%05d' % mg.id, latest)
 
     if args.prune_old_gen:
         prune_old_gen(args)
