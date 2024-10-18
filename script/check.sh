@@ -17,4 +17,4 @@ else
     uv tool run ruff check
     uv tool run ruff format --check
 fi
-uv run --python "$PYTHON_VERSION" --with mypy mypy src
+uv run --python "$PYTHON_VERSION" --with-requirements requirements-dev.txt mypy src

@@ -13,6 +13,11 @@ if [ -z "${MONOBASE_GEN_ID:-}" ]; then
     echo "MONOBASE_GEN_ID not set, using latest $MONOBASE_GEN_ID"
 fi
 
+if [ -z "${COG_VERSION:-}" ]; then
+    echo "COG_VERSION not set"
+    return 1
+fi
+
 if [ -z "${CUDA_VERSION:-}" ]; then
     echo "CUDA_VERSION not set"
     return 1
@@ -33,12 +38,20 @@ if [ -z "${TORCH_VERSION:-}" ]; then
     return 1
 fi
 
+cdir="$(readlink -f "$MONOBASE_PREFIX/cog/latest")"
+COG_VENV="$cdir/python$PYTHON_VERSION-cog$COG_VERSION"
+
 MONOBASE_PATH="$MONOBASE_PREFIX/monobase/$(printf 'g%05d' "$MONOBASE_GEN_ID")"
 CUDA_PATH="$MONOBASE_PATH/cuda$CUDA_VERSION"
 CUDA_MAJOR="$(echo "$CUDA_VERSION" | sed 's/\..\+//')"
 CUDA_SUFFIX="$(echo "$CUDA_VERSION" | sed 's/\.//')"
 CUDNN_PATH="$MONOBASE_PATH/cudnn$CUDNN_VERSION-cuda${CUDA_MAJOR}"
 export VIRTUAL_ENV="$MONOBASE_PATH/python$PYTHON_VERSION-torch$TORCH_VERSION-cu$CUDA_SUFFIX"
+
+if ! [ -d "$COG_VENV" ]; then
+    echo "Cog $COG_VERSION not installed"
+    return 1
+fi
 
 if ! [ -d "$CUDA_PATH" ]; then
     echo "CUDA $CUDA_VERSION not installed"
@@ -54,6 +67,10 @@ if ! [ -d "$VIRTUAL_ENV" ]; then
     echo "Virtual environment $VIRTUAL_ENV not installed"
     return 1
 fi
+
+COG_PYTHON_PATH="$COG_VENV/lib/python$PYTHON_PATH/site-packages"
+VENV_PYTHON_PATH="$VIRTUAL_ENV/lib/python$PYTHON_PATH/site-packages"
+export PYTHONPATH="$COG_PYTHON_PATH:$VENV_PYTHON_PATH"
 
 export PATH="$VIRTUAL_ENV/bin:$CUDA_PATH/bin${PATH:+:${PATH}}"
 export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$CUDA_PATH/lib64:$CUDNN_PATH/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"

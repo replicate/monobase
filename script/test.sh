@@ -46,6 +46,9 @@ test() {
 # Test /srv/r8/monobase structure
 test -x 'bin/uv'
 test -x 'bin/pget'
+test -h 'cog/latest'
+test -d 'cog/g00000'
+test -f 'cog/g00000/.done'
 test -h 'monobase/latest'
 test -d 'monobase/g00000'
 test -f 'monobase/g00000/.done'
@@ -65,7 +68,7 @@ fi
 read -r -d '' SCRIPT << EOF || :
 import sys, cog, torch
 assert sys.version.startswith('3.12.6'), f'sys.version is not 3.12.6: {sys.version}'
-assert cog.__version__ == '0.9.23', f'cog.__version__ is not 0.9.23: {cog.__version__}'
+assert cog.__version__ == '0.11.1', f'cog.__version__ is not 0.11.1: {cog.__version__}'
 assert torch.__version__ == '2.4.1+cu124', f'torch.__version__ is not 2.4.1+cu124: {torch.__version__}'
 print('PASS: Python imports')
 EOF
@@ -73,6 +76,7 @@ EOF
 docker run --rm \
     --volume "$PWD/src:/opt/r8/monobase" \
     --volume "$PWD/monobase:/srv/r8/monobase" \
+    --env COG_VERSION=0.11.1 \
     --env CUDA_VERSION=12.4 \
     --env CUDNN_VERSION=9 \
     --env PYTHON_VERSION=3.12 \

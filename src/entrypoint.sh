@@ -32,7 +32,7 @@ builder() {
     cp /opt/r8/monobase/pget "$MONOBASE_PREFIX/bin/pget"
 
     log "Running builder..."
-    uv run --python "$MONOBASE_PYTHON" /opt/r8/monobase/build.py "$@"
+    uv run --python "$MONOBASE_PYTHON" --with requests /opt/r8/monobase/build.py "$@"
 
     # Inside K8S
     # Write done file to signal pod ready
