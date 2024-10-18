@@ -37,7 +37,7 @@ if [ -z "${COG_VERSION:-}" ]; then
         return 1
     fi
     COG_VENV="$(readlink -f "$COG_PATH")"
-    COG_VERSION="$(basename "$COG_VENV" | sed 's/cog\(.*\)-python.*//')"
+    COG_VERSION="$(basename "$COG_VENV" | sed 's/cog\(.*\)-python.*/\1/')"
     echo "COG_VERSION not set, using default $COG_VERSION"
 else
     COG_PATH="$MONOBASE_PREFIX/cog/latest/cog$COG_VERSION-python$PYTHON_VERSION"
