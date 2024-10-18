@@ -5,8 +5,9 @@ import os.path
 import re
 import subprocess
 
-from monogen import MONOGENS, MonoGen
+from cog import install_cogs
 from cuda import install_cuda, install_cudnn
+from monogen import MONOGENS, MonoGen
 from optimize import optimize_ld_cache, optimize_rdfind
 from prune import clean_uv_cache, prune_cuda, prune_old_gen, prune_uv_cache
 from util import (
@@ -86,6 +87,8 @@ def build(args: argparse.Namespace) -> None:
 
     if args.clean_uv_cache:
         clean_uv_cache()
+
+    install_cogs(args)
 
     gens = []
     for i, mg in enumerate(sorted(MONOGENS[args.environment], reverse=True)):
