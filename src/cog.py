@@ -8,18 +8,23 @@ import subprocess
 import requests
 
 from monogen import MONOGENS
-from util import Version, desc_version_key, is_done, mark_done
+from util import Version, is_done, mark_done
 
 LINK_REGEX = re.compile(r'<(?P<url>https://[^>]+)>; rel="next"')
 MIN_COG_VERSION = Version.parse('0.9.26')
 
-EXTRA_COG_VERSIONS = {
+# Cog version to requirement specifier mapping
+COG_VERSIONS = {
+    # Releases
+    '0.9.26': None,
+    '0.11.1': None,
     # Wait for COG_WAIT_FILE
-    '00b98bc9': 'cog @ https://github.com/replicate/cog/archive/00b98bc90bb784102243b7aec41ad1cbffaefece.zip'
+    '00b98bc9': 'cog @ https://github.com/replicate/cog/archive/00b98bc90bb784102243b7aec41ad1cbffaefece.zip',
 }
 DEFAULT_COG_VERSION = '00b98bc9'
 
 
+# Not used as this hits GitHub rate limit
 def get_cog_releases() -> dict[str, str]:
     logging.info('Getting cog releases...')
     url = 'https://api.github.com/repos/replicate/cog/releases'
@@ -98,10 +103,9 @@ def install_cogs(args: argparse.Namespace) -> None:
     # Since we only the site-packages, not Python interpreters
     uv = os.path.join(args.prefix, 'bin', 'uv')
     pvs = get_python_versions(args)
-    for c, req in EXTRA_COG_VERSIONS.items():
-        for p in pvs:
-            install_cog(uv, gdir, c, req, p)
-    for c, req in desc_version_key(get_cog_releases()):
+    for c, req in COG_VERSIONS.items():
+        if req is None:
+            req = f'cog=={c}'
         for p in pvs:
             install_cog(uv, gdir, c, req, p)
 
