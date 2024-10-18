@@ -1,3 +1,0 @@
---requirement requirements.txt
-mypy
-types-requests

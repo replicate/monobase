@@ -1,11 +1,12 @@
+from typing import Optional
 import argparse
+import hashlib
+import json
 import logging
 import os.path
 import re
 import shutil
 import subprocess
-
-import requests
 
 from monogen import MONOGENS
 from util import Version, is_done, mark_done
@@ -24,30 +25,17 @@ COG_VERSIONS = {
 DEFAULT_COG_VERSION = '00b98bc9'
 
 
-# Not used as this hits GitHub rate limit
-def get_cog_releases() -> dict[str, str]:
-    logging.info('Getting cog releases...')
-    url = 'https://api.github.com/repos/replicate/cog/releases'
-    headers = {'Accept': 'application/vnd.github.v3+json'}
-    releases = {}
-
-    while True:
-        resp = requests.get(url, headers)
-        resp.raise_for_status()
-        for r in resp.json():
-            v = r['name'].lstrip('v')
-            if v.startswith('0.10.'):
-                continue
-            if Version.parse(v) < MIN_COG_VERSION:
-                continue
-            releases[v] = f'cog=={v}'
-        m = LINK_REGEX.search(resp.headers.get('link', ''))
-        if not m:
-            break
-        url = m.group('url')
-
-    logging.info(f'Cog releases: {releases}')
-    return releases
+def cog_gen_hash(
+    cog_versions: dict[str, Optional[str]],
+    default_cog_version: str,
+    python_versions: list[str],
+) -> str:
+    j = {
+        'cog_versions': cog_versions,
+        'default_cog_version': default_cog_version,
+        'python_versions': python_versions,
+    }
+    return hashlib.sha256(json.dumps(j).encode('utf-8')).hexdigest()
 
 
 def get_python_versions(args: argparse.Namespace) -> list[str]:
@@ -81,20 +69,14 @@ def install_cogs(args: argparse.Namespace) -> None:
     cdir = os.path.join(args.prefix, 'cog')
     os.makedirs(cdir, exist_ok=True)
 
-    # Always create a new generation when installing cogs
-    gid = -1
-    prev = []
-    for d in sorted(os.listdir(cdir)):
-        p = os.path.join(cdir, d)
-        if os.path.isdir(p) and d.startswith('g'):
-            if not is_done(p):
-                continue
-            i = int(d[1:])
-            prev.append(p)
-            if i > gid:
-                gid = i
-    gid += 1
-    gdir = os.path.join(cdir, f'g{gid:05d}')
+    # Consistent hash of Cog versions as generation ID
+    python_versions = get_python_versions(args)
+    sha256 = cog_gen_hash(COG_VERSIONS, DEFAULT_COG_VERSION, python_versions)[:8]
+    gid = f'g{sha256}'
+    gdir = os.path.join(cdir, gid)
+    if is_done(gdir):
+        return
+
     logging.info(f'Installing cog generation {gid} in {gdir}...')
 
     # Cog * Python because Python version is required for venvs
@@ -102,20 +84,21 @@ def install_cogs(args: argparse.Namespace) -> None:
     # Create venvs with Python major.minor only
     # Since we only the site-packages, not Python interpreters
     uv = os.path.join(args.prefix, 'bin', 'uv')
-    pvs = get_python_versions(args)
     for c, req in COG_VERSIONS.items():
         if req is None:
             req = f'cog=={c}'
-        for p in pvs:
+        for p in python_versions:
             install_cog(uv, gdir, c, req, p)
-
-    mark_done(gdir)
 
     latest = os.path.join(cdir, 'latest')
     if os.path.exists(latest):
         os.remove(latest)
-    os.symlink(f'g{gid:05d}', latest)
+    os.symlink(gid, latest)
 
-    for g in prev:
+    mark_done(gdir)
+
+    for g in os.listdir(cdir):
+        if g in {'latest', gid}:
+            continue
         logging.info(f'Deleting previous cog generation in {g}...')
-        shutil.rmtree(g, ignore_errors=True)
+        shutil.rmtree(os.path.join(cdir, g), ignore_errors=True)
