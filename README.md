@@ -1,7 +1,7 @@
 monobase
 ========
 
-Monobase image with all CUDA * CuDNN * Python * Torch dependencies
+Monobase image with all Cog & CUDA * CuDNN * Python * Torch dependencies
 
 # Motivation
 
@@ -22,7 +22,7 @@ Monobase is a Docker container that runs in two modes:
     * Installs Cog, CUDA, CuDNN, Python, Torch, and other PIP packages
 * As a base image for weightless models
     * Mounts host path /srv/r8/monobase as read-only
-    * Activate environments based on CUDA, CuDNN, Python, and Torch versions
+    * Set `*PATH`s based on Cog, CUDA, CuDNN, Python, and Torch versions
 
 Monobase is more efficient than base images because:
 
@@ -39,6 +39,10 @@ Monobase is more efficient than base images because:
 
 Support Cog * Python verions are pre-installed in its own layer. To add a new
 Cog version, edit `COG_VERSIONS` in `src/cog.py`.
+
+* There is only one Cog generation
+* Generation ID hashed on Cog, Python versions and default Cog version
+* A one-off venv will be created if `COG_VERSION` is not available
 
 A monobase generation is an immutable matrix of CUDA, CuDNN, Python, Torch,
 and other PIP packages. To add a generation:
@@ -67,3 +71,5 @@ variables determine the runtime environment:
 * `CUDNN_VERSION` - CuDNN `major`
 * `PYTHON_VERSION` - Python `major.minor`
 * `TORCH_VERSION` - Torch `major.minor.patch`
+
+A `PYTHONPATH={cog}:{monobase}:{user}` is constructed from these variables.
