@@ -65,7 +65,7 @@ CUDNNS: dict[str, CuDNN] = build_cudnns()
 
 
 def install_cuda(args: argparse.Namespace, version: str) -> str:
-    cdir = f'{args.prefix}/cuda/cuda-{version}'
+    cdir = os.path.join(args.prefix, 'cuda', f'cuda-{version}')
     if is_done(cdir):
         return cdir
 
@@ -114,7 +114,7 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
 
 def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> str:
     key = f'{version}-cuda{cuda_major}'
-    cdir = f'{args.prefix}/cuda/cudnn-{key}'
+    cdir = os.path.join(args.prefix, 'cuda', f'cudnn-{key}')
     if is_done(cdir):
         return cdir
 

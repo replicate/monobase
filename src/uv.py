@@ -66,7 +66,7 @@ def update_venv(
         return
 
     venv = f'python{python_version}-torch{torch_version}-{cuda_suffix(cuda_version)}'
-    vdir = f'{tmp}/{venv}'
+    vdir = os.path.join(tmp, venv)
 
     logging.info(f'Creating venv {venv}...')
     cmd = ['uv', 'venv', '--python', python_full_version, vdir]

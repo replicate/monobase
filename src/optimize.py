@@ -19,7 +19,7 @@ def optimize_ld_cache(args: argparse.Namespace, gdir: str, mg: MonoGen) -> None:
                     f'{gdir}/cudnn{cudnn}-cuda{cuda_major_p.sub('', cuda)}/lib',
                     f'{args.prefix}/uv/python/cpython-{python_full}-linux-x86_64-gnu/lib',
                 ]
-                cache_dir = f'{gdir}/ld.so.cache.d'
+                cache_dir = os.path.join(gdir, 'ld.so.cache.d')
                 os.makedirs(cache_dir, exist_ok=True)
                 cmd = ['ldconfig', '-C', f'{cache_dir}/{k}'] + dirs
                 subprocess.run(cmd, check=True)
