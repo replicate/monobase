@@ -19,7 +19,7 @@ Monobase is a Docker container that runs in two modes:
 
 * As a daemon set on K8S nodes
     * Mounts host path /srv/r8/monobase
-    * Installs CUDA, CuDNN, Python, Torch, and other PIP packages
+    * Installs Cog, CUDA, CuDNN, Python, Torch, and other PIP packages
 * As a base image for weightless models
     * Mounts host path /srv/r8/monobase as read-only
     * Activate environments based on CUDA, CuDNN, Python, and Torch versions
@@ -36,6 +36,9 @@ Monobase is more efficient than base images because:
 * Daemon set pins the image on K8S nodes and eliminates cache miss
 
 # Operations
+
+Support Cog * Python verions are pre-installed in its own layer. To add a new
+Cog version, edit `COG_VERSIONS` in `src/cog.py`.
 
 A monobase generation is an immutable matrix of CUDA, CuDNN, Python, Torch,
 and other PIP packages. To add a generation:
@@ -59,6 +62,7 @@ When used as a base image for weightless models, the following environment
 variables determine the runtime environment:
 
 * `MONOBASE_GEN_ID` - monobase generation to use, latest if unset
+* `COG_VERSION` - Cog `major.minor.patch`, `COG_VERSIONS` key, or `https//*`
 * `CUDA_VERSION` - CUDA `major.minor`
 * `CUDNN_VERSION` - CuDNN `major`
 * `PYTHON_VERSION` - Python `major.minor`
