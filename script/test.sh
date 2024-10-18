@@ -47,6 +47,7 @@ test() {
 test -x 'bin/uv'
 test -x 'bin/pget'
 test -h 'cog/latest'
+test -f 'cog/latest/.done'
 test -h 'cog/latest/default-python3.12'
 test -h 'monobase/latest'
 test -d 'monobase/g00000'
@@ -82,5 +83,29 @@ docker run --rm \
     --env TORCH_VERSION=2.4.1 \
     monobase:latest \
     python -c "$SCRIPT"
+
+# Install one-off cog==0.9.0
+docker run --rm \
+    --volume "$PWD/src:/opt/r8/monobase" \
+    --volume "$PWD/monobase:/srv/r8/monobase" \
+    --env COG_VERSION=0.9.0 \
+    --env CUDA_VERSION=12.4 \
+    --env CUDNN_VERSION=9 \
+    --env PYTHON_VERSION=3.12 \
+    --env TORCH_VERSION=2.4.1 \
+    monobase:latest \
+    python -c "import cog; assert cog.__version__ == '0.9.0', f'cog.__version__ is not 0.9.0: {cog.__version__}'"
+
+# Install one-off cog@https://github.com/replicate/cog/archive/00b98bc90bb784102243b7aec41ad1cbffaefece.zip
+docker run --rm \
+    --volume "$PWD/src:/opt/r8/monobase" \
+    --volume "$PWD/monobase:/srv/r8/monobase" \
+    --env COG_VERSION=https://github.com/replicate/cog/archive/00b98bc90bb784102243b7aec41ad1cbffaefece.zip \
+    --env CUDA_VERSION=12.4 \
+    --env CUDNN_VERSION=9 \
+    --env PYTHON_VERSION=3.12 \
+    --env TORCH_VERSION=2.4.1 \
+    monobase:latest \
+    python -c "import cog; assert cog.__version__ == '0.11.2.dev71+g00b98bc90', f'cog.__version__ is not 0.11.2.dev71+g00b98bc90: {cog.__version__}'"
 
 echo 'DONE: all tests passed'

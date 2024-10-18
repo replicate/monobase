@@ -37,15 +37,22 @@ if [ -z "${COG_VERSION:-}" ]; then
         return 1
     fi
     COG_VENV="$(readlink -f "$COG_PATH")"
-    COG_VERSION="$(basename "$COG_VENV" | sed 's/-python.*//')"
+    COG_VERSION="$(basename "$COG_VENV" | sed 's/cog\(.*\)-python.*//')"
     echo "COG_VERSION not set, using default $COG_VERSION"
 else
     COG_PATH="$MONOBASE_PREFIX/cog/latest/cog$COG_VERSION-python$PYTHON_VERSION"
     if [ ! -d "$COG_PATH" ]; then
-        echo "Cog $COG_PATH does not exist"
-        return 1
+        echo "Cog $COG_VERSION not in monobase, installing..."
+        uv venv --python "$PYTHON_VERSION" /root/cog
+        case "$COG_VERSION" in
+            https://*) pkg="cog @ $COG_VERSION" ;;
+            *)         pkg="cog==$COG_VERSION"  ;;
+        esac
+        VIRTUAL_ENV=/root/cog uv pip install "$pkg"
+        COG_VENV=/root/cog
+    else
+        COG_VENV="$(readlink -f "$COG_PATH")"
     fi
-    COG_VENV="$(readlink -f "$COG_PATH")"
 fi
 
 ########################################
