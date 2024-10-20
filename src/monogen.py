@@ -1,6 +1,6 @@
-from dataclasses import dataclass
 import logging
 import os.path
+from dataclasses import dataclass
 
 from util import setup_logging
 

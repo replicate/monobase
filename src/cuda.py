@@ -1,14 +1,13 @@
-from dataclasses import dataclass
-from urls import cuda_urls, cudnn_urls
-
 import argparse
 import logging
 import os
-import urllib.parse
 import re
 import shutil
 import subprocess
+import urllib.parse
+from dataclasses import dataclass
 
+from urls import cuda_urls, cudnn_urls
 from util import Version, is_done, mark_done
 
 

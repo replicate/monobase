@@ -1,4 +1,3 @@
-from typing import Optional
 import argparse
 import hashlib
 import json
@@ -7,6 +6,7 @@ import os.path
 import re
 import shutil
 import subprocess
+from typing import Optional
 
 from monogen import MONOGENS
 from util import Version, is_done, mark_done

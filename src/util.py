@@ -1,12 +1,11 @@
-from dataclasses import dataclass
-from typing import Iterable
 import argparse
 import logging
 import os.path
 import re
 import shutil
 import sys
-
+from dataclasses import dataclass
+from typing import Iterable
 
 VERSION_REGEX = re.compile(
     r'^(?P<major>\d+)(\.(?P<minor>\d+)(\.(?P<patch>\d+)(\.(?P<extra>.+))?)?)?'

@@ -1,7 +1,7 @@
-from tempfile import TemporaryDirectory
 import argparse
 import logging
 import os.path
+from tempfile import TemporaryDirectory
 
 from monogen import MONOGENS, MonoGen
 from util import add_arguments, desc_version, desc_version_key, setup_logging
