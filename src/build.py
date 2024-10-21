@@ -29,6 +29,20 @@ parser.add_argument(
     '--cache', metavar='PATH', default='/var/cache/monobase', help='cache for monobase'
 )
 parser.add_argument(
+    '--cog-versions',
+    metavar='VERSION',
+    nargs='+',
+    type=str,
+    required=True,
+    help='Cog versions, x.y.z or GitHub URL',
+)
+parser.add_argument(
+    '--default-cog-version',
+    metavar='VERSION',
+    required=True,
+    help='Default Cog version, x.y.z or GitHub URL',
+)
+parser.add_argument(
     '--prune-old-gen', default=False, action='store_true', help='prune old generations'
 )
 parser.add_argument(
