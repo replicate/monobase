@@ -18,6 +18,7 @@ COG_VERSIONS = {
     # Releases
     '0.9.26': None,
     '0.11.1': None,
+    '0.11.3': None,
     # Wait for COG_WAIT_FILE
     '00b98bc9': 'cog @ https://github.com/replicate/cog/archive/00b98bc90bb784102243b7aec41ad1cbffaefece.zip',
 }
