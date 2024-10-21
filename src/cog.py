@@ -12,7 +12,6 @@ from monogen import MONOGENS
 from util import Version, is_done, mark_done
 
 LINK_REGEX = re.compile(r'<(?P<url>https://[^>]+)>; rel="next"')
-MIN_COG_VERSION = Version.parse('0.9.26')
 
 # Cog version to requirement specifier mapping
 COG_VERSIONS = {
