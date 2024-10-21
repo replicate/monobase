@@ -106,6 +106,6 @@ docker run --rm \
     --env PYTHON_VERSION=3.12 \
     --env TORCH_VERSION=2.4.1 \
     monobase:latest \
-    python -c "import cog; assert cog.__version__ == '0.11.2.dev71+g00b98bc90', f'cog.__version__ is not 0.11.2.dev71+g00b98bc90: {cog.__version__}'"
+    python -c "import cog; assert cog.__version__ == '0.11.2.dev71+g00b98bc90b', f'cog.__version__ is not 0.11.2.dev71+g00b98bc90b: {cog.__version__}'"
 
 echo 'DONE: all tests passed'
