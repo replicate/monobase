@@ -3,6 +3,7 @@
 cuda_prefix = 'https://pub-6c9cea068aa64db094559c4435a8b142.r2.dev/cuda'
 
 cuda_urls = [
+    f'{cuda_prefix}/cuda_12.6.2_560.35.03_linux.run',
     f'{cuda_prefix}/cuda_12.6.1_560.35.03_linux.run',
     f'{cuda_prefix}/cuda_12.6.0_560.28.03_linux.run',
     f'{cuda_prefix}/cuda_12.5.1_555.42.06_linux.run',
@@ -32,7 +33,10 @@ cuda_urls = [
 cudnn_prefix = 'https://pub-6c9cea068aa64db094559c4435a8b142.r2.dev/cudnn'
 
 cudnn_urls = [
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.5.0.50_cuda12-archive.tar.xz',
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.5.0.50_cuda11-archive.tar.xz',
     f'{cudnn_prefix}/cudnn-linux-x86_64-9.4.0.58_cuda12-archive.tar.xz',
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.4.0.58_cuda11-archive.tar.xz',
     f'{cudnn_prefix}/cudnn-linux-x86_64-9.3.0.75_cuda12-archive.tar.xz',
     f'{cudnn_prefix}/cudnn-linux-x86_64-9.3.0.75_cuda11-archive.tar.xz',
     f'{cudnn_prefix}/cudnn-linux-x86_64-9.2.1.18_cuda12-archive.tar.xz',
