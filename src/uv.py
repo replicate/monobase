@@ -42,8 +42,27 @@ def pip_packages(
         f'torch=={torch_version}+{cu}',
         f'torchaudio=={deps.torchaudio}+{cu}',
         f'torchvision=={deps.torchvision}+{cu}',
-    ] + pip_pkgs
-    return pkgs
+    ]
+    # Older Torch versions do not bundle CUDA or CuDNN
+    nvidia_pkgs = []
+    if torch_version < Version.parse('2.2.0'):
+        nvidia_pkgs = [
+            'nvidia-cublas',
+            'nvidia-cuda-cupti',
+            'nvidia-cuda-nvrtc',
+            'nvidia-cuda-runtime',
+            'nvidia-cudnn',
+            'nvidia-cufft',
+            'nvidia-curand',
+            'nvidia-cusolver',
+            'nvidia-cusparse',
+            'nvidia-nccl',
+            'nvidia-nvtx',
+        ]
+        if cu.startswith('cu12'):
+            nvidia_pkgs.append('nvidia-nvjitlink')
+        nvidia_pkgs = [f'{p}-{cu[:4]}' for p in nvidia_pkgs]
+    return pkgs + pip_pkgs + nvidia_pkgs
 
 
 def update_venv(
