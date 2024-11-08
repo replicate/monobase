@@ -70,6 +70,7 @@ RUN apt-get update \
         llvm \
         make \
         sox \
+        tini \
         tk-dev \
         unzip \
         wget \
@@ -79,5 +80,6 @@ RUN apt-get update \
         zstd \
     && rm -rf /var/lib/apt/lists/*
 
+RUN ln -s /usr/bin/tini /sbin/tini
 COPY src /opt/r8/monobase
 ENTRYPOINT [ "/opt/r8/monobase/entrypoint.sh" ]
