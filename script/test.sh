@@ -156,4 +156,20 @@ docker run --rm \
     monobase:latest \
     python -c "$SCRIPT"
 
+# NCCL
+read -r -d '' SCRIPT << EOF || :
+import ctypes
+ctypes.CDLL('libnccl.so.2')
+print('PASS: NCCL')
+EOF
+docker run --rm \
+    --volume "$PWD/src:/opt/r8/monobase" \
+    --volume "$PWD/monobase:/srv/r8/monobase" \
+    --env CUDA_VERSION=12.4 \
+    --env CUDNN_VERSION=9 \
+    --env PYTHON_VERSION=3.12 \
+    --env TORCH_VERSION=2.4.1 \
+    monobase:latest \
+    python -c "$SCRIPT"
+
 echo 'DONE: all tests passed'

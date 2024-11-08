@@ -103,7 +103,12 @@ VENV_PYTHONPATH="$VIRTUAL_ENV/lib/python$PYTHON_VERSION/site-packages"
 export PYTHONPATH="$COG_PYTHONPATH:$VENV_PYTHONPATH"
 
 export PATH="$VIRTUAL_ENV/bin:$CUDA_PATH/bin${PATH:+:${PATH}}"
-export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$CUDA_PATH/lib64:$CUDNN_PATH/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+
+# NVIDIA Container Toolkit mounts drivers here
+NCT_PATH=/usr/lib/x86_64-linux-gnu
+# NCCL is not part of CUDA or CuDNN and required by vLLM
+NCCL_PATH="$VENV_PYTHONPATH/nvidia/nccl/lib"
+export LD_LIBRARY_PATH="$NCT_PATH:$CUDA_PATH/lib64:$CUDNN_PATH/lib:$NCCL_PATH${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 export LIBRARY_PATH="$CUDA_PATH/lib64/stubs"
 
 LD_CACHE_PATH="$MONOBASE_PATH/ld.so.cache.d/cuda$CUDA_VERSION-cudnn$CUDNN_VERSION-python$PYTHON_VERSION"
