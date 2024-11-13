@@ -42,7 +42,7 @@ Cog version, edit `COG_VERSIONS` in `src/cog.py`.
 
 * There is only one Cog generation
 * Generation ID hashed on Cog, Python versions and default Cog version
-* A one-off venv will be created if `COG_VERSION` is not available
+* A one-off venv will be created if `R8_COG_VERSION` is not available
 
 A monobase generation is an immutable matrix of CUDA, CuDNN, Python, Torch,
 and other PIP packages. To add a generation:
@@ -66,10 +66,10 @@ When used as a base image for weightless models, the following environment
 variables determine the runtime environment:
 
 * `MONOBASE_GEN_ID` - monobase generation to use, latest if unset
-* `COG_VERSION` - Cog `major.minor.patch`, `COG_VERSIONS` key, or `https//*`
-* `CUDA_VERSION` - CUDA `major.minor`
-* `CUDNN_VERSION` - CuDNN `major`
-* `PYTHON_VERSION` - Python `major.minor`
-* `TORCH_VERSION` - Torch `major.minor.patch`
+* `R8_COG_VERSION` - Cog `major.minor.patch`, `COG_VERSIONS` key, or `https//*`
+* `R8_CUDA_VERSION` - CUDA `major.minor`
+* `R8_CUDNN_VERSION` - CuDNN `major`
+* `R8_PYTHON_VERSION` - Python `major.minor`
+* `R8_TORCH_VERSION` - Torch `major.minor.patch`
 
 A `PYTHONPATH={cog}:{monobase}:{user}` is constructed from these variables.

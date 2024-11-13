@@ -81,10 +81,10 @@ EOF
 docker run --rm \
     --volume "$PWD/src:/opt/r8/monobase" \
     --volume "$PWD/monobase:/srv/r8/monobase" \
-    --env CUDA_VERSION=12.4 \
-    --env CUDNN_VERSION=9 \
-    --env PYTHON_VERSION=3.12 \
-    --env TORCH_VERSION=2.4.1 \
+    --env R8_CUDA_VERSION=12.4 \
+    --env R8_CUDNN_VERSION=9 \
+    --env R8_PYTHON_VERSION=3.12 \
+    --env R8_TORCH_VERSION=2.4.1 \
     monobase:latest \
     python -c "$SCRIPT"
 
@@ -97,11 +97,11 @@ EOF
 docker run --rm \
     --volume "$PWD/src:/opt/r8/monobase" \
     --volume "$PWD/monobase:/srv/r8/monobase" \
-    --env COG_VERSION=0.11.3 \
-    --env CUDA_VERSION=12.4 \
-    --env CUDNN_VERSION=9 \
-    --env PYTHON_VERSION=3.12 \
-    --env TORCH_VERSION=2.4.1 \
+    --env R8_COG_VERSION=0.11.3 \
+    --env R8_CUDA_VERSION=12.4 \
+    --env R8_CUDNN_VERSION=9 \
+    --env R8_PYTHON_VERSION=3.12 \
+    --env R8_TORCH_VERSION=2.4.1 \
     monobase:latest \
     python -c "$SCRIPT"
 
@@ -114,11 +114,11 @@ EOF
 docker run --rm \
     --volume "$PWD/src:/opt/r8/monobase" \
     --volume "$PWD/monobase:/srv/r8/monobase" \
-    --env COG_VERSION=https://github.com/replicate/cog/archive/00b98bc90bb784102243b7aec41ad1cbffaefece.zip \
-    --env CUDA_VERSION=12.4 \
-    --env CUDNN_VERSION=9 \
-    --env PYTHON_VERSION=3.12 \
-    --env TORCH_VERSION=2.4.1 \
+    --env R8_COG_VERSION=https://github.com/replicate/cog/archive/00b98bc90bb784102243b7aec41ad1cbffaefece.zip \
+    --env R8_CUDA_VERSION=12.4 \
+    --env R8_CUDNN_VERSION=9 \
+    --env R8_PYTHON_VERSION=3.12 \
+    --env R8_TORCH_VERSION=2.4.1 \
     monobase:latest \
     python -c "$SCRIPT"
 
@@ -131,11 +131,11 @@ EOF
 docker run --rm \
     --volume "$PWD/src:/opt/r8/monobase" \
     --volume "$PWD/monobase:/srv/r8/monobase" \
-    --env COG_VERSION=0.9.0 \
-    --env CUDA_VERSION=12.4 \
-    --env CUDNN_VERSION=9 \
-    --env PYTHON_VERSION=3.12 \
-    --env TORCH_VERSION=2.4.1 \
+    --env R8_COG_VERSION=0.9.0 \
+    --env R8_CUDA_VERSION=12.4 \
+    --env R8_CUDNN_VERSION=9 \
+    --env R8_PYTHON_VERSION=3.12 \
+    --env R8_TORCH_VERSION=2.4.1 \
     monobase:latest \
     python -c "$SCRIPT"
 
@@ -148,11 +148,11 @@ EOF
 docker run --rm \
     --volume "$PWD/src:/opt/r8/monobase" \
     --volume "$PWD/monobase:/srv/r8/monobase" \
-    --env COG_VERSION=https://github.com/replicate/cog/archive/8ea466324738f3143954ec5be3211051659a20da.zip \
-    --env CUDA_VERSION=12.4 \
-    --env CUDNN_VERSION=9 \
-    --env PYTHON_VERSION=3.12 \
-    --env TORCH_VERSION=2.4.1 \
+    --env R8_COG_VERSION=https://github.com/replicate/cog/archive/8ea466324738f3143954ec5be3211051659a20da.zip \
+    --env R8_CUDA_VERSION=12.4 \
+    --env R8_CUDNN_VERSION=9 \
+    --env R8_PYTHON_VERSION=3.12 \
+    --env R8_TORCH_VERSION=2.4.1 \
     monobase:latest \
     python -c "$SCRIPT"
 
@@ -165,10 +165,10 @@ EOF
 docker run --rm \
     --volume "$PWD/src:/opt/r8/monobase" \
     --volume "$PWD/monobase:/srv/r8/monobase" \
-    --env CUDA_VERSION=12.4 \
-    --env CUDNN_VERSION=9 \
-    --env PYTHON_VERSION=3.12 \
-    --env TORCH_VERSION=2.4.1 \
+    --env R8_CUDA_VERSION=12.4 \
+    --env R8_CUDNN_VERSION=9 \
+    --env R8_PYTHON_VERSION=3.12 \
+    --env R8_TORCH_VERSION=2.4.1 \
     monobase:latest \
     python -c "$SCRIPT"
 
