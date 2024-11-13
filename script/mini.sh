@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build mini image for testing
+# Build mini image for local development
 
 set -euo pipefail
 

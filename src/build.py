@@ -11,6 +11,7 @@ from monogen import MONOGENS, MonoGen
 from optimize import optimize_ld_cache, optimize_rdfind
 from prune import clean_uv_cache, prune_cuda, prune_old_gen, prune_uv_cache
 from util import (
+    Version,
     add_arguments,
     desc_version,
     desc_version_key,
@@ -33,14 +34,18 @@ parser.add_argument(
     metavar='VERSION',
     nargs='+',
     type=str,
-    required=True,
     help='Cog versions, x.y.z or GitHub URL',
 )
 parser.add_argument(
     '--default-cog-version',
     metavar='VERSION',
-    required=True,
     help='Default Cog version, x.y.z or GitHub URL',
+)
+parser.add_argument(
+    '--mini',
+    default=False,
+    action='store_true',
+    help='Build a mini mono of 1 generation * 1 venv',
 )
 parser.add_argument(
     '--prune-old-gen', default=False, action='store_true', help='prune old generations'
@@ -97,15 +102,63 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
 
 
 def build(args: argparse.Namespace) -> None:
+    monogens = sorted(MONOGENS[args.environment], reverse=True)
+    if args.mini:
+        mg = monogens[0]
+
+        def assert_env(e: str) -> None:
+            assert os.environ.get(e) is not None, f'{e} is required for mini mono'
+
+        assert_env('COG_VERSION')
+        assert_env('CUDA_VERSION')
+        assert_env('CUDNN_VERSION')
+        assert_env('PYTHON_VERSION')
+        assert_env('TORCH_VERSION')
+
+        assert (
+            args.cog_versions is None
+        ), 'Mini mono and --cog-versions are mutually exclusive'
+        assert (
+            args.default_cog_version is None
+        ), 'Mini mono and --default-cog-version are mutually exclusive'
+        args.cog_versions = [os.environ['COG_VERSION']]
+        args.default_cog_version = os.environ['COG_VERSION']
+
+        def pick(d: dict[str, str], env: str) -> dict[str, str]:
+            key = os.environ[env]
+            return {key: d[key]}
+
+        monogens = [
+            MonoGen(
+                id=mg.id,
+                cuda=pick(mg.cuda, 'CUDA_VERSION'),
+                cudnn=pick(mg.cudnn, 'CUDNN_VERSION'),
+                python=pick(mg.python, 'PYTHON_VERSION'),
+                torch=[os.environ['TORCH_VERSION']],
+                pip_pkgs=mg.pip_pkgs,
+            )
+        ]
+
+    if args.default_cog_version is None:
+        assert len(args.cog_versions) == 1, 'Missing --default-cog-version'
+        args.default_cog_version = args.cog_versions[0]
+    assert (
+        args.default_cog_version in args.cog_versions
+    ), f'Default Cog {args.default_cog_version} not in {args.cog_versions}'
+
     os.makedirs(args.cache, exist_ok=True)
 
     if args.clean_uv_cache:
         clean_uv_cache()
 
-    install_cogs(args)
+    pvs: list[Version] = []
+    for mg in monogens:
+        pvs += map(Version.parse, mg.python.keys())
+    python_versions = list(map(str, sorted(set(pvs), reverse=True)))
+    install_cogs(args, python_versions)
 
     gens = []
-    for i, mg in enumerate(sorted(MONOGENS[args.environment], reverse=True)):
+    for i, mg in enumerate(monogens):
         if mg.id < args.min_gen_id or mg.id > args.max_gen_id:
             continue
         build_generation(args, mg)
