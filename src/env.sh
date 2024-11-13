@@ -38,16 +38,16 @@ if [ -z "${R8_COG_VERSION:-}" ]; then
     fi
     COG_VENV="$(readlink -f "$COG_PATH")"
     R8_COG_VERSION="$(basename "$COG_VENV" | sed 's/cog\(.*\)-python.*/\1/')"
-    echo "COG_VERSION not set, using default $R8_COG_VERSION"
+    echo "R8_COG_VERSION not set, using default $R8_COG_VERSION"
 else
-    case $COG_VERSION in
+    case $R8_COG_VERSION in
         https://*)
-            name=$(printf '%s' "$COG_VERSION" | sha256sum | cut -c 1-8)
-            pkg="cog @ $COG_VERSION"
+            name=$(printf '%s' "$R8_COG_VERSION" | sha256sum | cut -c 1-8)
+            pkg="cog @ $R8_COG_VERSION"
             ;;
         *)
-            name=$COG_VERSION
-            pkg="cog==$COG_VERSION"
+            name=$R8_COG_VERSION
+            pkg="cog==$R8_COG_VERSION"
             ;;
     esac
 
