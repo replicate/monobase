@@ -6,6 +6,7 @@ set -euo pipefail
 
 export PATH="$MONOBASE_PREFIX/bin:$PATH"
 
+# Python version running the builder, not part of any venvs
 MONOBASE_PYTHON='3.12'
 DONE_FILE='/opt/r8/monobase/.done'
 
@@ -33,7 +34,7 @@ chmod +x "$MONOBASE_PREFIX/bin/pget-bin"
 cp /opt/r8/monobase/pget "$MONOBASE_PREFIX/bin/pget"
 
 log "Running builder..."
-uv run --python "$MONOBASE_PYTHON" --with requests /opt/r8/monobase/build.py "$@"
+uv run --python "$MONOBASE_PYTHON" /opt/r8/monobase/build.py "$@"
 
 # Inside K8S
 # Write done file to signal pod ready
