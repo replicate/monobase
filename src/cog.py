@@ -7,8 +7,7 @@ import re
 import shutil
 import subprocess
 
-from monogen import MONOGENS
-from util import Version, is_done, mark_done
+from util import is_done, mark_done
 
 LINK_REGEX = re.compile(r'<(?P<url>https://[^>]+)>; rel="next"')
 
@@ -28,13 +27,6 @@ def cog_gen_hash(
         'python_versions': python_versions,
     }
     return hash_str(json.dumps(j))
-
-
-def get_python_versions(args: argparse.Namespace) -> list[str]:
-    versions: list[Version] = []
-    for mg in MONOGENS[args.environment]:
-        versions += map(Version.parse, mg.python.keys())
-    return list(map(str, sorted(set(versions), reverse=True)))
 
 
 def install_cog(
@@ -65,17 +57,12 @@ def install_cog(
         os.symlink(venv, default)
 
 
-def install_cogs(args: argparse.Namespace) -> None:
+def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     cdir = os.path.join(args.prefix, 'cog')
     os.makedirs(cdir, exist_ok=True)
 
-    cog_versions = sorted(set(args.cog_versions))
-    assert (
-        args.default_cog_version in cog_versions
-    ), f'Default Cog {args.default_cog_version} not in {cog_versions}'
-
     # Consistent hash of Cog versions as generation ID
-    python_versions = get_python_versions(args)
+    cog_versions = sorted(set(args.cog_versions))
     sha256 = cog_gen_hash(cog_versions, args.default_cog_version, python_versions)[:8]
     gid = f'g{sha256}'
     gdir = os.path.join(cdir, gid)
