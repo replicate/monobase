@@ -37,8 +37,8 @@ Monobase is more efficient than base images because:
 
 # Operations
 
-Support Cog * Python verions are pre-installed in its own layer. To add a new
-Cog version, edit `COG_VERSIONS` in `src/cog.py`.
+Support Cog * Python verions are pre-installed in its own layer. Cog versions
+are managed via `--cog-versions` and `--default-cog-version`.
 
 * There is only one Cog generation
 * Generation ID hashed on Cog, Python versions and default Cog version
@@ -66,10 +66,10 @@ When used as a base image for weightless models, the following environment
 variables determine the runtime environment:
 
 * `MONOBASE_GEN_ID` - monobase generation to use, latest if unset
-* `R8_COG_VERSION` - Cog `major.minor.patch`, `COG_VERSIONS` key, or `https//*`
+* `R8_COG_VERSION` - Cog `major.minor.patch` or `https://*`
 * `R8_CUDA_VERSION` - CUDA `major.minor`
 * `R8_CUDNN_VERSION` - CuDNN `major`
 * `R8_PYTHON_VERSION` - Python `major.minor`
 * `R8_TORCH_VERSION` - Torch `major.minor.patch`
 
-A `PYTHONPATH={cog}:{monobase}:{user}` is constructed from these variables.
+A `PYTHONPATH={cog}:{monobase}` is constructed from these variables.
