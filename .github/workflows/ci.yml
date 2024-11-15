@@ -32,11 +32,21 @@ jobs:
       - run: ./script/build.sh
       - run: ./script/test.sh
 
+  test-mini:
+    name: Test Mini
+    runs-on: ubuntu-latest-4-cores
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: ./script/build.sh
+      - run: ./script/test-mini.sh
+
   build:
     name: Build + release
     needs:
       - check
       - test
+      - test-mini
     permissions:
       contents: read
       id-token: write

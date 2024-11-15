@@ -67,6 +67,11 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
     cdir = os.path.join(args.prefix, 'cuda', f'cuda-{version}')
     if is_done(cdir):
         return cdir
+    if args.skip_cuda:
+        os.makedirs(cdir, exist_ok=True)
+        mark_done(cdir)
+        logging.info(f'CUDA {version} skipped in {cdir}')
+        return cdir
 
     cuda = CUDAS[version]
     file = os.path.join(args.cache, cuda.filename)
@@ -115,6 +120,11 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
     key = f'{version}-cuda{cuda_major}'
     cdir = os.path.join(args.prefix, 'cuda', f'cudnn-{key}')
     if is_done(cdir):
+        return cdir
+    if args.skip_cuda:
+        os.makedirs(cdir, exist_ok=True)
+        mark_done(cdir)
+        logging.info(f'CuDNN {key} skipped in {cdir}')
         return cdir
 
     cudnn = CUDNNS[key]
