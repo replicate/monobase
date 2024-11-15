@@ -99,15 +99,21 @@ if ! [ -d "$VIRTUAL_ENV" ]; then
 fi
 
 COG_PYTHONPATH="$COG_VENV/lib/python$R8_PYTHON_VERSION/site-packages"
-VENV_PYTHONPATH="$VIRTUAL_ENV/lib/python$R8_PYTHON_VERSION/site-packages"
-export PYTHONPATH="$COG_PYTHONPATH:$VENV_PYTHONPATH"
+MONO_PYTHONPATH="$VIRTUAL_ENV/lib/python$R8_PYTHON_VERSION/site-packages"
+USER_PYTHONPATH="$MONOBASE_PREFIX/user/lib/python$R8_PYTHON_VERSION/site-packages"
+
+if [ -d "$USER_PYTHONPATH" ]; then
+    export PYTHONPATH="$COG_PYTHONPATH:$MONO_PYTHONPATH:$USER_PYTHONPATH"
+else
+    export PYTHONPATH="$COG_PYTHONPATH:$MONO_PYTHONPATH"
+fi
 
 export PATH="$VIRTUAL_ENV/bin:$CUDA_PATH/bin${PATH:+:${PATH}}"
 
 # NVIDIA Container Toolkit mounts drivers here
 NCT_PATH=/usr/lib/x86_64-linux-gnu
 # NCCL is not part of CUDA or CuDNN and required by vLLM
-NCCL_PATH="$VENV_PYTHONPATH/nvidia/nccl/lib"
+NCCL_PATH="$MONO_PYTHONPATH/nvidia/nccl/lib"
 export LD_LIBRARY_PATH="$NCT_PATH:$CUDA_PATH/lib64:$CUDNN_PATH/lib:$NCCL_PATH${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 export LIBRARY_PATH="$CUDA_PATH/lib64/stubs"
 

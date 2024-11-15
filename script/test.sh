@@ -4,12 +4,12 @@
 
 set -euo pipefail
 
-PYTHON_VERSION='3.12'
+MONOBASE_PYTHON='3.12'
 
 cd "$(git rev-parse --show-toplevel)"
 
 # Build test requirements
-uv run --python "$PYTHON_VERSION" src/update.py --environment test
+uv run --python "$MONOBASE_PYTHON" src/update.py --environment test
 
 # Build test PREFIX
 mkdir -p monobase cache
@@ -21,11 +21,11 @@ docker run --rm \
     --volume "$PWD/cache:/var/cache/monobase" \
     monobase:latest \
     --environment test \
+    --skip-cuda \
     --cog-versions \
     0.11.3 \
     https://github.com/replicate/cog/archive/00b98bc90bb784102243b7aec41ad1cbffaefece.zip \
     --default-cog-version 0.11.3 \
-
     "$@"
 
 fail=0

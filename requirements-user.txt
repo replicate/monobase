@@ -1,0 +1,4 @@
+ipython
+mypy
+pyyaml
+requests

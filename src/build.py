@@ -10,6 +10,7 @@ from cuda import install_cuda, install_cudnn
 from monogen import MONOGENS, MonoGen
 from optimize import optimize_ld_cache, optimize_rdfind
 from prune import clean_uv_cache, prune_cuda, prune_old_gen, prune_uv_cache
+from user import build_user_venv
 from util import (
     Version,
     add_arguments,
@@ -48,7 +49,18 @@ parser.add_argument(
     help='Build a mini mono of 1 generation * 1 venv',
 )
 parser.add_argument(
+    '--requirements',
+    metavar='FILE',
+    help='Python requirements.txt for user layer',
+)
+parser.add_argument(
     '--prune-old-gen', default=False, action='store_true', help='prune old generations'
+)
+parser.add_argument(
+    '--skip-cuda',
+    default=False,
+    action='store_true',
+    help='skip CUDAs and CuDNNs',
 )
 parser.add_argument(
     '--prune-cuda',
@@ -138,6 +150,8 @@ def build(args: argparse.Namespace) -> None:
                 pip_pkgs=mg.pip_pkgs,
             )
         ]
+    if args.requirements is not None:
+        assert args.mini, 'Mini mono is a prerequisite for --requirements'
 
     if args.default_cog_version is None:
         assert len(args.cog_versions) == 1, 'Missing --default-cog-version'
@@ -169,6 +183,9 @@ def build(args: argparse.Namespace) -> None:
             if os.path.exists(latest):
                 os.remove(latest)
             os.symlink(f'g{mg.id:05d}', latest)
+
+    if args.requirements is not None:
+        build_user_venv(args)
 
     if args.prune_old_gen:
         prune_old_gen(args)
