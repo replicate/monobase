@@ -1,4 +1,5 @@
 ipython
+datasets
 mypy
 pyyaml
 requests
