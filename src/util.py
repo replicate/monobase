@@ -80,6 +80,27 @@ def desc_version_key(d: dict[str, str]) -> list[tuple[str, str]]:
     return sorted(d.items(), key=lambda kv: Version.parse(kv[0]), reverse=True)
 
 
+def parse_requirements(req: str) -> dict[str, str | Version]:
+    versions: dict[str, str | Version] = {}
+    for line in req.splitlines():
+        line = line.strip()
+        if line == '' or line.startswith('#') or line.startswith('--'):
+            continue
+        if '==' in line:
+            parts = line.split('==')
+        elif '@' in line:
+            parts = line.split('@')
+        else:
+            raise ValueError(f'invalid requirement: {line}')
+        assert len(parts) == 2, f'invalid requirement: {line}'
+        vs = parts[1].strip()
+        try:
+            versions[parts[0].strip()] = Version.parse(vs)
+        except ValueError:
+            versions[parts[0].strip()] = vs
+    return versions
+
+
 def setup_logging() -> None:
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)

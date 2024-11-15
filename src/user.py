@@ -2,22 +2,10 @@ import argparse
 import logging
 import os.path
 import subprocess
-from typing import Dict
+from typing import Optional
 
-from util import Version, is_done, mark_done
+from util import Version, is_done, mark_done, parse_requirements
 from uv import cuda_suffix
-
-
-def parse_requirements(req: str) -> Dict[str, Version]:
-    versions = {}
-    for line in req.splitlines():
-        line = line.strip()
-        if line.startswith('#'):
-            continue
-        parts = line.split('==')
-        assert len(parts) == 2, f'invalid requirement: {line}'
-        versions[parts[0].strip()] = Version.parse(parts[1].strip())
-    return versions
 
 
 def freeze(uv: str, vdir: str) -> str:
@@ -90,9 +78,18 @@ def build_user_venv(args: argparse.Namespace) -> None:
         cvs = cog_versions.get(k)
         mvs = mono_versions.get(k)
         uvs = user_versions.get(k)
-        vs = [cvs, mvs, uvs]
-        majors = set([v.major for v in vs if v is not None])
-        minors = set([v.minor for v in vs if v is not None])
+        vs: list[Optional[str | Version]] = [cvs, mvs, uvs]
+        majors: set[str | int] = set()
+        minors: set[str | int] = set()
+        for v in vs:
+            if v is None:
+                continue
+            elif type(v) is str:
+                majors.add(v)
+                minors.add(v)
+            elif type(v) is Version:
+                majors.add(v.major)
+                minors.add(v.minor)
         if len(majors) == 1 and len(minors) == 1:
             continue
         elif len(majors) == 1 and len(minors) > 1:
