@@ -1,5 +1,7 @@
-ipython
+boto3 @ https://github.com/boto/boto3/archive/dbff0eddad83f6e2951a6d001f5bd1d3ce69e882.zip
 datasets
+ipython
 mypy
 pyyaml
 requests
+torch==2.3.0

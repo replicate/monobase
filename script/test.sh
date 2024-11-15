@@ -71,7 +71,7 @@ fi
 
 read -r -d '' SCRIPT << EOF || :
 import sys, cog, torch
-assert sys.version.startswith('3.12.6'), f'sys.version is not 3.12.6: {sys.version}'
+assert sys.version.startswith('3.12.7'), f'sys.version is not 3.12.7: {sys.version}'
 assert cog.__file__.startswith('/srv/r8/monobase/cog'), f'cog is not pre-installed: {cog.__file__}'
 assert cog.__version__ == '0.11.3', f'cog.__version__ is not 0.11.3: {cog.__version__}'
 assert torch.__version__ == '2.4.1+cu124', f'torch.__version__ is not 2.4.1+cu124: {torch.__version__}'

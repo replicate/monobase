@@ -15,21 +15,21 @@ class MonoGen:
     pip_pkgs: list[str]
 
 
+# uv venv --seed does not install deprecated setuptools or wheel for Python 3.12
+# Explicitly declare them here
+# Versions are not pinned and we will use whatever Torch index has
+SEED_PKGS = ['pip', 'setuptools', 'wheel']
+
 TEST_MONOGENS: list[MonoGen] = [
     MonoGen(
         id=0,
         cuda={'12.4': '12.4.1_550.54.15'},
         cudnn={'9': '9.1.0.70'},
-        python={'3.12': '3.12.6'},
+        python={'3.12': '3.12.7'},
         torch=['2.4.1', '2.6.0.dev20240918'],
-        pip_pkgs=[],
+        pip_pkgs=SEED_PKGS,
     ),
 ]
-
-# uv venv --seed does not install deprecated setuptools or wheel for Python 3.12
-# Explicitly declare them here
-# Versions are not pinned and we will use whatever Torch index has
-SEED_PKGS = ['pip', 'setuptools', 'wheel']
 
 # Generations are immutable
 # Never edit an existing one in place

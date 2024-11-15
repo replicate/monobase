@@ -43,14 +43,14 @@ def build_user_venv(args: argparse.Namespace) -> None:
     logging.info(f'Freezing monobase venv {vdir}...')
     mono_req = freeze(uv, vdir)
     with open(os.path.join(args.prefix, 'requirements-mono.txt'), 'w') as f:
-        f.write(cog_req)
+        f.write(mono_req)
     mono_versions = parse_requirements(mono_req)
 
     logging.info(f'Creating user venv {udir}...')
     cmd = ['uv', 'venv', '--python', python_version, udir]
     subprocess.run(cmd, check=True)
 
-    logging.info(f'Compiling user {args.requirements}...')
+    logging.info(f'Compiling user requirements {args.requirements}...')
     cmd = [uv, 'pip', 'compile', '--python-platform', 'x86_64-unknown-linux-gnu']
     cmd = cmd + [args.requirements]
     env = os.environ.copy()
@@ -62,19 +62,14 @@ def build_user_venv(args: argparse.Namespace) -> None:
         logging.error(e.stderr)
         raise e
 
-    # FIXME: remove user package already in mono_versions
-    # FIXME: support @ and other requirement specs
     user_req = proc.stdout
-    user_req_path = os.path.join(args.prefix, 'requirements-user.txt')
-    with open(user_req_path, 'w') as f:
-        f.write(user_req)
     user_versions = parse_requirements(user_req)
     keys = set(
         list(cog_versions.keys())
         + list(mono_versions.keys())
         + list(user_versions.keys())
     )
-    for k in keys:
+    for k in sorted(keys):
         cvs = cog_versions.get(k)
         mvs = mono_versions.get(k)
         uvs = user_versions.get(k)
@@ -90,9 +85,7 @@ def build_user_venv(args: argparse.Namespace) -> None:
             elif type(v) is Version:
                 majors.add(v.major)
                 minors.add(v.minor)
-        if len(majors) == 1 and len(minors) == 1:
-            continue
-        elif len(majors) == 1 and len(minors) > 1:
+        if len(majors) == 1 and len(minors) > 1:
             logging.warning(
                 f'possible incompatible versions for {k}: cog=={cvs}, mono=={mvs}, user=={uvs}'
             )
@@ -101,6 +94,19 @@ def build_user_venv(args: argparse.Namespace) -> None:
                 f'probable incompatible versions for {k}: cog=={cvs}, mono=={mvs}, user=={uvs}'
             )
 
+    user_req_path = os.path.join(args.prefix, 'requirements-user.txt')
+    with open(user_req_path, 'w') as f:
+        for k, uvs in sorted(user_versions.items()):
+            mvs = mono_versions.get(k)
+            if mvs is not None:
+                logging.warning(
+                    f'excluding {k} from user venv: mono=={mvs}, user=={uvs}'
+                )
+                continue
+            if type(uvs) is str:
+                print(f'{k} @ {uvs}', file=f)
+            else:
+                print(f'{k}=={uvs}', file=f)
     cmd = [uv, 'pip', 'install', '--no-deps', '--requirement', user_req_path]
     subprocess.run(cmd, check=True, env=env)
 
