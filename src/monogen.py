@@ -26,7 +26,14 @@ TEST_MONOGENS: list[MonoGen] = [
         cuda={'12.4': '12.4.1_550.54.15'},
         cudnn={'9': '9.1.0.70'},
         python={'3.12': '3.12.7'},
-        torch=['2.4.1', '2.6.0.dev20240918'],
+        torch=[
+            '2.4.1',
+            # NOTE(meatballhat): This is turned off until we can figure out how to handle
+            # nightlies better since the torch package index only retains ~2 months of
+            # versions:
+            ## Nightly
+            #'2.6.0.dev20240918'
+        ],
         pip_pkgs=SEED_PKGS,
     ),
 ]
@@ -105,8 +112,11 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.3.1',
             '2.4.0',
             '2.4.1',
-            # Nightly
-            '2.6.0.dev20240918',
+            # NOTE(meatballhat): This is turned off until we can figure out how to handle
+            # nightlies better since the torch package index only retains ~2 months of
+            # versions:
+            ## Nightly
+            #'2.6.0.dev20240918',
         ],
         pip_pkgs=[
             'cog @ https://github.com/replicate/cog/archive/refs/heads/add-waiting-env.zip',
@@ -144,8 +154,11 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.3.1',
             '2.4.0',
             '2.4.1',
-            # Nightly
-            '2.6.0.dev20240918',
+            # NOTE(meatballhat): This is turned off until we can figure out how to handle
+            # nightlies better since the torch package index only retains ~2 months of
+            # versions:
+            ## Nightly
+            #'2.6.0.dev20240918',
         ],
         pip_pkgs=[
             'cog @ https://github.com/replicate/cog/archive/a522a0f90600fbf8004f7748ca6bada5a3878a3e.zip',
@@ -183,8 +196,11 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.3.1',
             '2.4.0',
             '2.4.1',
-            # Nightly
-            '2.6.0.dev20240918',
+            # NOTE(meatballhat): This is turned off until we can figure out how to handle
+            # nightlies better since the torch package index only retains ~2 months of
+            # versions:
+            ## Nightly
+            #'2.6.0.dev20240918',
         ],
         pip_pkgs=[
             'cog @ https://github.com/replicate/cog/archive/4598529b07c620fd3a1d7e01746cf02ff5a641ef.zip',
@@ -222,8 +238,11 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.3.1',
             '2.4.0',
             '2.4.1',
-            # Nightly
-            '2.6.0.dev20240918',
+            # NOTE(meatballhat): This is turned off until we can figure out how to handle
+            # nightlies better since the torch package index only retains ~2 months of
+            # versions:
+            ## Nightly
+            #'2.6.0.dev20240918',
         ],
         pip_pkgs=[
             'cog @ https://github.com/replicate/cog/archive/2f883e462e0e0606e38a1d05ef5d02bfe43fa19e.zip',
@@ -261,8 +280,11 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.3.1',
             '2.4.0',
             '2.4.1',
-            # Nightly
-            '2.6.0.dev20240918',
+            # NOTE(meatballhat): This is turned off until we can figure out how to handle
+            # nightlies better since the torch package index only retains ~2 months of
+            # versions:
+            ## Nightly
+            #'2.6.0.dev20240918',
         ],
         pip_pkgs=[
             'cog @ https://github.com/replicate/cog/archive/2f883e462e0e0606e38a1d05ef5d02bfe43fa19e.zip',
@@ -304,8 +326,11 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.3.1',
             '2.4.0',
             '2.4.1',
-            # Nightly
-            '2.6.0.dev20240918',
+            # NOTE(meatballhat): This is turned off until we can figure out how to handle
+            # nightlies better since the torch package index only retains ~2 months of
+            # versions:
+            ## Nightly
+            #'2.6.0.dev20240918',
         ],
         pip_pkgs=[
             'cog @ https://github.com/replicate/cog/archive/2f883e462e0e0606e38a1d05ef5d02bfe43fa19e.zip',
@@ -343,8 +368,11 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.3.1',
             '2.4.0',
             '2.4.1',
-            # Nightly
-            '2.6.0.dev20240918',
+            # NOTE(meatballhat): This is turned off until we can figure out how to handle
+            # nightlies better since the torch package index only retains ~2 months of
+            # versions:
+            ## Nightly
+            #'2.6.0.dev20240918',
         ],
         pip_pkgs=[
             'cog @ https://github.com/replicate/cog/archive/0c3c6f18d0871cab0470ceb5301a550e85d61567.zip',
@@ -383,8 +411,11 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.3.1',
             '2.4.0',
             '2.4.1',
-            # Nightly
-            '2.6.0.dev20240918',
+            # NOTE(meatballhat): This is turned off until we can figure out how to handle
+            # nightlies better since the torch package index only retains ~2 months of
+            # versions:
+            ## Nightly
+            #'2.6.0.dev20240918',
         ],
         pip_pkgs=[
             'cog @ https://github.com/replicate/cog/archive/0c3c6f18d0871cab0470ceb5301a550e85d61567.zip',
@@ -423,8 +454,11 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.3.1',
             '2.4.0',
             '2.4.1',
-            # Nightly
-            '2.6.0.dev20240918',
+            # NOTE(meatballhat): This is turned off until we can figure out how to handle
+            # nightlies better since the torch package index only retains ~2 months of
+            # versions:
+            ## Nightly
+            #'2.6.0.dev20240918',
         ],
         pip_pkgs=SEED_PKGS,
     ),
@@ -460,8 +494,11 @@ PROD_MONOGENS: list[MonoGen] = [
             '2.3.1',
             '2.4.0',
             '2.4.1',
-            # Nightly
-            '2.6.0.dev20240918',
+            # NOTE(meatballhat): This is turned off until we can figure out how to handle
+            # nightlies better since the torch package index only retains ~2 months of
+            # versions:
+            ## Nightly
+            #'2.6.0.dev20240918',
         ],
         pip_pkgs=SEED_PKGS,
     ),
