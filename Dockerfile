@@ -81,5 +81,5 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN ln -s /usr/bin/tini /sbin/tini
-COPY src /opt/r8/monobase
+COPY src/monobase /opt/r8/monobase
 ENTRYPOINT [ "/opt/r8/monobase/entrypoint.sh" ]

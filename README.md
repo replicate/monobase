@@ -37,6 +37,25 @@ Monobase is more efficient than base images because:
 
 # Operations
 
+The following commands are available as runnable modules:
+
+```sh-session
+python -m monobase.build --help
+```
+
+```sh-session
+python -m monobase.diff --help
+```
+
+```sh-session
+# NOTE: no --help available
+python -m monobase.monogen
+```
+
+```sh-session
+python -m monobase.update --help
+```
+
 Support Cog * Python verions are pre-installed in its own layer. Cog versions
 are managed via `--cog-versions` and `--default-cog-version`.
 
@@ -47,9 +66,9 @@ are managed via `--cog-versions` and `--default-cog-version`.
 A monobase generation is an immutable matrix of CUDA, CuDNN, Python, Torch,
 and other PIP packages. To add a generation:
 
-* Add an element to `PROD_MONOGENS` in `src/monogen.py`
+* Add an element to `PROD_MONOGENS` in `src/monobase/monogen.py`
 * Run `script/update.sh --min-gen-id X` where `X` is the generation ID added
-* Verify the new requirements files in `src/requirements/g{X:05d}`
+* Verify the new requirements files in `src/monobase/requirements/g{X:05d}`
 * Check in the new requirements files into Git
 * Build and update `monobase` daemon set to the latest image
 

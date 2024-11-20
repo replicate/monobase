@@ -4,21 +4,21 @@
 
 set -euo pipefail
 
-MONOBASE_PYTHON='3.12'
+MONOBASE_PYTHON='3.13'
 
 cd "$(git rev-parse --show-toplevel)"
 
 # Build test requirements
-uv run --python "$MONOBASE_PYTHON" src/update.py --environment test
+uv run --python "$MONOBASE_PYTHON" python -m monobase.update --environment test
 
 # Build test PREFIX
-mkdir -p monobase cache
+mkdir -p build/monobase build/cache
 docker run --rm \
     --hostname monobase-builder \
     --user "$(id -u):$(id -g)" \
-    --volume "$PWD/src:/opt/r8/monobase" \
-    --volume "$PWD/monobase:/srv/r8/monobase" \
-    --volume "$PWD/cache:/var/cache/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
+    --volume "$PWD/build/cache:/var/cache/monobase" \
     monobase:latest \
     --environment test \
     --skip-cuda \
@@ -31,7 +31,7 @@ docker run --rm \
 fail=0
 test() {
     op="$1"
-    f="$PWD/monobase/$2"
+    f="$PWD/build/monobase/$2"
     r=0
     case "$op" in
         -d) [ -d "$f" ] || r=1 ;;
@@ -79,8 +79,8 @@ print('PASS: venv versions')
 EOF
 
 docker run --rm \
-    --volume "$PWD/src:/opt/r8/monobase" \
-    --volume "$PWD/monobase:/srv/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \
     --env R8_PYTHON_VERSION=3.12 \
@@ -95,8 +95,8 @@ assert cog.__version__ == '0.11.3', f'cog.__version__ is not 0.11.3: {cog.__vers
 print('PASS: Pre-installed cog==0.11.3')
 EOF
 docker run --rm \
-    --volume "$PWD/src:/opt/r8/monobase" \
-    --volume "$PWD/monobase:/srv/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --env R8_COG_VERSION=0.11.3 \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \
@@ -112,8 +112,8 @@ assert cog.__version__ == '0.11.2.dev71+g00b98bc90b', f'cog.__version__ is not 0
 print('PASS: Pre-installed cog==cog @ https://...')
 EOF
 docker run --rm \
-    --volume "$PWD/src:/opt/r8/monobase" \
-    --volume "$PWD/monobase:/srv/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --env R8_COG_VERSION=https://github.com/replicate/cog/archive/00b98bc90bb784102243b7aec41ad1cbffaefece.zip \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \
@@ -129,8 +129,8 @@ assert cog.__version__ == '0.9.0', f'cog.__version__ is not 0.9.0: {cog.__versio
 print('PASS: On-demand cog==0.9.0')
 EOF
 docker run --rm \
-    --volume "$PWD/src:/opt/r8/monobase" \
-    --volume "$PWD/monobase:/srv/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --env R8_COG_VERSION=0.9.0 \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \
@@ -146,8 +146,8 @@ assert cog.__version__ == '0.11.4.dev77+g8ea4663247', f'cog.__version__ is not 0
 print('PASS: On-demand cog==cog @ https://...')
 EOF
 docker run --rm \
-    --volume "$PWD/src:/opt/r8/monobase" \
-    --volume "$PWD/monobase:/srv/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --env R8_COG_VERSION=https://github.com/replicate/cog/archive/8ea466324738f3143954ec5be3211051659a20da.zip \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \
@@ -163,8 +163,8 @@ ctypes.CDLL('libnccl.so.2')
 print('PASS: NCCL')
 EOF
 docker run --rm \
-    --volume "$PWD/src:/opt/r8/monobase" \
-    --volume "$PWD/monobase:/srv/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \
     --env R8_PYTHON_VERSION=3.12 \

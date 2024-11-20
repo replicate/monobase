@@ -4,12 +4,12 @@
 
 set -euo pipefail
 
-MONOBASE_PYTHON='3.12'
+MONOBASE_PYTHON='3.13'
 
 cd "$(git rev-parse --show-toplevel)"
 
 # Build test requirements
-uv run --python "$MONOBASE_PYTHON" src/update.py --environment test
+uv run --python "$MONOBASE_PYTHON" python -m monobase.update --environment test
 
 # Build test PREFIX
 mkdir -p monobase cache
@@ -22,9 +22,9 @@ docker run --rm \
     --env R8_PYTHON_VERSION=3.12 \
     --env R8_TORCH_VERSION=2.4.1 \
     --volume "$PWD/requirements-user.txt:/tmp/requirements-user.txt" \
-    --volume "$PWD/src:/opt/r8/monobase" \
-    --volume "$PWD/monobase:/srv/r8/monobase" \
-    --volume "$PWD/cache:/var/cache/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
+    --volume "$PWD/build/cache:/var/cache/monobase" \
     monobase:latest \
     --environment test \
     --skip-cuda \
@@ -35,7 +35,7 @@ docker run --rm \
 fail=0
 test() {
     op="$1"
-    f="$PWD/monobase/$2"
+    f="$PWD/build/monobase/$2"
     r=0
     case "$op" in
         -d) [ -d "$f" ] || r=1 ;;
@@ -89,7 +89,7 @@ print('PASS: venv versions')
 EOF
 
 docker run --rm \
-    --volume "$PWD/src:/opt/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
     --volume "$PWD/monobase:/srv/r8/monobase" \
     --env R8_COG_VERSION=0.11.3 \
     --env R8_CUDA_VERSION=12.4 \
@@ -105,7 +105,7 @@ print('PASS: user venv')
 EOF
 
 docker run --rm \
-    --volume "$PWD/src:/opt/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
     --volume "$PWD/monobase:/srv/r8/monobase" \
     --env R8_COG_VERSION=0.11.3 \
     --env R8_CUDA_VERSION=12.4 \

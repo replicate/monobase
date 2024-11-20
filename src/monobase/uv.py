@@ -3,8 +3,8 @@ import logging
 import os.path
 import subprocess
 
-from torch import torch_deps, torch_specs
-from util import Version, is_done, mark_done
+from monobase.torch import torch_deps, torch_specs
+from monobase.util import Version, is_done, mark_done
 
 
 def cuda_suffix(cuda_version: str) -> str:

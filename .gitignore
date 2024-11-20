@@ -1,5 +1,5 @@
 /.idea
 /cache
-/monobase
-/src/requirements-test
+/build/
+requirements-test
 __pycache__

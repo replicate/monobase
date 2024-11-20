@@ -5,13 +5,13 @@ import os.path
 import re
 import subprocess
 
-from cog import install_cogs
-from cuda import install_cuda, install_cudnn
-from monogen import MONOGENS, MonoGen
-from optimize import optimize_ld_cache, optimize_rdfind
-from prune import clean_uv_cache, prune_cuda, prune_old_gen, prune_uv_cache
-from user import build_user_venv
-from util import (
+from monobase.cog import install_cogs
+from monobase.cuda import install_cuda, install_cudnn
+from monobase.monogen import MONOGENS, MonoGen
+from monobase.optimize import optimize_ld_cache, optimize_rdfind
+from monobase.prune import clean_uv_cache, prune_cuda, prune_old_gen, prune_uv_cache
+from monobase.user import build_user_venv
+from monobase.util import (
     Version,
     add_arguments,
     desc_version,
@@ -20,15 +20,21 @@ from util import (
     mark_done,
     setup_logging,
 )
-from uv import install_venv
+from monobase.uv import install_venv
 
 parser = argparse.ArgumentParser(description='Build monobase enviroment')
 add_arguments(parser)
 parser.add_argument(
-    '--prefix', metavar='PATH', default='/srv/r8/monobase', help='prefix for monobase'
+    '--prefix',
+    metavar='PATH',
+    default='/srv/r8/monobase',
+    help='prefix for monobase',
 )
 parser.add_argument(
-    '--cache', metavar='PATH', default='/var/cache/monobase', help='cache for monobase'
+    '--cache',
+    metavar='PATH',
+    default='/var/cache/monobase',
+    help='cache for monobase',
 )
 parser.add_argument(
     '--cog-versions',
@@ -54,7 +60,10 @@ parser.add_argument(
     help='Python requirements.txt for user layer',
 )
 parser.add_argument(
-    '--prune-old-gen', default=False, action='store_true', help='prune old generations'
+    '--prune-old-gen',
+    default=False,
+    action='store_true',
+    help='prune old generations',
 )
 parser.add_argument(
     '--skip-cuda',

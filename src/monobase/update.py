@@ -3,9 +3,9 @@ import logging
 import os.path
 from tempfile import TemporaryDirectory
 
-from monogen import MONOGENS, MonoGen
-from util import add_arguments, desc_version, desc_version_key, setup_logging
-from uv import update_venv
+from monobase.monogen import MONOGENS, MonoGen
+from monobase.util import add_arguments, desc_version, desc_version_key, setup_logging
+from monobase.uv import update_venv
 
 parser = argparse.ArgumentParser(description='Update monobase requirements')
 add_arguments(parser)

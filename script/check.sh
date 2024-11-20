@@ -4,11 +4,11 @@
 
 set -euo pipefail
 
-PYTHON_VERSION='3.12'
+MONOBASE_PYTHON='3.13'
 
 cd "$(git rev-parse --show-toplevel)"
 
-uv run --python "$PYTHON_VERSION" src/monogen.py
+uv run --python "$MONOBASE_PYTHON" python -m monobase.monogen
 
 if [[ -z "${CI:-}" ]]; then
     uv tool run ruff check --fix
@@ -17,4 +17,4 @@ else
     uv tool run ruff check
     uv tool run ruff format --check
 fi
-uv run --python "$PYTHON_VERSION" --with mypy mypy src
+uv run --python "$MONOBASE_PYTHON" --with mypy mypy src

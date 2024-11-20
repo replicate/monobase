@@ -4,7 +4,7 @@ import os
 import re
 import subprocess
 
-from monogen import MonoGen
+from monobase.monogen import MonoGen
 
 
 def optimize_ld_cache(args: argparse.Namespace, gdir: str, mg: MonoGen) -> None:

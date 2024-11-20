@@ -7,8 +7,8 @@ import subprocess
 import urllib.parse
 from dataclasses import dataclass
 
-from urls import cuda_urls, cudnn_urls
-from util import Version, is_done, mark_done
+from monobase.urls import cuda_urls, cudnn_urls
+from monobase.util import Version, is_done, mark_done
 
 
 @dataclass(frozen=True, order=True)
