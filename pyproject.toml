@@ -5,6 +5,7 @@ description = "Replicate monolithic base dependency build friend"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = []
+license = {file = "LICENSE"}
 
 [build-system]
 requires = ["hatchling"]
