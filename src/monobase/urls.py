@@ -1,6 +1,21 @@
+import os
+
+
+def getenv_or(key: str, default: str) -> str:
+    value = os.environ.get(key)
+    if value is None:
+        return default
+    value = value.strip()
+    if value == '':
+        return default
+    return value
+
+
 # https://developer.nvidia.com/cuda-downloads
-# cuda_prefix = 'https://developer.download.nvidia.com/compute/cuda'
-cuda_prefix = 'https://pub-6c9cea068aa64db094559c4435a8b142.r2.dev/cuda'
+cuda_prefix = getenv_or(
+    'R8_CUDA_PREFIX',
+    'https://developer.download.nvidia.com/compute/cuda',
+)
 
 cuda_urls = [
     f'{cuda_prefix}/cuda_12.6.2_560.35.03_linux.run',
@@ -29,8 +44,10 @@ cuda_urls = [
 ]
 
 # https://developer.nvidia.com/cudnn-downloads
-# cudnn_prefix = 'https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64'
-cudnn_prefix = 'https://pub-6c9cea068aa64db094559c4435a8b142.r2.dev/cudnn'
+cudnn_prefix = getenv_or(
+    'R8_CUDNN_PREFIX',
+    'https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64',
+)
 
 cudnn_urls = [
     f'{cudnn_prefix}/cudnn-linux-x86_64-9.5.0.50_cuda12-archive.tar.xz',
