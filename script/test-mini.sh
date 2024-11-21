@@ -12,7 +12,7 @@ cd "$(git rev-parse --show-toplevel)"
 uv run --python "$MONOBASE_PYTHON" python -m monobase.update --environment test
 
 # Build test PREFIX
-mkdir -p monobase cache
+mkdir -p build/monobase build/cache
 docker run --rm \
     --hostname monobase-builder \
     --user "$(id -u):$(id -g)" \
@@ -90,7 +90,7 @@ EOF
 
 docker run --rm \
     --volume "$PWD/src/monobase:/opt/r8/monobase" \
-    --volume "$PWD/monobase:/srv/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --env R8_COG_VERSION=0.11.3 \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \
@@ -106,7 +106,7 @@ EOF
 
 docker run --rm \
     --volume "$PWD/src/monobase:/opt/r8/monobase" \
-    --volume "$PWD/monobase:/srv/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --env R8_COG_VERSION=0.11.3 \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \
