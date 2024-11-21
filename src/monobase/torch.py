@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from util import Version
+from monobase.util import Version
 
 
 @dataclass(frozen=True, order=True)

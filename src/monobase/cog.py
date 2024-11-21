@@ -7,7 +7,7 @@ import re
 import shutil
 import subprocess
 
-from util import is_done, mark_done
+from monobase.util import is_done, mark_done
 
 LINK_REGEX = re.compile(r'<(?P<url>https://[^>]+)>; rel="next"')
 

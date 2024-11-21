@@ -5,6 +5,7 @@
 set -euo pipefail
 
 export PATH="$MONOBASE_PREFIX/bin:$PATH"
+export PYTHONPATH='/opt/r8'
 
 # Python version running the builder, not part of any venvs
 MONOBASE_PYTHON='3.12'
@@ -37,7 +38,7 @@ if [ -z "${NO_REINSTALL:-}" ]; then
 fi
 
 log "Running builder..."
-uv run --python "$MONOBASE_PYTHON" /opt/r8/monobase/build.py "$@"
+uv run --python "$MONOBASE_PYTHON" python -m monobase.build "$@"
 
 # Inside K8S
 # Write done file to signal pod ready

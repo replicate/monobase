@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-PYTHON_VERSION='3.12'
+MONOBASE_PYTHON='3.13'
 
 cd "$(git rev-parse --show-toplevel)"
-uv run --python "$PYTHON_VERSION" src/update.py --environment prod "$@"
+uv run --python "$MONOBASE_PYTHON" python -m monobase.update --environment prod "$@"

@@ -1,7 +1,7 @@
 import argparse
 import os.path
 
-from util import Version, parse_requirements
+from monobase.util import Version, parse_requirements
 
 parser = argparse.ArgumentParser(description='Diff monobase requirements')
 parser.add_argument('id', nargs=2, type=int, help='Generation ID')

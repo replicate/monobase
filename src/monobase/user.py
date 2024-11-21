@@ -4,8 +4,8 @@ import os.path
 import subprocess
 from typing import Optional
 
-from util import Version, is_done, mark_done, parse_requirements
-from uv import cuda_suffix
+from monobase.util import Version, is_done, mark_done, parse_requirements
+from monobase.uv import cuda_suffix
 
 
 def freeze(uv: str, vdir: str) -> str:
