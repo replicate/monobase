@@ -18,6 +18,9 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
+    env:
+      R8_CUDA_PREFIX: ${{ secrets.R8_CUDA_PREFIX }}
+      R8_CUDNN_PREFIX: ${{ secrets.R8_CUDNN_PREFIX }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
@@ -26,6 +29,9 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest-4-cores
+    env:
+      R8_CUDA_PREFIX: ${{ secrets.R8_CUDA_PREFIX }}
+      R8_CUDNN_PREFIX: ${{ secrets.R8_CUDNN_PREFIX }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
@@ -35,6 +41,9 @@ jobs:
   test-mini:
     name: Test Mini
     runs-on: ubuntu-latest-4-cores
+    env:
+      R8_CUDA_PREFIX: ${{ secrets.R8_CUDA_PREFIX }}
+      R8_CUDNN_PREFIX: ${{ secrets.R8_CUDNN_PREFIX }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
