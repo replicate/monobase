@@ -31,6 +31,7 @@ torch_specs_dict = {
 
 torch_deps_dict = {
     # Nightly
+    '2.6.0.dev20241121': TorchDeps('2.5.0.dev20241121', '0.20.0.dev20241121'),
     '2.6.0.dev20240918': TorchDeps('2.5.0.dev20240918', '0.20.0.dev20240918'),
     # Releases
     '2.4.1': TorchDeps('2.4.1', '0.19.1'),
