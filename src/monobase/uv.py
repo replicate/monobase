@@ -34,15 +34,24 @@ def index_args(torch_version: Version, cuda_version: str) -> list[str]:
 
 
 def pip_packages(
-    torch_version: Version, cuda_version: str, pip_pkgs: list[str]
+    torch_version: Version, python_version: str, cuda_version: str, pip_pkgs: list[str]
 ) -> list[str]:
     deps = torch_deps[torch_version]
     cu = cuda_suffix(cuda_version)
-    pkgs = [
-        f'torch=={torch_version}+{cu}',
-        f'torchaudio=={deps.torchaudio}+{cu}',
-        f'torchvision=={deps.torchvision}+{cu}',
-    ]
+    if torch_version.extra:
+        prefix = torch_index_url(torch_version, cuda_version)
+        py = f'cp{python_version.replace('.', '')}'
+        pkgs = [
+            f'torch @ {prefix}/torch-{torch_version}%2B{cu}-{py}-{py}-linux_x86_64.whl',
+            f'torchaudio @ {prefix}/torchaudio-{deps.torchaudio}%2B{cu}-{py}-{py}-linux_x86_64.whl',
+            f'torchvision @ {prefix}/torchvision-{deps.torchvision}%2B{cu}-{py}-{py}-linux_x86_64.whl',
+        ]
+    else:
+        pkgs = [
+            f'torch=={torch_version}+{cu}',
+            f'torchaudio=={deps.torchaudio}+{cu}',
+            f'torchvision=={deps.torchvision}+{cu}',
+        ]
     # Older Torch versions do not bundle CUDA or CuDNN
     nvidia_pkgs = []
     if torch_version < Version.parse('2.2.0'):
@@ -101,7 +110,7 @@ def update_venv(
     ]
     cmd = ['uv', 'pip', 'compile', '--python-platform', 'x86_64-unknown-linux-gnu']
     cmd = cmd + emit_args + index_args(t, cuda_version) + ['-']
-    pkgs = pip_packages(t, cuda_version, pip_pkgs)
+    pkgs = pip_packages(t, python_version, cuda_version, pip_pkgs)
     env = os.environ.copy()
     env['VIRTUAL_ENV'] = vdir
     try:

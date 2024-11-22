@@ -30,11 +30,8 @@ torch_specs_dict = {
 }
 
 torch_deps_dict = {
-    # NOTE(meatballhat): This is turned off until we can figure out how to handle
-    # nightlies better since the torch package index only retains ~2 months of
-    # versions:
-    ## Nightly
-    #'2.6.0.dev20240918': TorchDeps('2.5.0.dev20240918', '0.20.0.dev20240918'),
+    # Nightly
+    '2.6.0.dev20240918': TorchDeps('2.5.0.dev20240918', '0.20.0.dev20240918'),
     # Releases
     '2.4.1': TorchDeps('2.4.1', '0.19.1'),
     '2.4.0': TorchDeps('2.4.0', '0.19.0'),
