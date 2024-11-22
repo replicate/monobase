@@ -28,11 +28,8 @@ TEST_MONOGENS: list[MonoGen] = [
         python={'3.12': '3.12.7'},
         torch=[
             '2.4.1',
-            # NOTE(meatballhat): This is turned off until we can figure out how to handle
-            # nightlies better since the torch package index only retains ~2 months of
-            # versions:
-            ## Nightly
-            #'2.6.0.dev20240918'
+            # Nightly
+            '2.6.0.dev20240918',
         ],
         pip_pkgs=SEED_PKGS,
     ),
