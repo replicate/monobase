@@ -29,5 +29,5 @@ exec docker run --rm -it \
     --env R8_CUDNN_VERSION="${R8_CUDNN_VERSION:-"9"}" \
     --env R8_PYTHON_VERSION="${R8_PYTHON_VERSION:-"3.12"}" \
     --env R8_TORCH_VERSION="${R8_TORCH_VERSION:-"2.4.1"}" \
-    monobase:latest \
+    "${DEBUG_IMAGE:-"monobase:latest"}" \
     bash -l
