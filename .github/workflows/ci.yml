@@ -50,15 +50,15 @@ jobs:
       - run: ./script/build.sh
       - run: ./script/test-mini.sh
 
-  build:
-    name: Build + release
-    needs:
-      - check
-      - test
-      - test-mini
-    permissions:
-      contents: read
-      id-token: write
-    uses: replicate/actions/.github/workflows/buildx.yml@main
-    with:
-      image: monobase
+# build:
+#   name: Build + release
+#   needs:
+#     - check
+#     - test
+#     - test-mini
+#   permissions:
+#     contents: read
+#     id-token: write
+#   uses: replicate/actions/.github/workflows/buildx.yml@main
+#   with:
+#     image: monobase
