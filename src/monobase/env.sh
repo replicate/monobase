@@ -45,6 +45,15 @@ else
             name=$(printf '%s' "$R8_COG_VERSION" | sha256sum | cut -c 1-8)
             pkg="cog @ $R8_COG_VERSION"
             ;;
+        \>=*)
+            # NOTE(meatballhat): A value of R8_COG_VERSION>=0.11.3 means that a
+            # pre-installed version 0.11.3 should work, so removing the '>=' operator when
+            # defining 'name' allows the cached installation to be used. The 'pkg'
+            # variable passes through the '>=' operator in case a cached installation is
+            # not found.
+            name="$(echo "$R8_COG_VERSION" | sed 's/^>=//')"
+            pkg="cog${R8_COG_VERSION}"
+            ;;
         *)
             name=$R8_COG_VERSION
             pkg="cog==$R8_COG_VERSION"

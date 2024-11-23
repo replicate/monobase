@@ -108,6 +108,41 @@ docker run --rm \
 read -r -d '' SCRIPT << EOF || :
 import cog
 assert cog.__file__.startswith('/srv/r8/monobase/cog'), f'cog is not pre-installed: {cog.__file__}'
+assert cog.__version__ == '0.11.3', f'cog.__version__ is not 0.11.3: {cog.__version__}'
+print('PASS: Requiring cog>=0.11.3 matches pre-installed cog==0.11.3')
+EOF
+docker run --rm \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
+    --env R8_COG_VERSION='>=0.11.3' \
+    --env R8_CUDA_VERSION=12.4 \
+    --env R8_CUDNN_VERSION=9 \
+    --env R8_PYTHON_VERSION=3.12 \
+    --env R8_TORCH_VERSION=2.4.1 \
+    monobase:latest \
+    python -c "$SCRIPT"
+
+read -r -d '' SCRIPT << EOF || :
+import cog
+assert cog.__file__.startswith('/root/cog'), f'cog is not installed on the fly: {cog.__file__}'
+assert cog.__version__ != '0.11.3', f'cog.__version__ not 0.11.3: {cog.__version__}'
+assert cog.__version__ >= '0.11.6', f'cog.__version__ not >= 0.11.6: {cog.__version__}'
+print('PASS: Requiring cog>=0.11.6 installs latest on demand')
+EOF
+docker run --rm \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
+    --env R8_COG_VERSION='>=0.11.6' \
+    --env R8_CUDA_VERSION=12.4 \
+    --env R8_CUDNN_VERSION=9 \
+    --env R8_PYTHON_VERSION=3.12 \
+    --env R8_TORCH_VERSION=2.4.1 \
+    monobase:latest \
+    python -c "$SCRIPT"
+
+read -r -d '' SCRIPT << EOF || :
+import cog
+assert cog.__file__.startswith('/srv/r8/monobase/cog'), f'cog is not pre-installed: {cog.__file__}'
 assert cog.__version__ == '0.11.2.dev71+g00b98bc90b', f'cog.__version__ is not 0.11.2.dev71+g00b98bc90b: {cog.__version__}'
 print('PASS: Pre-installed cog==cog @ https://...')
 EOF
