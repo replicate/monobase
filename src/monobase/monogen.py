@@ -563,7 +563,7 @@ def validate() -> None:
         rdir = os.path.join(os.path.dirname(__file__), 'requirements', f'g{mg.id:05d}')
         if not os.path.exists(rdir):
             logging.error(
-                f'Missing monobase generation {mg.id}, did you forget to run script/update.sh?'
+                f'Missing monobase generation {mg.id}, did you forget to run script/update?'
             )
             raise IOError('Missing monobase generation')
 
