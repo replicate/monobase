@@ -50,15 +50,21 @@ jobs:
       - run: ./script/build
       - run: ./script/test-mini
 
-# build:
-#   name: Build + release
-#   needs:
-#     - check
-#     - test
-#     - test-mini
-#   permissions:
-#     contents: read
-#     id-token: write
-#   uses: replicate/actions/.github/workflows/buildx.yml@main
-#   with:
-#     image: monobase
+  build:
+    name: Build + release
+    needs:
+      - check
+      - test
+      - test-mini
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: replicate/actions
+          ref: main
+          path: ./tmp/actions
+      - uses: ./tmp/actions/.github/workflows/buildx.yml
+        with:
+          image: monobase
