@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
-      - run: ./script/check.sh
+      - run: ./script/check
 
   test:
     name: Test
@@ -35,8 +35,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
-      - run: ./script/build.sh
-      - run: ./script/test.sh
+      - run: ./script/build
+      - run: ./script/test
 
   test-mini:
     name: Test Mini
@@ -47,8 +47,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
-      - run: ./script/build.sh
-      - run: ./script/test-mini.sh
+      - run: ./script/build
+      - run: ./script/test-mini
 
 # build:
 #   name: Build + release

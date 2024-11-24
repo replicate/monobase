@@ -67,7 +67,7 @@ A monobase generation is an immutable matrix of CUDA, CuDNN, Python, Torch,
 and other PIP packages. To add a generation:
 
 * Add an element to `PROD_MONOGENS` in `src/monobase/monogen.py`
-* Run `script/update.sh --min-gen-id X` where `X` is the generation ID added
+* Run `script/update --min-gen-id X` where `X` is the generation ID added
 * Verify the new requirements files in `src/monobase/requirements/g{X:05d}`
 * Check in the new requirements files into Git
 * Build and update `monobase` daemon set to the latest image
