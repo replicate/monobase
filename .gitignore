@@ -3,3 +3,4 @@
 /build/
 requirements-test
 __pycache__
+/tmp/
