@@ -41,6 +41,7 @@ test() {
         -d) [ -d "$f" ] || r=1 ;;
         -f) [ -f "$f" ] || r=1 ;;
         -h) [ -h "$f" ] || r=1 ;;
+        -s) [ -s "$f" ] || r=1 ;;
         -x) [ -x "$f" ] || r=1 ;;
     esac
 
@@ -48,7 +49,17 @@ test() {
         echo "PASS: [ $op /srv/r8/monobase/$2 ]"
     else
         echo "FAIL: [ $op /srv/r8/monobase/$2 ]"
-        fail=$((fail+1))
+        fail=$((fail + 1))
+    fi
+}
+
+is-json() {
+    f="$PWD/build/monobase/$1"
+    if jq < "$f" >/dev/null; then
+        echo "PASS: is-json /srv/r8/monobase/$1"
+    else
+        echo "FAIL: is-json /srv/r8/monobase/$1"
+        fail=$((fail + 1))
     fi
 }
 
@@ -56,20 +67,26 @@ test() {
 test -x 'bin/uv'
 test -x 'bin/pget'
 test -h 'cog/latest'
-test -f 'cog/latest/.done'
+test -s 'cog/latest/.done'
+is-json 'cog/latest/.done'
 test -h 'cog/latest/default-python3.12'
 test -h 'monobase/latest'
 test -d 'monobase/g00000'
-test -f 'monobase/g00000/.done'
+test -s 'monobase/g00000/.done'
+is-json 'monobase/g00000/.done'
 test -h 'monobase/g00000/cuda12.4'
-test -f 'monobase/g00000/cuda12.4/.done'
+test -s 'monobase/g00000/cuda12.4/.done'
+is-json 'monobase/g00000/cuda12.4/.done'
 test -h 'monobase/g00000/cudnn9-cuda12'
-test -f 'monobase/g00000/cudnn9-cuda12/.done'
+test -s 'monobase/g00000/cudnn9-cuda12/.done'
+is-json 'monobase/g00000/cudnn9-cuda12/.done'
 test -d 'monobase/g00000/ld.so.cache.d'
 test -d 'monobase/g00000/python3.12-torch2.4.1-cu124'
-test -f 'monobase/g00000/python3.12-torch2.4.1-cu124/.done'
+test -s 'monobase/g00000/python3.12-torch2.4.1-cu124/.done'
+is-json 'monobase/g00000/python3.12-torch2.4.1-cu124/.done'
 test -d 'user'
-test -f 'user/.done'
+test -s 'user/.done'
+is-json 'user/.done'
 test -f 'requirements-cog.txt'
 test -f 'requirements-mono.txt'
 test -f 'requirements-user.txt'

@@ -3,3 +3,4 @@
 /build/
 requirements-test
 __pycache__
+/src/monobase/_version.py

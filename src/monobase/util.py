@@ -1,4 +1,6 @@
 import argparse
+import datetime
+import json
 import logging
 import os.path
 import re
@@ -7,9 +9,16 @@ import sys
 from dataclasses import dataclass
 from typing import Iterable
 
+DONE_FILE_BASENAME = '.done'
+MINIMUM_VALID_JSON_SIZE = len('{"version":"dev"}')
 VERSION_REGEX = re.compile(
     r'^(?P<major>\d+)(\.(?P<minor>\d+)(\.(?P<patch>\d+)(\.(?P<extra>.+))?)?)?'
 )
+
+try:
+    from monobase._version import __version__
+except ImportError:
+    __version__ = 'dev'
 
 
 @dataclass(frozen=True, order=True)
@@ -59,17 +68,46 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def is_done(d: str) -> bool:
-    if os.path.exists(os.path.join(d, '.done')):
+def _is_done(d: str) -> bool:
+    full_path = os.path.join(d, DONE_FILE_BASENAME)
+    return (
+        os.path.exists(full_path)
+        and os.stat(full_path).st_size > MINIMUM_VALID_JSON_SIZE
+    )
+
+
+def require_done_or_rm(d: str) -> bool:
+    """
+    This function checks for the presence of a 'done file', and, if one is not found,
+    removes the tree at `d` so that the code requiring the done file can re-run.
+    """
+    if _is_done(d):
         return True
-    else:
-        shutil.rmtree(d, ignore_errors=True)
-        return False
+
+    if os.path.exists(d):
+        shutil.rmtree(d)
+
+    return False
 
 
-def mark_done(d: str) -> None:
-    with open(os.path.join(d, '.done'), 'w') as f:
-        f.write('')
+def mark_done(d: str, *, kind: str, **attributes) -> None:
+    with open(os.path.join(d, DONE_FILE_BASENAME), 'w') as f:
+        json.dump(
+            {
+                'timestamp': datetime.datetime.now(datetime.UTC).isoformat(),
+                'attributes': {
+                    'monobase_version': __version__,
+                    'monobase_kind': kind,
+                }
+                | {
+                    f'monobase_{kind}.{key}': value for key, value in attributes.items()
+                },
+            },
+            f,
+            sort_keys=True,
+            indent=2,
+        )
+        f.write('\n')
 
 
 def desc_version(it: Iterable[str]) -> list[str]:

@@ -8,7 +8,7 @@ import urllib.parse
 from dataclasses import dataclass
 
 from monobase.urls import cuda_urls, cudnn_urls
-from monobase.util import Version, is_done, mark_done
+from monobase.util import Version, mark_done, require_done_or_rm
 
 
 @dataclass(frozen=True, order=True)
@@ -65,11 +65,11 @@ CUDNNS: dict[str, CuDNN] = build_cudnns()
 
 def install_cuda(args: argparse.Namespace, version: str) -> str:
     cdir = os.path.join(args.prefix, 'cuda', f'cuda-{version}')
-    if is_done(cdir):
+    if require_done_or_rm(cdir):
         return cdir
     if args.skip_cuda:
         os.makedirs(cdir, exist_ok=True)
-        mark_done(cdir)
+        mark_done(cdir, kind='cuda', version=version, skipped=True)
         logging.info(f'CUDA {version} skipped in {cdir}')
         return cdir
 
@@ -111,7 +111,7 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
     cmd = ['find', cdir, '-name', 'lib*.a', '-delete']
     subprocess.run(cmd, check=True)
 
-    mark_done(cdir)
+    mark_done(cdir, kind='cuda', version=version, url=cuda.url)
     logging.info(f'CUDA {version} installed in {cdir}')
     return cdir
 
@@ -119,11 +119,11 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
 def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> str:
     key = f'{version}-cuda{cuda_major}'
     cdir = os.path.join(args.prefix, 'cuda', f'cudnn-{key}')
-    if is_done(cdir):
+    if require_done_or_rm(cdir):
         return cdir
     if args.skip_cuda:
         os.makedirs(cdir, exist_ok=True)
-        mark_done(cdir)
+        mark_done(cdir, kind='cudnn', version=version, skipped=True)
         logging.info(f'CuDNN {key} skipped in {cdir}')
         return cdir
 
@@ -145,6 +145,6 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
     cmd = ['tar', '-xf', file, '--strip-components=1', '--exclude=lib*.a', '-C', cdir]
     subprocess.run(cmd, check=True)
 
-    mark_done(cdir)
+    mark_done(cdir, kind='cudnn', version=version, url=cudnn.url)
     logging.info(f'CuDNN {key} installed in {cdir}')
     return cdir
