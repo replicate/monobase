@@ -7,7 +7,7 @@ import re
 import shutil
 import subprocess
 
-from monobase.util import is_done, mark_done
+from monobase.util import mark_done, require_done_or_rm
 
 LINK_REGEX = re.compile(r'<(?P<url>https://[^>]+)>; rel="next"')
 
@@ -66,7 +66,7 @@ def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     sha256 = cog_gen_hash(cog_versions, args.default_cog_version, python_versions)[:8]
     gid = f'g{sha256}'
     gdir = os.path.join(cdir, gid)
-    if is_done(gdir):
+    if require_done_or_rm(gdir):
         return
 
     logging.info(f'Installing cog generation {gid} in {gdir}...')

@@ -8,7 +8,7 @@ import urllib.parse
 from dataclasses import dataclass
 
 from monobase.urls import cuda_urls, cudnn_urls
-from monobase.util import Version, is_done, mark_done
+from monobase.util import Version, mark_done, require_done_or_rm
 
 
 @dataclass(frozen=True, order=True)
@@ -65,7 +65,7 @@ CUDNNS: dict[str, CuDNN] = build_cudnns()
 
 def install_cuda(args: argparse.Namespace, version: str) -> str:
     cdir = os.path.join(args.prefix, 'cuda', f'cuda-{version}')
-    if is_done(cdir):
+    if require_done_or_rm(cdir):
         return cdir
     if args.skip_cuda:
         os.makedirs(cdir, exist_ok=True)
@@ -119,7 +119,7 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
 def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> str:
     key = f'{version}-cuda{cuda_major}'
     cdir = os.path.join(args.prefix, 'cuda', f'cudnn-{key}')
-    if is_done(cdir):
+    if require_done_or_rm(cdir):
         return cdir
     if args.skip_cuda:
         os.makedirs(cdir, exist_ok=True)

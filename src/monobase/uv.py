@@ -4,7 +4,7 @@ import os.path
 import subprocess
 
 from monobase.torch import torch_deps, torch_specs
-from monobase.util import Version, is_done, mark_done
+from monobase.util import Version, mark_done, require_done_or_rm
 
 
 def cuda_suffix(cuda_version: str) -> str:
@@ -153,7 +153,7 @@ def install_venv(
 
     venv = f'python{python_version}-torch{torch_version}-{cuda_suffix(cuda_version)}'
     vdir = os.path.join(gdir, venv)
-    if is_done(vdir):
+    if require_done_or_rm(vdir):
         return
 
     logging.info(f'Creating venv {venv}...')

@@ -4,7 +4,7 @@ import os.path
 import subprocess
 from typing import Optional
 
-from monobase.util import Version, is_done, mark_done, parse_requirements
+from monobase.util import Version, mark_done, parse_requirements, require_done_or_rm
 from monobase.uv import cuda_suffix
 
 
@@ -18,7 +18,7 @@ def freeze(uv: str, vdir: str) -> str:
 
 def build_user_venv(args: argparse.Namespace) -> None:
     udir = os.path.join(args.prefix, 'user')
-    if is_done(udir):
+    if require_done_or_rm(udir):
         return
 
     logging.info(f'Building user venv {udir}...')

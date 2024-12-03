@@ -17,8 +17,8 @@ from monobase.util import (
     add_arguments,
     desc_version,
     desc_version_key,
-    is_done,
     mark_done,
+    require_done_or_rm,
     setup_logging,
 )
 from monobase.uv import install_venv
@@ -88,7 +88,7 @@ parser.add_argument(
 
 def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     gdir = os.path.join(args.prefix, 'monobase', f'g{mg.id:05d}')
-    if is_done(gdir):
+    if require_done_or_rm(gdir):
         return
 
     logging.info(f'Building monobase generation {mg.id}...')

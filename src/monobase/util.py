@@ -4,10 +4,13 @@ import json
 import logging
 import os.path
 import re
+import shutil
 import sys
 from dataclasses import dataclass
 from typing import Iterable
 
+DONE_FILE_BASENAME = ".done"
+MINIMUM_VALID_JSON_SIZE = len('{"version":"dev"}')
 VERSION_REGEX = re.compile(
     r'^(?P<major>\d+)(\.(?P<minor>\d+)(\.(?P<patch>\d+)(\.(?P<extra>.+))?)?)?'
 )
@@ -65,13 +68,30 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def is_done(d: str) -> bool:
-    full_path = os.path.join(d, '.done')
-    return os.path.exists(full_path) and os.stat(full_path).st_size > 2
+def _is_done(d: str) -> bool:
+    full_path = os.path.join(d, DONE_FILE_BASENAME)
+    return (
+        os.path.exists(full_path)
+        and os.stat(full_path).st_size > MINIMUM_VALID_JSON_SIZE
+    )
+
+
+def require_done_or_rm(d: str) -> bool:
+    """
+    This function checks for the presence of a 'done file', and, if one is not found,
+    removes the tree at `d` so that the code requiring the done file can re-run.
+    """
+    if _is_done(d):
+        return True
+
+    if os.path.exists(d):
+        shutil.rmtree(d)
+
+    return False
 
 
 def mark_done(d: str, *, kind: str, **attributes) -> None:
-    with open(os.path.join(d, '.done'), 'w') as f:
+    with open(os.path.join(d, DONE_FILE_BASENAME), 'w') as f:
         json.dump(
             {
                 'timestamp': datetime.datetime.now(datetime.UTC).isoformat(),
