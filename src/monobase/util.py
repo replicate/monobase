@@ -9,7 +9,7 @@ import sys
 from dataclasses import dataclass
 from typing import Iterable
 
-DONE_FILE_BASENAME = ".done"
+DONE_FILE_BASENAME = '.done'
 MINIMUM_VALID_JSON_SIZE = len('{"version":"dev"}')
 VERSION_REGEX = re.compile(
     r'^(?P<major>\d+)(\.(?P<minor>\d+)(\.(?P<patch>\d+)(\.(?P<extra>.+))?)?)?'
