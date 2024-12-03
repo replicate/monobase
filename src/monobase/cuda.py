@@ -69,7 +69,7 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
         return cdir
     if args.skip_cuda:
         os.makedirs(cdir, exist_ok=True)
-        mark_done(cdir)
+        mark_done(cdir, kind='cuda', version=version, skipped=True)
         logging.info(f'CUDA {version} skipped in {cdir}')
         return cdir
 
@@ -111,7 +111,7 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
     cmd = ['find', cdir, '-name', 'lib*.a', '-delete']
     subprocess.run(cmd, check=True)
 
-    mark_done(cdir)
+    mark_done(cdir, kind='cuda', version=version, url=cuda.url)
     logging.info(f'CUDA {version} installed in {cdir}')
     return cdir
 
@@ -123,7 +123,7 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
         return cdir
     if args.skip_cuda:
         os.makedirs(cdir, exist_ok=True)
-        mark_done(cdir)
+        mark_done(cdir, kind='cudnn', version=version, skipped=True)
         logging.info(f'CuDNN {key} skipped in {cdir}')
         return cdir
 
@@ -145,6 +145,6 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
     cmd = ['tar', '-xf', file, '--strip-components=1', '--exclude=lib*.a', '-C', cdir]
     subprocess.run(cmd, check=True)
 
-    mark_done(cdir)
+    mark_done(cdir, kind='cudnn', version=version, url=cudnn.url)
     logging.info(f'CuDNN {key} installed in {cdir}')
     return cdir

@@ -170,5 +170,12 @@ def install_venv(
     env['VIRTUAL_ENV'] = vdir
     subprocess.run(cmd, check=True, env=env)
 
-    mark_done(vdir)
+    mark_done(
+        vdir,
+        kind='venv',
+        python_version=python_version,
+        python_full_version=python_full_version,
+        torch_version=torch_version,
+        cuda_version=cuda_version,
+    )
     logging.info(f'Python {python_version} Torch {torch_version} installed in {vdir}')

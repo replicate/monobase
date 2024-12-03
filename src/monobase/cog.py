@@ -85,7 +85,14 @@ def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
         os.remove(latest)
     os.symlink(gid, latest)
 
-    mark_done(gdir)
+    mark_done(
+        gdir,
+        kind='cog',
+        id=gid,
+        versions=cog_versions,
+        default_version=args.default_cog_version,
+        python_versions=python_versions,
+    )
 
     for g in os.listdir(cdir):
         if g in {'latest', gid}:

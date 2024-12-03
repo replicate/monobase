@@ -110,5 +110,11 @@ def build_user_venv(args: argparse.Namespace) -> None:
     cmd = [uv, 'pip', 'install', '--no-deps', '--requirement', user_req_path]
     subprocess.run(cmd, check=True, env=env)
 
-    mark_done(udir)
+    mark_done(
+        udir,
+        kind='user',
+        python_version=python_version,
+        torch_version=torch_version,
+        cuda_version=cuda_version,
+    )
     logging.info(f'User venv installed in {udir}')

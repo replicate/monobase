@@ -1,8 +1,9 @@
 import argparse
+import datetime
+import json
 import logging
 import os.path
 import re
-import shutil
 import sys
 from dataclasses import dataclass
 from typing import Iterable
@@ -10,6 +11,11 @@ from typing import Iterable
 VERSION_REGEX = re.compile(
     r'^(?P<major>\d+)(\.(?P<minor>\d+)(\.(?P<patch>\d+)(\.(?P<extra>.+))?)?)?'
 )
+
+try:
+    from monobase._version import __version__
+except ImportError:
+    __version__ = 'dev'
 
 
 @dataclass(frozen=True, order=True)
@@ -60,16 +66,28 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def is_done(d: str) -> bool:
-    if os.path.exists(os.path.join(d, '.done')):
-        return True
-    else:
-        shutil.rmtree(d, ignore_errors=True)
-        return False
+    full_path = os.path.join(d, '.done')
+    return os.path.exists(full_path) and os.stat(full_path).st_size > 2
 
 
-def mark_done(d: str) -> None:
+def mark_done(d: str, *, kind: str, **attributes) -> None:
     with open(os.path.join(d, '.done'), 'w') as f:
-        f.write('')
+        json.dump(
+            {
+                'timestamp': datetime.datetime.now(datetime.UTC).isoformat(),
+                'attributes': {
+                    'monobase_version': __version__,
+                    'monobase_kind': kind,
+                }
+                | {
+                    f'monobase_{kind}.{key}': value for key, value in attributes.items()
+                },
+            },
+            f,
+            sort_keys=True,
+            indent=2,
+        )
+        f.write('\n')
 
 
 def desc_version(it: Iterable[str]) -> list[str]:

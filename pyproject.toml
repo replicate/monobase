@@ -1,12 +1,18 @@
 [project]
 name = "monobase"
-version = "0.1.0"
 description = "Replicate monolithic base dependency build friend"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = []
 license = {file = "LICENSE"}
+dynamic = ["version"]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/monobase/_version.py"

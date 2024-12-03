@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import logging
 import os
 import os.path
@@ -96,7 +97,10 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     for k, v in desc_version_key(mg.cuda):
         src = install_cuda(args, v)
         dst = f'{gdir}/cuda{k}'
-        os.symlink(os.path.relpath(src, gdir), dst)
+        reldst = os.path.relpath(src, gdir)
+        if os.path.exists(dst):
+            os.remove(dst)
+        os.symlink(reldst, dst)
         logging.info(f'CUDA symlinked in {dst}')
 
     cuda_major_p = re.compile(r'\.\d+$')
@@ -105,7 +109,10 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
         for m in desc_version(cuda_majors):
             src = install_cudnn(args, v, m)
             dst = f'{gdir}/cudnn{k}-cuda{m}'
-            os.symlink(os.path.relpath(src, gdir), dst)
+            reldst = os.path.relpath(src, gdir)
+            if os.path.exists(dst):
+                os.remove(dst)
+            os.symlink(reldst, dst)
             logging.info(f'CuDNN symlinked in {dst}')
 
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
@@ -118,11 +125,13 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     optimize_ld_cache(args, gdir, mg)
     optimize_rdfind(args, gdir, mg)
 
-    mark_done(gdir)
+    mark_done(gdir, kind='monogen', **mg.__dict__)
     logging.info(f'Generation {mg.id} installed in {gdir}')
 
 
 def build(args: argparse.Namespace) -> None:
+    start_time = datetime.datetime.now(datetime.UTC)
+
     monogens = sorted(MONOGENS[args.environment], reverse=True)
     if args.mini:
         mg = monogens[0]
@@ -207,7 +216,10 @@ def build(args: argparse.Namespace) -> None:
     cmd = ['du', '-ch', '-d', '1', args.prefix]
     subprocess.run(cmd, check=True)
 
-    logging.info(f'Monobase build completed: {sorted(gens)}')
+    duration = datetime.datetime.now(datetime.UTC) - start_time
+    logging.info(
+        f'Monobase build completed: generations={sorted(gens)} duration={duration}'
+    )
 
 
 if __name__ == '__main__':
