@@ -66,12 +66,7 @@ fi
 
 if [ -z "${MONOBASE_GEN_ID:-}" ]; then
     latest="$MONOBASE_PREFIX/monobase/latest"
-    if [ -h "$latest" ]; then
-        gdir="$(readlink -f "$latest")"
-    else
-        # TODO: remove once we roll a new version
-        gdir="$(find "$MONOBASE_PREFIX/monobase" -mindepth 2 -maxdepth 2 -name .done -type f -exec dirname {} \; | sort | tail -n 1)"
-    fi
+    gdir="$(readlink -f "$latest")"
     MONOBASE_GEN_ID="$(basename "$gdir" | sed 's/^g0\{0,4\}//')"
     echo "MONOBASE_GEN_ID not set, using latest $MONOBASE_GEN_ID"
 fi
