@@ -15,6 +15,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 
 ENV MONOBASE_PREFIX=$PREFIX
+ENV PATH=$MONOBASE_PREFIX/bin:$PATH
+ENV PYTHONPATH=/opt/r8
 ENV UV_CACHE_DIR=$PREFIX/uv/cache
 ENV UV_PYTHON_INSTALL_DIR=$PREFIX/uv/python
 ENV UV_TOOL_BIN_DIR=$PREFIX/bin
@@ -82,4 +84,5 @@ RUN apt-get update \
 
 RUN ln -s /usr/bin/tini /sbin/tini
 COPY src/monobase /opt/r8/monobase
-ENTRYPOINT [ "/opt/r8/monobase/entrypoint.sh" ]
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["/opt/r8/monobase/build.sh", "--help"]
