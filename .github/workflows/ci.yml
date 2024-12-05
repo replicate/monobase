@@ -62,3 +62,5 @@ jobs:
     uses: replicate/actions/.github/workflows/buildx.yml@main
     with:
       image: monobase
+      fetch-depth: 0
+      build-args: BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
