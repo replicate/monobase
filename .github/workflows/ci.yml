@@ -50,7 +50,8 @@ jobs:
       - run: ./script/build
       - run: ./script/test-mini
 
-  build:
+  build-release:
+    if: ${{ github.event_name != 'pull_request' }}
     name: Build + release
     needs:
       - check
