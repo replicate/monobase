@@ -113,3 +113,5 @@ export LIBRARY_PATH="$CUDA_PATH/lib64/stubs"
 
 LD_CACHE_PATH="$MONOBASE_PATH/ld.so.cache.d/cuda$R8_CUDA_VERSION-cudnn$R8_CUDNN_VERSION-python$R8_PYTHON_VERSION"
 cp -f "$LD_CACHE_PATH" /etc/ld.so.cache
+
+export R8_ATTRIBUTES_FILES="${COG_VENV}/.done ${CUDA_PATH}/.done ${CUDNN_PATH}/.done ${VIRTUAL_ENV}/.done"
