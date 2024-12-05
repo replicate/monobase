@@ -1,11 +1,15 @@
 # vi: filetype=dockerfile
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS build
 
-# - If hostname is monobase-builder-*
-#   - Runs as a DaemonSet on each worker
-#   - Builds PREFIX for model images
-# - Else
-#   - Runs as base image for models
-#   - Mounts PREFIX as host path
+RUN apt-get update \
+    && apt-get install -y git \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /src
+ADD . .
+ENV UV_LINK_MODE=copy
+RUN if $(git rev-parse --is-shallow-repository); then git fetch --unshallow; fi  \
+    && git describe --always --dirty --tags \
+    && uv build --sdist
 
 FROM ubuntu:jammy
 
@@ -15,6 +19,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 
 ENV MONOBASE_PREFIX=$PREFIX
+ENV PATH=$MONOBASE_PREFIX/bin:$PATH
+ENV PYTHONPATH=/opt/r8
 ENV UV_CACHE_DIR=$PREFIX/uv/cache
 ENV UV_PYTHON_INSTALL_DIR=$PREFIX/uv/python
 ENV UV_TOOL_BIN_DIR=$PREFIX/bin
@@ -69,7 +75,9 @@ RUN apt-get update \
         libxrender1 \
         llvm \
         make \
+        rsync \
         sox \
+        tar \
         tini \
         tk-dev \
         unzip \
@@ -80,6 +88,13 @@ RUN apt-get update \
         zstd \
     && rm -rf /var/lib/apt/lists/*
 
-RUN ln -s /usr/bin/tini /sbin/tini
-COPY src/monobase /opt/r8/monobase
-ENTRYPOINT [ "/opt/r8/monobase/entrypoint.sh" ]
+RUN --mount=type=bind,from=build,target=/tmp/build-layer \
+    ln -sv /usr/bin/tini /sbin/tini \
+    && mkdir -p /opt/r8 /tmp/r8 \
+    && tar --strip-components=1 -C /tmp/r8 -xf $(find /tmp/build-layer/src/dist -name '*.tar.gz' | head -1) \
+    && rsync -av /tmp/r8/src/monobase /opt/r8/ \
+    && rm -rf /tmp/r8 \
+    && /opt/r8/monobase/build.sh --help
+    
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["/opt/r8/monobase/build.sh", "--help"]

@@ -26,6 +26,7 @@ docker run --rm \
     --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --volume "$PWD/build/cache:/var/cache/monobase" \
     monobase:latest \
+    /opt/r8/monobase/build.sh \
     --environment test \
     --skip-cuda \
     --mini \
@@ -114,6 +115,7 @@ docker run --rm \
     --env R8_PYTHON_VERSION=3.12 \
     --env R8_TORCH_VERSION=2.4.1 \
     monobase:latest \
+    '/opt/r8/monobase/exec.sh' \
     python -c "$SCRIPT"
 
 read -r -d '' SCRIPT << EOF || :
@@ -130,4 +132,5 @@ docker run --rm \
     --env R8_PYTHON_VERSION=3.12 \
     --env R8_TORCH_VERSION=2.4.1 \
     monobase:latest \
+    '/opt/r8/monobase/exec.sh' \
     python -c "$SCRIPT"

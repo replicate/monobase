@@ -1,6 +1,5 @@
-#!/bin/sh
-
-# Source this in entry point
+# This file is meant to be sourced in any environment that requires the monobase layers to
+# be active.
 
 ########################################
 
@@ -41,14 +40,14 @@ if [ -z "${R8_COG_VERSION:-}" ]; then
     echo "R8_COG_VERSION not set, using default $R8_COG_VERSION"
 else
     case $R8_COG_VERSION in
-        https://*)
-            name=$(printf '%s' "$R8_COG_VERSION" | sha256sum | cut -c 1-8)
-            pkg="cog @ $R8_COG_VERSION"
-            ;;
-        *)
-            name=$R8_COG_VERSION
-            pkg="cog==$R8_COG_VERSION"
-            ;;
+    https://*)
+        name=$(printf '%s' "$R8_COG_VERSION" | sha256sum | cut -c 1-8)
+        pkg="cog @ $R8_COG_VERSION"
+        ;;
+    *)
+        name=$R8_COG_VERSION
+        pkg="cog==$R8_COG_VERSION"
+        ;;
     esac
 
     COG_PATH="$MONOBASE_PREFIX/cog/latest/cog$name-python$R8_PYTHON_VERSION"
