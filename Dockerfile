@@ -93,8 +93,8 @@ RUN --mount=type=bind,from=build,target=/tmp/build-layer \
     && mkdir -p /opt/r8 /tmp/r8 \
     && tar --strip-components=1 -C /tmp/r8 -xf $(find /tmp/build-layer/src/dist -name '*.tar.gz' | head -1) \
     && rsync -av /tmp/r8/src/monobase /opt/r8/ \
-    && rm -rf /tmp/r8 \
-    && /opt/r8/monobase/build.sh --help
+    && rm -rf /tmp/r8
+
     
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/opt/r8/monobase/build.sh", "--help"]
