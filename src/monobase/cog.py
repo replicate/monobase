@@ -67,6 +67,7 @@ def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     gid = f'g{sha256}'
     gdir = os.path.join(cdir, gid)
     if require_done_or_rm(gdir):
+        logging.info(f'Cog generation {gid} is complete')
         return
 
     logging.info(f'Installing cog generation {gid} in {gdir}...')

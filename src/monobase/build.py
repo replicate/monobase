@@ -89,6 +89,7 @@ parser.add_argument(
 def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     gdir = os.path.join(args.prefix, 'monobase', f'g{mg.id:05d}')
     if require_done_or_rm(gdir):
+        logging.info(f'Monobase generation {mg.id} is complete')
         return
 
     logging.info(f'Building monobase generation {mg.id}...')
