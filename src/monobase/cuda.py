@@ -66,7 +66,9 @@ CUDNNS: dict[str, CuDNN] = build_cudnns()
 def install_cuda(args: argparse.Namespace, version: str) -> str:
     cdir = os.path.join(args.prefix, 'cuda', f'cuda-{version}')
     if require_done_or_rm(cdir):
+        logging.info(f'CUDA {version} in {cdir} is complete')
         return cdir
+
     if args.skip_cuda:
         os.makedirs(cdir, exist_ok=True)
         mark_done(cdir, kind='cuda', version=version, skipped=True)
@@ -120,7 +122,9 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
     key = f'{version}-cuda{cuda_major}'
     cdir = os.path.join(args.prefix, 'cuda', f'cudnn-{key}')
     if require_done_or_rm(cdir):
+        logging.info(f'CuDNN {key} in {cdir} is complete')
         return cdir
+
     if args.skip_cuda:
         os.makedirs(cdir, exist_ok=True)
         mark_done(cdir, kind='cudnn', version=version, skipped=True)
