@@ -32,13 +32,13 @@ def diff(id0: int, id1: int) -> None:
     if len(venvs) > 0:
         for v in venvs:
             v = v.rstrip('.txt')
-            print(f'{v}\t-')
+            print(f'- {v}')
 
     venvs = sorted(set(venvs1) - set(venvs0))
     if len(venvs) > 0:
         for v in venvs:
             v = v.rstrip('.txt')
-            print(f'-\t{v}')
+            print(f'+ {v}')
 
     for venv in sorted(set(venvs0).intersection(set(venvs1))):
         with open(os.path.join(rdir0, venv), 'r') as f:
