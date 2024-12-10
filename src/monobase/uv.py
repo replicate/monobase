@@ -154,6 +154,7 @@ def install_venv(
     venv = f'python{python_version}-torch{torch_version}-{cuda_suffix(cuda_version)}'
     vdir = os.path.join(gdir, venv)
     if require_done_or_rm(vdir):
+        logging.info(f'Venv {venv} in {vdir} is complete')
         return
 
     logging.info(f'Creating venv {venv}...')
