@@ -40,10 +40,13 @@ fi
 log "Running builder..."
 uv run --python "$MONOBASE_PYTHON" python -m monobase.build "$@"
 
-# Inside K8S
-# Write done file to signal pod ready
-# Sleep keep pod alive
+# When running in K8S:
+# - Write done file to signal pod ready
+# - Write the done timestamp to node feature discovery label
+# - Sleep keep pod alive
 if [ -n "${KUBERNETES_SERVICE_HOST:-}" ]; then
     touch "$DONE_FILE"
-    sleep 86400
+    printf "done=%s\n" "$(date --iso-8601=seconds --utc)" |
+        tee /etc/kubernetes/node-feature-discovery/features.d/monobase
+    exec sleep infinity
 fi
