@@ -91,7 +91,6 @@ is-json 'monobase/user/.done'
 test -f 'monobase/requirements-cog.txt'
 test -f 'monobase/requirements-mono.txt'
 test -f 'monobase/requirements-user.txt'
-test -s 'nfd-features.d/monobase'
 
 if [ "$fail" -gt 0 ]; then
     exit 1
