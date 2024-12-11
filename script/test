@@ -12,12 +12,13 @@ cd "$(git rev-parse --show-toplevel)"
 uv run --python "$MONOBASE_PYTHON" python -m monobase.update --environment test
 
 # Build test PREFIX
-mkdir -p build/monobase build/cache
+mkdir -p build/monobase build/cache build/nfd-features.d
 docker run --rm \
     --user "$(id -u):$(id -g)" \
     --volume "$PWD/src/monobase:/opt/r8/monobase" \
     --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --volume "$PWD/build/cache:/var/cache/monobase" \
+    --volume "$PWD/build/nfd-features.d:/etc/kubernetes/node-feature-discovery/features.d" \
     monobase:latest \
     /opt/r8/monobase/build.sh \
     --environment test \
@@ -26,12 +27,13 @@ docker run --rm \
     0.11.3 \
     https://github.com/replicate/cog/archive/00b98bc90bb784102243b7aec41ad1cbffaefece.zip \
     --default-cog-version 0.11.3 \
+    --write-node-feature-discovery-labels \
     "$@"
 
 fail=0
 test() {
     op="$1"
-    f="$PWD/build/monobase/$2"
+    f="$PWD/build/$2"
     r=0
     case "$op" in
         -d) [ -d "$f" ] || r=1 ;;
@@ -50,7 +52,7 @@ test() {
 }
 
 is-json() {
-    f="$PWD/build/monobase/$1"
+    f="$PWD/build/$1"
     if jq < "$f" >/dev/null; then
         echo "PASS: is-json /srv/r8/monobase/$1"
     else
@@ -59,27 +61,30 @@ is-json() {
     fi
 }
 
-# Test /srv/r8/monobase structure
-test -x 'bin/uv'
-test -x 'bin/pget'
-test -h 'cog/latest'
-test -s 'cog/latest/.done'
-is-json 'cog/latest/.done'
-test -h 'cog/latest/default-python3.12'
-test -h 'monobase/latest'
-test -d 'monobase/g00000'
-test -s 'monobase/g00000/.done'
-is-json 'monobase/g00000/.done'
-test -h 'monobase/g00000/cuda12.4'
-test -s 'monobase/g00000/cuda12.4/.done'
-is-json 'monobase/g00000/cuda12.4/.done'
-test -h 'monobase/g00000/cudnn9-cuda12'
-test -s 'monobase/g00000/cudnn9-cuda12/.done'
-is-json 'monobase/g00000/cudnn9-cuda12/.done'
-test -d 'monobase/g00000/ld.so.cache.d'
-test -d 'monobase/g00000/python3.12-torch2.4.1-cu124'
-test -s 'monobase/g00000/python3.12-torch2.4.1-cu124/.done'
-is-json 'monobase/g00000/python3.12-torch2.4.1-cu124/.done'
+# Test ./build structure which maps to /srv/r8/monobase in container
+test -s 'monobase/.done'
+is-json 'monobase/.done'
+test -x 'monobase/bin/uv'
+test -x 'monobase/bin/pget'
+test -h 'monobase/cog/latest'
+test -s 'monobase/cog/latest/.done'
+is-json 'monobase/cog/latest/.done'
+test -h 'monobase/cog/latest/default-python3.12'
+test -h 'monobase/monobase/latest'
+test -d 'monobase/monobase/g00000'
+test -s 'monobase/monobase/g00000/.done'
+is-json 'monobase/monobase/g00000/.done'
+test -h 'monobase/monobase/g00000/cuda12.4'
+test -s 'monobase/monobase/g00000/cuda12.4/.done'
+is-json 'monobase/monobase/g00000/cuda12.4/.done'
+test -h 'monobase/monobase/g00000/cudnn9-cuda12'
+test -s 'monobase/monobase/g00000/cudnn9-cuda12/.done'
+is-json 'monobase/monobase/g00000/cudnn9-cuda12/.done'
+test -d 'monobase/monobase/g00000/ld.so.cache.d'
+test -d 'monobase/monobase/g00000/python3.12-torch2.4.1-cu124'
+test -s 'monobase/monobase/g00000/python3.12-torch2.4.1-cu124/.done'
+is-json 'monobase/monobase/g00000/python3.12-torch2.4.1-cu124/.done'
+test -s 'nfd-features.d/monobase'
 
 if [ "$fail" -gt 0 ]; then
     exit 1

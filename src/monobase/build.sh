@@ -37,16 +37,5 @@ if [ -z "${NO_REINSTALL:-}" ]; then
     cp /opt/r8/monobase/pget "$MONOBASE_PREFIX/bin/pget"
 fi
 
-log "Running builder..."
-uv run --python "$MONOBASE_PYTHON" python -m monobase.build "$@"
-
-# When running in K8S:
-# - Write done file to signal pod ready
-# - Write the done timestamp to node feature discovery label
-# - Sleep keep pod alive
-if [ -n "${KUBERNETES_SERVICE_HOST:-}" ]; then
-    touch "$DONE_FILE"
-    printf "done=%s\n" "$(date --utc '+%Y%m%dT%H%M%SZ')" |
-        tee /etc/kubernetes/node-feature-discovery/features.d/monobase
-    exec sleep infinity
-fi
+log "Running monobase.build..."
+exec uv run --python "$MONOBASE_PYTHON" python -m monobase.build "$@"

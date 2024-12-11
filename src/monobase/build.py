@@ -13,6 +13,8 @@ from monobase.optimize import optimize_ld_cache, optimize_rdfind
 from monobase.prune import clean_uv_cache, prune_cuda, prune_old_gen, prune_uv_cache
 from monobase.user import build_user_venv
 from monobase.util import (
+    IN_KUBERNETES,
+    NODE_FEATURE_LABEL_FILE,
     Version,
     add_arguments,
     desc_version,
@@ -79,10 +81,27 @@ parser.add_argument(
     help='prune unused CUDAs and CuDNNs',
 )
 parser.add_argument(
-    '--prune-uv-cache', default=True, action='store_true', help='prune uv cache'
+    '--prune-uv-cache',
+    default=True,
+    action='store_true',
+    help='prune uv cache',
 )
 parser.add_argument(
-    '--clean-uv-cache', default=False, action='store_true', help='clean uv cache'
+    '--clean-uv-cache',
+    default=False,
+    action='store_true',
+    help='clean uv cache',
+)
+parser.add_argument(
+    '--all-done-dir',
+    default='/srv/r8/monobase',
+    help='directory in which to mark the entire build process done',
+)
+parser.add_argument(
+    '--write-node-feature-discovery-labels',
+    default=IN_KUBERNETES,
+    action='store_true',
+    help=f'write labels to {NODE_FEATURE_LABEL_FILE}',
 )
 
 
@@ -203,6 +222,16 @@ def build(args: argparse.Namespace) -> None:
                 os.remove(latest)
             os.symlink(f'g{mg.id:05d}', latest)
 
+            if args.write_node_feature_discovery_labels:
+                done = datetime.datetime.now(datetime.UTC).strftime('%Y%m%dT%H%M%SZ')
+
+                with open(NODE_FEATURE_LABEL_FILE, 'w') as fp:
+                    fp.write(f'done={done}\n')
+
+                os.chmod(NODE_FEATURE_LABEL_FILE, 0o644)
+
+                logging.info(f'Wrote done={done} to {NODE_FEATURE_LABEL_FILE}')
+
     if args.requirements is not None:
         build_user_venv(args)
 
@@ -221,6 +250,8 @@ def build(args: argparse.Namespace) -> None:
     logging.info(
         f'Monobase build completed: generations={sorted(gens)} duration={duration}'
     )
+
+    mark_done(args.all_done_dir, kind='build', duration=str(duration), gens=gens)
 
 
 if __name__ == '__main__':
