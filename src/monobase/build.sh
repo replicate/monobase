@@ -46,7 +46,7 @@ uv run --python "$MONOBASE_PYTHON" python -m monobase.build "$@"
 # - Sleep keep pod alive
 if [ -n "${KUBERNETES_SERVICE_HOST:-}" ]; then
     touch "$DONE_FILE"
-    printf "done=%s\n" "$(date --iso-8601=seconds --utc)" |
+    printf "done=%s\n" "$(date --utc '+%Y%m%dT%H%M%SZ')" |
         tee /etc/kubernetes/node-feature-discovery/features.d/monobase
     exec sleep infinity
 fi
