@@ -33,6 +33,19 @@ TEST_MONOGENS: list[MonoGen] = [
         ],
         pip_pkgs=SEED_PKGS,
     ),
+    MonoGen(
+        id=1,
+        cuda={'12.4': '12.4.1_550.54.15'},
+        cudnn={'9': '9.1.0.70'},
+        python={'3.12': '3.12.7', '3.13': '3.13.0'},
+        torch=[
+            '2.4.1',
+            '2.5.1',
+            # Nightly
+            '2.6.0.dev20240918',
+        ],
+        pip_pkgs=SEED_PKGS,
+    ),
 ]
 
 # Generations are immutable

@@ -5,6 +5,7 @@ import glob
 import hashlib
 import json
 import logging
+import os
 import os.path
 import re
 import shutil
@@ -12,6 +13,8 @@ import sys
 from dataclasses import dataclass
 from typing import Iterable
 
+IN_KUBERNETES = os.environ.get('KUBERNETES_SERVICE_HOST') is not None
+NODE_FEATURE_LABEL_FILE = '/etc/kubernetes/node-feature-discovery/features.d/monobase'
 DONE_FILE_BASENAME = '.done'
 MINIMUM_VALID_JSON_SIZE = len('{"version":"dev"}')
 VERSION_REGEX = re.compile(
