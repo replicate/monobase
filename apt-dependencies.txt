@@ -1,0 +1,51 @@
+# ca-certificates - HTTPS
+# curl - download uv, PGET, etc.
+# libxml2 - CUDA installer
+# rdfind - find duplicate CUDA .so files
+# xz-utils - CuDNN tarball
+
+build-essential
+ca-certificates
+cmake
+curl
+ffmpeg
+findutils
+g++
+gcc
+git
+libavcodec-dev
+libbz2-dev
+libcairo2-dev
+libffi-dev
+libfontconfig1
+libgirepository1.0-dev
+libgl1
+libgl1-mesa-glx
+libglib2.0-0
+liblzma-dev
+libncurses5-dev
+libncursesw5-dev
+libopencv-dev
+libreadline-dev
+libsm6
+libsndfile1
+libsqlite3-dev
+libssl-dev
+libunistring-dev
+libxext6
+libxml2
+libxrender1
+llvm
+make
+rdfind
+rsync
+sox
+tar
+tini
+tk-dev
+unzip
+wget
+xz-utils
+zip
+zlib1g-dev
+zstd

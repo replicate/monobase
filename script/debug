@@ -17,14 +17,23 @@ mkdir -p build/monobase build/cache
 : "${DEBUG_USER:=root:root}"
 : "${DEBUG_DIR:="/opt/r8"}"
 
+VOLUMES=(
+    --volume "${PWD}/build/monobase:/srv/r8/monobase"
+    --volume "${PWD}/build/cache:/var/cache/monobase"
+)
+if [[ -z "${DEBUG_NO_SRC_VOLUME:-}" ]]; then
+    VOLUMES=(
+        --volume "${PWD}/src/monobase:/opt/r8/monobase"
+        "${VOLUMES[@]}"
+    )
+fi
+
 set -x
 exec docker run --rm -it \
     --hostname debug \
     --user "${DEBUG_USER}" \
     --workdir "${DEBUG_DIR}" \
-    --volume "${PWD}/src/monobase:/opt/r8/monobase" \
-    --volume "${PWD}/build/monobase:/srv/r8/monobase" \
-    --volume "${PWD}/build/cache:/var/cache/monobase" \
+    "${VOLUMES[@]}" \
     --env R8_CUDA_VERSION="${R8_CUDA_VERSION:-"12.4"}" \
     --env R8_CUDNN_VERSION="${R8_CUDNN_VERSION:-"9"}" \
     --env R8_PYTHON_VERSION="${R8_PYTHON_VERSION:-"3.12"}" \
