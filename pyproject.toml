@@ -2,8 +2,11 @@
 name = "monobase"
 description = "Replicate monolithic base dependency build friend"
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+requires-python = ">=3.8"
+dependencies = [
+# "opentelemetry-distro",
+  "structlog",
+]
 license = {file = "LICENSE"}
 dynamic = ["version"]
 
