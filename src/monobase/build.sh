@@ -5,11 +5,6 @@
 set -euo pipefail
 
 export PATH="$MONOBASE_PREFIX/bin:$PATH"
-export PYTHONPATH='/opt/r8'
-
-# Python version running the builder, not part of any venvs
-MONOBASE_PYTHON='3.12'
-DONE_FILE='/opt/r8/monobase/.done'
 
 UV_URL='https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz'
 PGET_URL='https://github.com/replicate/pget/releases/latest/download/pget_Linux_x86_64'
@@ -37,5 +32,8 @@ if [ -z "${NO_REINSTALL:-}" ]; then
     cp /opt/r8/monobase/pget "$MONOBASE_PREFIX/bin/pget"
 fi
 
+uv venv /var/tmp/.venv --python='3.13'
+VIRTUAL_ENV=/var/tmp/.venv uv pip install $(find /opt/r8 -name '*.whl' | head -1)
+
 log "Running monobase.build..."
-exec uv run --python "$MONOBASE_PYTHON" python -m monobase.build "$@"
+exec /var/tmp/.venv/bin/python -m monobase.build "$@"
