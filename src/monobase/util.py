@@ -173,22 +173,22 @@ def replace_level_with_severity(
     Replace the level field with a severity field as understood by Stackdriver
     logs.
     """
-    if "level" in event_dict:
-        event_dict["severity"] = event_dict.pop("level").upper()
+    if 'level' in event_dict:
+        event_dict['severity'] = event_dict.pop('level').upper()
     return event_dict
 
 
 def setup_logging() -> None:
     # Switch to human-friendly log output if LOG_FORMAT environment variable is
     # set to "development".
-    development_logs = os.environ.get("LOG_FORMAT", "") == "development"
+    development_logs = os.environ.get('LOG_FORMAT', '') == 'development'
 
     processors: list[structlog.types.Processor] = [
         structlog.contextvars.merge_contextvars,
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
         structlog.processors.StackInfoRenderer(),
-        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.TimeStamper(fmt='iso'),
     ]
 
     if development_logs:
@@ -206,7 +206,7 @@ def setup_logging() -> None:
         processors.append(replace_level_with_severity)
 
     # Stackdriver logging expects a "message" field, not "event"
-    processors.append(structlog.processors.EventRenamer("message"))
+    processors.append(structlog.processors.EventRenamer('message'))
 
     structlog.configure(
         processors=processors
@@ -216,7 +216,7 @@ def setup_logging() -> None:
     )
 
     if development_logs:
-        log_renderer = structlog.dev.ConsoleRenderer(event_key="message")  # type: ignore
+        log_renderer = structlog.dev.ConsoleRenderer(event_key='message')  # type: ignore
     else:
         log_renderer = structlog.processors.JSONRenderer()  # type: ignore
 
