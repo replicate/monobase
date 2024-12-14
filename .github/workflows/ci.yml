@@ -52,7 +52,7 @@ jobs:
       - run: ./script/test-mini
 
   build-release:
-    name: Build + release ${{ matrix.image }} image
+    name: Build + release ${{ matrix.image.name }} image
     needs:
       - check
       - test
@@ -62,9 +62,10 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        - image: monobase
-        - image: monobase-runtime
-          file: runtime.Dockerfile
+        image:
+          - name: monobase
+          - name: monobase-runtime
+            file: runtime.Dockerfile
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -79,12 +80,12 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: |
-          us-docker.pkg.dev/replicate-production/replicate-us/${{ matrix.image }}
+          us-docker.pkg.dev/replicate-production/replicate-us/${{ matrix.image.name }}
         tags: |
           type=sha
           type=raw,value=latest,enable={{is_default_branch}},priority=0
         labels: |
-          org.opencontainers.image.title=${{ matrix.image }}
+          org.opencontainers.image.title=${{ matrix.image.name }}
     - name: Authenticate to Google Cloud
       id: auth
       uses: google-github-actions/auth@v2
@@ -102,13 +103,13 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         context: '{{defaultContext}}'
-        file: ${{ matrix.file || '' }}
+        file: ${{ matrix.image.file || '' }}
         push: ${{ github.event_name != 'pull_request' }}
         platforms: linux/amd64,linux/arm64
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha,scope=${{ matrix.image }}
-        cache-to: type=gha,scope=${{ matrix.image }},mode=max
+        cache-from: type=gha,scope=${{ matrix.image.name }}
+        cache-to: type=gha,scope=${{ matrix.image.name }},mode=max
         build-args: |
           COMMIT_SHA=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
