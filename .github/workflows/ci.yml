@@ -71,10 +71,6 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - name: Set up Buildx
-      uses: docker/setup-buildx-action@v3
-      with:
-        platforms: linux/amd64,linux/arm64
     - name: Set Docker metadata
       id: meta
       uses: docker/metadata-action@v5
@@ -86,6 +82,10 @@ jobs:
           type=raw,value=latest,enable={{is_default_branch}},priority=0
         labels: |
           org.opencontainers.image.title=${{ matrix.image.name }}
+    - name: Set up Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        platforms: linux/amd64,linux/arm64
     - name: Authenticate to Google Cloud
       id: auth
       uses: google-github-actions/auth@v2
