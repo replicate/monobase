@@ -51,9 +51,8 @@ jobs:
       - run: ./script/build-image
       - run: ./script/test-mini
 
-  build-release-monobase:
-    if: ${{ github.event_name != 'pull_request' }}
-    name: Build + release monobase image
+  build-release:
+    name: Build + release ${{ matrix.image }} image
     needs:
       - check
       - test
@@ -61,24 +60,55 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: replicate/actions/.github/workflows/buildx.yml@main
-    with:
-      image: monobase
-      fetch-depth: 0
-      build-args: BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
-
-  build-release-monobase-runtime:
-    if: ${{ github.event_name != 'pull_request' }}
-    name: Build + release monobase-runtime image
-    needs:
-      - check
-      - test
-      - test-mini
-    permissions:
-      contents: read
-      id-token: write
-    uses: replicate/actions/.github/workflows/buildx.yml@main
-    with:
-      image: monobase-runtime
-      file: runtime.Dockerfile
-      fetch-depth: 0
+    strategy:
+      matrix:
+        - image: monobase
+        - image: monobase-runtime
+          file: runtime.Dockerfile
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Set up Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        platforms: linux/amd64,linux/arm64
+    - name: Set Docker metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          us-docker.pkg.dev/replicate-production/replicate-us/${{ matrix.image }}
+        tags: |
+          type=sha
+          type=raw,value=latest,enable={{is_default_branch}},priority=0
+        labels: |
+          org.opencontainers.image.title=${{ matrix.image }}
+    - name: Authenticate to Google Cloud
+      id: auth
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: projects/1025538909507/locations/global/workloadIdentityPools/github/providers/github-actions
+        service_account: builder@replicate-production.iam.gserviceaccount.com
+        token_format: access_token
+    - name: Log into US Artifact Registry
+      uses: docker/login-action@v3
+      with:
+        registry: us-docker.pkg.dev
+        username: oauth2accesstoken
+        password: ${{ steps.auth.outputs.access_token }}
+    - name: Build and push
+      uses: docker/build-push-action@v6
+      with:
+        context: '{{defaultContext}}'
+        file: ${{ matrix.file || '' }}
+        push: ${{ github.event_name != 'pull_request' }}
+        platforms: linux/amd64,linux/arm64
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha,scope=${{ matrix.image }}
+        cache-to: type=gha,scope=${{ matrix.image }},mode=max
+        build-args: |
+          COMMIT_SHA=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+          BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
