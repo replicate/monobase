@@ -14,7 +14,7 @@ RUN if $(git rev-parse --is-shallow-repository); then git fetch --unshallow; fi 
        fi \
     && echo "GIT_DESC=${GIT_DESC}" \
     && echo "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}" \
-    && uv build --sdist
+    && uv build
 
 FROM ubuntu:jammy
 
