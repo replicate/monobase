@@ -10,11 +10,13 @@ from monobase.uv import update_venv
 parser = argparse.ArgumentParser(description='Update monobase requirements')
 add_arguments(parser)
 
+log = logging.getLogger(__name__)
+
 
 def update_generation(
     args: argparse.Namespace, tmp: TemporaryDirectory, mg: MonoGen
 ) -> None:
-    logging.info(f'Updating monobase generation {mg.id}')
+    log.info(f'Updating monobase generation {mg.id}')
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
     rdir = os.path.join(
         os.path.dirname(__file__), f'requirements{suffix}', f'g{mg.id:05d}'
@@ -36,7 +38,7 @@ def update(args: argparse.Namespace) -> None:
         update_generation(args, tmp, mg)
         gens.append(mg.id)
 
-    logging.info(f'Monobase update completed: {sorted(gens)}')
+    log.info(f'Monobase update completed: {sorted(gens)}')
 
 
 if __name__ == '__main__':

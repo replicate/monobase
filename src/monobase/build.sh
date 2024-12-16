@@ -4,6 +4,8 @@
 
 set -euo pipefail
 
+export OTEL_EXPORTER_OTLP_ENDPOINT="${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
+export OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME:-monobase}"
 export PATH="$MONOBASE_PREFIX/bin:$PATH"
 
 UV_URL='https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz'

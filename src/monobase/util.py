@@ -9,12 +9,16 @@ import os
 import os.path
 import re
 import shutil
+import subprocess
 import sys
 from dataclasses import dataclass
 from typing import Iterable
 
 import structlog
+from opentelemetry import trace
 from structlog.typing import EventDict
+
+tracer = trace.get_tracer('monobase')
 
 IN_KUBERNETES = os.environ.get('KUBERNETES_SERVICE_HOST') is not None
 NODE_FEATURE_LABEL_FILE = '/etc/kubernetes/node-feature-discovery/features.d/monobase'
@@ -23,6 +27,8 @@ MINIMUM_VALID_JSON_SIZE = len('{"version":"dev"}')
 VERSION_REGEX = re.compile(
     r'^(?P<major>\d+)(\.(?P<minor>\d+)(\.(?P<patch>\d+)(\.(?P<extra>.+))?)?)?'
 )
+
+log = logging.getLogger(__name__)
 
 try:
     from monobase._version import __version__
@@ -101,6 +107,7 @@ def _is_done(d: str) -> bool:
         return False
 
 
+@tracer.start_as_current_span('require_done_or_rm')
 def require_done_or_rm(d: str) -> bool:
     """
     This function checks for the presence of a 'done file', and, if one is not found, or
@@ -164,6 +171,11 @@ def parse_requirements(req: str) -> dict[str, str | Version]:
         except ValueError:
             versions[parts[0].strip()] = vs
     return versions
+
+
+@tracer.start_as_current_span('du')
+def du(d: str) -> None:
+    subprocess.run(['du', '-ch', '-d', '1', d], check=True)
 
 
 def replace_level_with_severity(
@@ -234,3 +246,27 @@ def setup_logging() -> None:
     root = logging.getLogger()
     root.addHandler(handler)
     root.setLevel(logging.DEBUG)
+
+
+def setup_opentelemetry():
+    if not os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT'):
+        return
+
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.sdk.resources import Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+    resource = Resource.create(_default_opentelemetry_attributes())
+    tracer_provider = TracerProvider(resource=resource)
+    tracer_provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+    trace.set_tracer_provider(tracer_provider)
+
+    log.info('Set up OpenTelemetry')
+
+
+def _default_opentelemetry_attributes() -> dict[str, str]:
+    return {
+        'pid': str(os.getpid()),
+        'service.version': __version__,
+    }

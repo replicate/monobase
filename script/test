@@ -19,6 +19,7 @@ docker run --rm \
     --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --volume "$PWD/build/cache:/var/cache/monobase" \
     --volume "$PWD/build/nfd-features.d:/etc/kubernetes/node-feature-discovery/features.d" \
+    -e OTEL_EXPORTER_OTLP_ENDPOINT \
     monobase:latest \
     /opt/r8/monobase/build.sh \
     --environment test \

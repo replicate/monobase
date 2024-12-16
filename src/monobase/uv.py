@@ -4,7 +4,9 @@ import os.path
 import subprocess
 
 from monobase.torch import torch_deps, torch_specs
-from monobase.util import Version, mark_done, require_done_or_rm
+from monobase.util import Version, mark_done, require_done_or_rm, tracer
+
+log = logging.getLogger(__name__)
 
 
 def cuda_suffix(cuda_version: str) -> str:
@@ -74,6 +76,7 @@ def pip_packages(
     return pkgs + pip_pkgs + nvidia_pkgs
 
 
+@tracer.start_as_current_span('update_venv')
 def update_venv(
     rdir: str,
     tmp: str,
@@ -96,11 +99,11 @@ def update_venv(
     venv = f'python{python_version}-torch{torch_version}-{cuda_suffix(cuda_version)}'
     vdir = os.path.join(tmp, venv)
 
-    logging.info(f'Creating venv {venv}...')
+    log.info(f'Creating venv {venv}...')
     cmd = ['uv', 'venv', '--python', python_full_version, vdir]
     subprocess.run(cmd, check=True)
 
-    logging.info(f'Running pip compile in {venv}...')
+    log.info(f'Running pip compile in {venv}...')
     # Emit extra info for debugging
     emit_args = [
         '--emit-index-url',
@@ -127,11 +130,12 @@ def update_venv(
         with open(requirements, 'w') as f:
             f.write(proc.stdout)
     except subprocess.CalledProcessError as e:
-        logging.error(e.stdout)
-        logging.error(e.stderr)
+        log.error(e.stdout)
+        log.error(e.stderr)
         raise e
 
 
+@tracer.start_as_current_span('install_venv')
 def install_venv(
     args: argparse.Namespace,
     rdir: str,
@@ -154,15 +158,15 @@ def install_venv(
     venv = f'python{python_version}-torch{torch_version}-{cuda_suffix(cuda_version)}'
     vdir = os.path.join(gdir, venv)
     if require_done_or_rm(vdir):
-        logging.info(f'Venv {venv} in {vdir} is complete')
+        log.info(f'Venv {venv} in {vdir} is complete')
         return
 
-    logging.info(f'Creating venv {venv}...')
+    log.info(f'Creating venv {venv}...')
     uv = os.path.join(args.prefix, 'bin', 'uv')
     cmd = [uv, 'venv', '--python', python_full_version, vdir]
     subprocess.run(cmd, check=True)
 
-    logging.info(f'Installing Torch {t} in {venv}...')
+    log.info(f'Installing Torch {t} in {venv}...')
 
     requirements = os.path.join(rdir, f'{venv}.txt')
     cmd = [uv, 'pip', 'install', '--no-deps', '--requirement', requirements]
@@ -179,4 +183,4 @@ def install_venv(
         torch_version=torch_version,
         cuda_version=cuda_version,
     )
-    logging.info(f'Python {python_version} Torch {torch_version} installed in {vdir}')
+    log.info(f'Python {python_version} Torch {torch_version} installed in {vdir}')

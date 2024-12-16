@@ -4,7 +4,8 @@ import logging
 import os
 import os.path
 import re
-import subprocess
+
+from opentelemetry import trace
 
 from monobase.cog import install_cogs
 from monobase.cuda import install_cuda, install_cudnn
@@ -19,11 +20,16 @@ from monobase.util import (
     add_arguments,
     desc_version,
     desc_version_key,
+    du,
     mark_done,
     require_done_or_rm,
     setup_logging,
+    setup_opentelemetry,
+    tracer,
 )
 from monobase.uv import install_venv
+
+log = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(description='Build monobase enviroment')
 add_arguments(parser)
@@ -105,13 +111,20 @@ parser.add_argument(
 )
 
 
+@tracer.start_as_current_span('build_generation')
 def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
+    span = trace.get_current_span()
+    span.set_attributes(mg.otel_attributes)
+
     gdir = os.path.join(args.prefix, 'monobase', f'g{mg.id:05d}')
+
+    span.set_attribute('build_generation.dir', gdir)
+
     if require_done_or_rm(gdir):
-        logging.info(f'Monobase generation {mg.id} is complete')
+        log.info(f'Monobase generation {mg.id} is complete')
         return
 
-    logging.info(f'Building monobase generation {mg.id}...')
+    log.info(f'Building monobase generation {mg.id}...')
     os.makedirs(gdir, exist_ok=True)
 
     for k, v in desc_version_key(mg.cuda):
@@ -121,7 +134,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
         if os.path.exists(dst):
             os.remove(dst)
         os.symlink(reldst, dst)
-        logging.info(f'CUDA symlinked in {dst}')
+        log.info(f'CUDA symlinked in {dst}')
 
     cuda_major_p = re.compile(r'\.\d+$')
     cuda_majors = set(cuda_major_p.sub('', k) for k in mg.cuda.keys())
@@ -133,7 +146,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
             if os.path.exists(dst):
                 os.remove(dst)
             os.symlink(reldst, dst)
-            logging.info(f'CuDNN symlinked in {dst}')
+            log.info(f'CuDNN symlinked in {dst}')
 
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
     rdir = os.path.join('/opt/r8/monobase', f'requirements{suffix}', f'g{mg.id:05d}')
@@ -146,10 +159,14 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     optimize_rdfind(args, gdir, mg)
 
     mark_done(gdir, kind='monogen', **mg.__dict__)
-    logging.info(f'Generation {mg.id} installed in {gdir}')
+    log.info(f'Generation {mg.id} installed in {gdir}')
 
 
+@tracer.start_as_current_span('build')
 def build(args: argparse.Namespace) -> None:
+    span = trace.get_current_span()
+    span.set_attributes({f'build.{k}': str(v) for k, v in args.__dict__.items()})
+
     start_time = datetime.datetime.now(datetime.UTC)
 
     monogens = sorted(MONOGENS[args.environment], reverse=True)
@@ -218,8 +235,10 @@ def build(args: argparse.Namespace) -> None:
 
         if i == 0:
             latest = os.path.join(args.prefix, 'monobase', 'latest')
+
             if os.path.exists(latest):
                 os.remove(latest)
+
             os.symlink(f'g{mg.id:05d}', latest)
 
             if args.write_node_feature_discovery_labels:
@@ -230,24 +249,25 @@ def build(args: argparse.Namespace) -> None:
 
                 os.chmod(NODE_FEATURE_LABEL_FILE, 0o644)
 
-                logging.info(f'Wrote done={done} to {NODE_FEATURE_LABEL_FILE}')
+                log.info(f'Wrote done={done} to {NODE_FEATURE_LABEL_FILE}')
 
     if args.requirements is not None:
         build_user_venv(args)
 
     if args.prune_old_gen:
         prune_old_gen(args)
+
     if args.prune_cuda:
         prune_cuda(args)
+
     if args.prune_uv_cache:
         prune_uv_cache()
 
-    logging.info(f'Calculating disk usage in {args.prefix}...')
-    cmd = ['du', '-ch', '-d', '1', args.prefix]
-    subprocess.run(cmd, check=True)
+    log.info(f'Calculating disk usage in {args.prefix}...')
+    du(args.prefix)
 
     duration = datetime.datetime.now(datetime.UTC) - start_time
-    logging.info(
+    log.info(
         f'Monobase build completed: generations={sorted(gens)} duration={duration}'
     )
 
@@ -256,4 +276,5 @@ def build(args: argparse.Namespace) -> None:
 
 if __name__ == '__main__':
     setup_logging()
+    setup_opentelemetry()
     build(parser.parse_args())

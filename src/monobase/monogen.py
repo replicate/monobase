@@ -4,6 +4,8 @@ from dataclasses import dataclass
 
 from monobase.util import setup_logging
 
+log = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True, order=True)
 class MonoGen:
@@ -13,6 +15,10 @@ class MonoGen:
     python: dict[str, str]
     torch: list[str]
     pip_pkgs: list[str]
+
+    @property
+    def otel_attributes(self):
+        return {f'monogen.{k}': str(v) for k, v in self.__dict__.items()}
 
 
 # uv venv --seed does not install deprecated setuptools or wheel for Python 3.12
@@ -597,7 +603,7 @@ MONOGENS: dict[str, list[MonoGen]] = {
 
 
 def validate() -> None:
-    logging.info('Validating monobase generations...')
+    log.info('Validating monobase generations...')
     for env, gens in MONOGENS.items():
         for i, g in enumerate(gens):
             assert g.id == i, f'[{env}] MonoGen.id {g.id} does not equal index {i}'
@@ -614,7 +620,7 @@ def validate() -> None:
     for mg in MONOGENS['prod']:
         rdir = os.path.join(os.path.dirname(__file__), 'requirements', f'g{mg.id:05d}')
         if not os.path.exists(rdir):
-            logging.error(
+            log.error(
                 f'Missing monobase generation {mg.id}, did you forget to run script/update?'
             )
             raise IOError('Missing monobase generation')

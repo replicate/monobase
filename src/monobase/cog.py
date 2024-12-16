@@ -7,9 +7,11 @@ import re
 import shutil
 import subprocess
 
-from monobase.util import mark_done, require_done_or_rm
+from monobase.util import mark_done, require_done_or_rm, tracer
 
 LINK_REGEX = re.compile(r'<(?P<url>https://[^>]+)>; rel="next"')
+
+log = logging.getLogger(__name__)
 
 
 def hash_str(s: str) -> str:
@@ -29,6 +31,7 @@ def cog_gen_hash(
     return hash_str(json.dumps(j))
 
 
+@tracer.start_as_current_span('install_cog')
 def install_cog(
     uv: str, gdir: str, cog_version: str, is_default: bool, python_version: str
 ) -> None:
@@ -57,6 +60,7 @@ def install_cog(
         os.symlink(venv, default)
 
 
+@tracer.start_as_current_span('install_cogs')
 def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     cdir = os.path.join(args.prefix, 'cog')
     os.makedirs(cdir, exist_ok=True)
@@ -67,10 +71,10 @@ def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     gid = f'g{sha256}'
     gdir = os.path.join(cdir, gid)
     if require_done_or_rm(gdir):
-        logging.info(f'Cog generation {gid} is complete')
+        log.info(f'Cog generation {gid} is complete')
         return
 
-    logging.info(f'Installing cog generation {gid} in {gdir}...')
+    log.info(f'Installing cog generation {gid} in {gdir}...')
 
     # Cog * Python because Python version is required for venvs
     # And Cog transitives may be Python version dependent
@@ -98,5 +102,5 @@ def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     for g in os.listdir(cdir):
         if g in {'latest', gid}:
             continue
-        logging.info(f'Deleting previous cog generation in {g}...')
+        log.info(f'Deleting previous cog generation in {g}...')
         shutil.rmtree(os.path.join(cdir, g), ignore_errors=True)

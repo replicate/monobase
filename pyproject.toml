@@ -4,7 +4,9 @@ description = "Replicate monolithic base dependency build friend"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-# "opentelemetry-distro",
+  "opentelemetry-api",
+  "opentelemetry-exporter-otlp",
+  "opentelemetry-sdk",
   "structlog",
 ]
 license = {file = "LICENSE"}
