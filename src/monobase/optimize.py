@@ -24,7 +24,7 @@ def optimize_ld_cache(args: argparse.Namespace, gdir: str, mg: MonoGen) -> None:
     ):
         k = f'cuda{cuda}-cudnn{cudnn}-python{python}'
 
-        with tracer.start_as_current_span('optimize_ld_cache.key', k) as span:
+        with tracer.start_as_current_span(f'optimize_ld_cache.{k}') as span:
             span.set_attributes(
                 {
                     'optimize_ld_cache.cuda': cuda,
