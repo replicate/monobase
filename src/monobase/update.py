@@ -1,4 +1,5 @@
 import argparse
+import itertools
 import logging
 import os.path
 from tempfile import TemporaryDirectory
@@ -23,10 +24,12 @@ def update_generation(
     )
     os.makedirs(rdir, exist_ok=True)
 
-    for p, pf in desc_version_key(mg.python):
-        for t in desc_version(mg.torch):
-            for c in desc_version(mg.cuda.keys()):
-                update_venv(rdir, tmp.name, p, pf, t, c, mg.pip_pkgs)
+    for (p, pf), t, c in itertools.product(
+        desc_version_key(mg.python),
+        desc_version(mg.torch),
+        desc_version(mg.cuda.keys()),
+    ):
+        update_venv(rdir, tmp.name, p, pf, t, c, mg.pip_pkgs)
 
 
 def update(args: argparse.Namespace) -> None:

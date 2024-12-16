@@ -3,6 +3,8 @@ import logging
 import os.path
 import subprocess
 
+from opentelemetry import trace
+
 from monobase.torch import torch_deps, torch_specs
 from monobase.util import Version, mark_done, require_done_or_rm, tracer
 
@@ -86,6 +88,16 @@ def update_venv(
     cuda_version: str,
     pip_pkgs: list[str],
 ) -> None:
+    trace.get_current_span().set_attributes(
+        {
+            'requirements_dir': rdir,
+            'python_full_version': python_full_version,
+            'torch_version': torch_version,
+            'cuda_version': cuda_version,
+            'pip_pkgs': str(pip_pkgs),
+        }
+    )
+
     p = Version.parse(python_version)
     t = Version.parse(torch_version)
     tv = Version.parse(f'{t.major}.{t.minor}')
@@ -145,6 +157,15 @@ def install_venv(
     torch_version: str,
     cuda_version: str,
 ) -> None:
+    trace.get_current_span().set_attributes(
+        {
+            'requirements_dir': rdir,
+            'python_full_version': python_full_version,
+            'torch_version': torch_version,
+            'cuda_version': cuda_version,
+        }
+    )
+
     p = Version.parse(python_version)
     t = Version.parse(torch_version)
     tv = Version.parse(f'{t.major}.{t.minor}')

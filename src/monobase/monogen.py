@@ -18,7 +18,7 @@ class MonoGen:
 
     @property
     def otel_attributes(self):
-        return {f'monogen.{k}': str(v) for k, v in self.__dict__.items()}
+        return {f'monogen_{k}': str(v) for k, v in self.__dict__.items()}
 
 
 # uv venv --seed does not install deprecated setuptools or wheel for Python 3.12

@@ -25,21 +25,20 @@ def optimize_ld_cache(args: argparse.Namespace, gdir: str, mg: MonoGen) -> None:
         k = f'cuda{cuda}-cudnn{cudnn}-python{python}'
 
         with tracer.start_as_current_span(f'optimize_ld_cache.{k}'):
-            span = trace.get_current_span()
-            span.set_attributes(
-                {
-                    'optimize_ld_cache.cuda': cuda,
-                    'optimize_ld_cache.cudnn': cudnn,
-                    'optimize_ld_cache.python': python,
-                    'optimize_ld_cache.python_full': python_full,
-                }
-            )
-
             dirs = [
                 f'{gdir}/cuda{cuda}/lib64',
                 f'{gdir}/cudnn{cudnn}-cuda{cuda_major_p.sub('', cuda)}/lib',
                 f'{args.prefix}/uv/python/cpython-{python_full}-linux-x86_64-gnu/lib',
             ]
+            trace.get_current_span().set_attributes(
+                {
+                    'optimize_ld_cache_dirs': str(dirs),
+                    'cuda_version': cuda,
+                    'cudnn_version': cudnn,
+                    'python_full_version': python_full,
+                }
+            )
+
             cache_dir = os.path.join(gdir, 'ld.so.cache.d')
             os.makedirs(cache_dir, exist_ok=True)
             cmd = ['ldconfig', '-C', f'{cache_dir}/{k}'] + dirs
@@ -55,9 +54,12 @@ def optimize_rdfind(args: argparse.Namespace, gdir: str, mg: MonoGen) -> None:
     ]
     minsize = str(1024 * 1024)
 
-    span = trace.get_current_span()
-    span.set_attribute('optimize_rdfind.dirs', str(all_dirs))
-    span.set_attribute('optimize_rdfind.minsize', minsize)
+    trace.get_current_span().set_attributes(
+        {
+            'rdfind_dirs': str(all_dirs),
+            'rdfind_minsize': minsize,
+        }
+    )
 
     log.info(f'Running rdfind for generation {mg.id}...')
     cmd = [

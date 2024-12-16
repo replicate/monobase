@@ -114,6 +114,8 @@ def require_done_or_rm(d: str) -> bool:
     if the directory tree "shape" sha1sum does not match, removes the tree at `d` so that
     the code requiring the done file can re-run.
     """
+    trace.get_current_span().set_attribute('done_dir', d)
+
     if _is_done(d):
         return True
 
@@ -123,7 +125,16 @@ def require_done_or_rm(d: str) -> bool:
     return False
 
 
+@tracer.start_as_current_span('mark_done')
 def mark_done(d: str, *, kind: str, **attributes) -> None:
+    trace.get_current_span().set_attributes(
+        {
+            'done_dir': d,
+            'kind': kind,
+        }
+        | attributes
+    )
+
     with open(os.path.join(d, DONE_FILE_BASENAME), 'w') as f:
         json.dump(
             {

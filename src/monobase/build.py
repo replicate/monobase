@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import itertools
 import logging
 import os
 import os.path
@@ -118,7 +119,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
 
     gdir = os.path.join(args.prefix, 'monobase', f'g{mg.id:05d}')
 
-    span.set_attribute('build_generation.dir', gdir)
+    span.set_attribute('generation_dir', gdir)
 
     if require_done_or_rm(gdir):
         log.info(f'Monobase generation {mg.id} is complete')
@@ -138,22 +139,25 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
 
     cuda_major_p = re.compile(r'\.\d+$')
     cuda_majors = set(cuda_major_p.sub('', k) for k in mg.cuda.keys())
-    for k, v in desc_version_key(mg.cudnn):
-        for m in desc_version(cuda_majors):
-            src = install_cudnn(args, v, m)
-            dst = f'{gdir}/cudnn{k}-cuda{m}'
-            reldst = os.path.relpath(src, gdir)
-            if os.path.exists(dst):
-                os.remove(dst)
-            os.symlink(reldst, dst)
-            log.info(f'CuDNN symlinked in {dst}')
+    for (k, v), m in itertools.product(
+        desc_version_key(mg.cudnn), desc_version(cuda_majors)
+    ):
+        src = install_cudnn(args, v, m)
+        dst = f'{gdir}/cudnn{k}-cuda{m}'
+        reldst = os.path.relpath(src, gdir)
+        if os.path.exists(dst):
+            os.remove(dst)
+        os.symlink(reldst, dst)
+        log.info(f'CuDNN symlinked in {dst}')
 
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
     rdir = os.path.join('/opt/r8/monobase', f'requirements{suffix}', f'g{mg.id:05d}')
-    for p, pf in desc_version_key(mg.python):
-        for t in desc_version(mg.torch):
-            for c in desc_version(mg.cuda.keys()):
-                install_venv(args, rdir, gdir, p, pf, t, c)
+    for (p, pf), t, c in itertools.product(
+        desc_version_key(mg.python),
+        desc_version(mg.torch),
+        desc_version(mg.cuda.keys()),
+    ):
+        install_venv(args, rdir, gdir, p, pf, t, c)
 
     optimize_ld_cache(args, gdir, mg)
     optimize_rdfind(args, gdir, mg)
@@ -165,7 +169,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
 @tracer.start_as_current_span('build')
 def build(args: argparse.Namespace) -> None:
     span = trace.get_current_span()
-    span.set_attributes({f'build.{k}': str(v) for k, v in args.__dict__.items()})
+    span.set_attributes({f'build_{k}': str(v) for k, v in args.__dict__.items()})
 
     start_time = datetime.datetime.now(datetime.UTC)
 
