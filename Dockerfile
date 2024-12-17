@@ -9,7 +9,7 @@ ADD . .
 ENV UV_LINK_MODE=copy
 RUN if $(git rev-parse --is-shallow-repository); then git fetch --unshallow; fi  \
     && git describe --always --dirty --tags \
-    && uv build --sdist
+    && uv build --sdist --wheel
 
 FROM ubuntu:jammy
 
