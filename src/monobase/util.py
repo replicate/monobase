@@ -20,6 +20,7 @@ from structlog.typing import EventDict
 
 tracer = trace.get_tracer('monobase')
 
+HERE = os.path.dirname(os.path.abspath(__file__))
 IN_KUBERNETES = os.environ.get('KUBERNETES_SERVICE_HOST') is not None
 NODE_FEATURE_LABEL_FILE = '/etc/kubernetes/node-feature-discovery/features.d/monobase'
 DONE_FILE_BASENAME = '.done'
