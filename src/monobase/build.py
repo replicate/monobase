@@ -15,6 +15,7 @@ from monobase.optimize import optimize_ld_cache, optimize_rdfind
 from monobase.prune import clean_uv_cache, prune_cuda, prune_old_gen, prune_uv_cache
 from monobase.user import build_user_venv
 from monobase.util import (
+    HERE,
     IN_KUBERNETES,
     NODE_FEATURE_LABEL_FILE,
     Version,
@@ -151,7 +152,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
         log.info(f'CuDNN symlinked in {dst}')
 
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
-    rdir = os.path.join('/opt/r8/monobase', f'requirements{suffix}', f'g{mg.id:05d}')
+    rdir = os.path.join(HERE, f'requirements{suffix}', f'g{mg.id:05d}')
     for (p, pf), t, c in itertools.product(
         desc_version_key(mg.python),
         desc_version(mg.torch),
