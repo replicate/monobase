@@ -4,15 +4,21 @@ import os.path
 import shutil
 import subprocess
 
+from monobase.util import tracer
 
+log = logging.getLogger(__name__)
+
+
+@tracer.start_as_current_span('prune_old_gen')
 def prune_old_gen(args: argparse.Namespace) -> None:
     for gid in range(args.min_gen_id):
         gdir = os.path.join(args.prefix, 'monobase', f'g{gid:05d}')
         if os.path.exists(gdir):
-            logging.info(f'Pruning old generation {gid} in {gdir}')
+            log.info(f'Pruning old generation {gid} in {gdir}')
             shutil.rmtree(gdir, ignore_errors=True)
 
 
+@tracer.start_as_current_span('prune_cuda')
 def prune_cuda(args: argparse.Namespace) -> None:
     cmd = [
         'find',
@@ -43,17 +49,19 @@ def prune_cuda(args: argparse.Namespace) -> None:
 
         src = os.path.join(cdir, e)
         if src not in sources:
-            logging.info(f'Pruning unused {prefix} in {src}...')
+            log.info(f'Pruning unused {prefix} in {src}...')
             shutil.rmtree(src, ignore_errors=True)
 
 
+@tracer.start_as_current_span('prune_uv_cache')
 def prune_uv_cache() -> None:
-    logging.info('Pruning uv cache...')
+    log.info('Pruning uv cache...')
     cmd = ['uv', 'cache', 'prune']
     subprocess.run(cmd, check=True)
 
 
+@tracer.start_as_current_span('clean_uv_cache')
 def clean_uv_cache() -> None:
-    logging.info('Cleaning uv cache...')
+    log.info('Cleaning uv cache...')
     cmd = ['uv', 'cache', 'clean']
     subprocess.run(cmd, check=True)

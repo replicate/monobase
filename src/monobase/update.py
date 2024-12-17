@@ -1,4 +1,5 @@
 import argparse
+import itertools
 import logging
 import os.path
 from tempfile import TemporaryDirectory
@@ -10,21 +11,25 @@ from monobase.uv import update_venv
 parser = argparse.ArgumentParser(description='Update monobase requirements')
 add_arguments(parser)
 
+log = logging.getLogger(__name__)
+
 
 def update_generation(
     args: argparse.Namespace, tmp: TemporaryDirectory, mg: MonoGen
 ) -> None:
-    logging.info(f'Updating monobase generation {mg.id}')
+    log.info(f'Updating monobase generation {mg.id}')
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
     rdir = os.path.join(
         os.path.dirname(__file__), f'requirements{suffix}', f'g{mg.id:05d}'
     )
     os.makedirs(rdir, exist_ok=True)
 
-    for p, pf in desc_version_key(mg.python):
-        for t in desc_version(mg.torch):
-            for c in desc_version(mg.cuda.keys()):
-                update_venv(rdir, tmp.name, p, pf, t, c, mg.pip_pkgs)
+    for (p, pf), t, c in itertools.product(
+        desc_version_key(mg.python),
+        desc_version(mg.torch),
+        desc_version(mg.cuda.keys()),
+    ):
+        update_venv(rdir, tmp.name, p, pf, t, c, mg.pip_pkgs)
 
 
 def update(args: argparse.Namespace) -> None:
@@ -36,7 +41,7 @@ def update(args: argparse.Namespace) -> None:
         update_generation(args, tmp, mg)
         gens.append(mg.id)
 
-    logging.info(f'Monobase update completed: {sorted(gens)}')
+    log.info(f'Monobase update completed: {sorted(gens)}')
 
 
 if __name__ == '__main__':

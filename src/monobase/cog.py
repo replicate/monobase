@@ -1,5 +1,6 @@
 import argparse
 import hashlib
+import itertools
 import json
 import logging
 import os.path
@@ -7,9 +8,13 @@ import re
 import shutil
 import subprocess
 
-from monobase.util import mark_done, require_done_or_rm
+from opentelemetry import trace
+
+from monobase.util import mark_done, require_done_or_rm, tracer
 
 LINK_REGEX = re.compile(r'<(?P<url>https://[^>]+)>; rel="next"')
+
+log = logging.getLogger(__name__)
 
 
 def hash_str(s: str) -> str:
@@ -29,9 +34,19 @@ def cog_gen_hash(
     return hash_str(json.dumps(j))
 
 
+@tracer.start_as_current_span('install_cog')
 def install_cog(
     uv: str, gdir: str, cog_version: str, is_default: bool, python_version: str
 ) -> None:
+    trace.get_current_span().set_attributes(
+        {
+            'uv': uv,
+            'cog_version': cog_version,
+            'cog_version_is_default': str(is_default),
+            'python_version': python_version,
+        }
+    )
+
     if cog_version.startswith('https://'):
         name = hash_str(cog_version)[:8]
         spec = f'cog@{cog_version}'
@@ -57,6 +72,7 @@ def install_cog(
         os.symlink(venv, default)
 
 
+@tracer.start_as_current_span('install_cogs')
 def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     cdir = os.path.join(args.prefix, 'cog')
     os.makedirs(cdir, exist_ok=True)
@@ -66,20 +82,28 @@ def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     sha256 = cog_gen_hash(cog_versions, args.default_cog_version, python_versions)[:8]
     gid = f'g{sha256}'
     gdir = os.path.join(cdir, gid)
+
+    trace.get_current_span().set_attributes(
+        {
+            'generation_id': gid,
+            'cog_versions': str(cog_versions),
+        }
+    )
+
     if require_done_or_rm(gdir):
-        logging.info(f'Cog generation {gid} is complete')
+        log.info(f'Cog generation {gid} is complete')
         return
 
-    logging.info(f'Installing cog generation {gid} in {gdir}...')
+    log.info(f'Installing cog generation {gid} in {gdir}...')
 
     # Cog * Python because Python version is required for venvs
     # And Cog transitives may be Python version dependent
     # Create venvs with Python major.minor only
     # Since we only the site-packages, not Python interpreters
     uv = os.path.join(args.prefix, 'bin', 'uv')
-    for c in cog_versions:
-        for p in python_versions:
-            install_cog(uv, gdir, c, c == args.default_cog_version, p)
+
+    for c, p in itertools.product(cog_versions, python_versions):
+        install_cog(uv, gdir, c, c == args.default_cog_version, p)
 
     latest = os.path.join(cdir, 'latest')
     if os.path.exists(latest):
@@ -98,5 +122,5 @@ def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     for g in os.listdir(cdir):
         if g in {'latest', gid}:
             continue
-        logging.info(f'Deleting previous cog generation in {g}...')
+        log.info(f'Deleting previous cog generation in {g}...')
         shutil.rmtree(os.path.join(cdir, g), ignore_errors=True)
