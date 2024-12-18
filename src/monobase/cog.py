@@ -47,7 +47,7 @@ def install_cog(
         }
     )
 
-    if cog_version.startswith('https://'):
+    if cog_version.startswith('https://') or cog_version.startswith('file://'):
         name = hash_str(cog_version)[:8]
         spec = f'cog@{cog_version}'
     else:
