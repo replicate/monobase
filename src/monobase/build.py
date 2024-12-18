@@ -182,10 +182,11 @@ def build(args: argparse.Namespace) -> None:
             assert os.environ.get(e) is not None, f'{e} is required for mini mono'
 
         assert_env('R8_COG_VERSION')
-        assert_env('R8_CUDA_VERSION')
-        assert_env('R8_CUDNN_VERSION')
         assert_env('R8_PYTHON_VERSION')
         assert_env('R8_TORCH_VERSION')
+        if not args.skip_cuda:
+            assert_env('R8_CUDA_VERSION')
+            assert_env('R8_CUDNN_VERSION')
 
         assert (
             args.cog_versions is None
@@ -196,15 +197,24 @@ def build(args: argparse.Namespace) -> None:
         args.cog_versions = [os.environ['R8_COG_VERSION']]
         args.default_cog_version = os.environ['R8_COG_VERSION']
 
-        def pick(d: dict[str, str], env: str) -> dict[str, str]:
-            key = os.environ[env]
-            return {key: d[key]}
+        def pick(
+            d: dict[str, str], env: str, fail_on_empty: bool = True
+        ) -> dict[str, str]:
+            try:
+                key = os.environ[env]
+                return {key: d[key]}
+            except KeyError:
+                if fail_on_empty:
+                    raise
+                return {}
 
         monogens = [
             MonoGen(
                 id=mg.id,
-                cuda=pick(mg.cuda, 'R8_CUDA_VERSION'),
-                cudnn=pick(mg.cudnn, 'R8_CUDNN_VERSION'),
+                cuda=pick(mg.cuda, 'R8_CUDA_VERSION', fail_on_empty=not args.skip_cuda),
+                cudnn=pick(
+                    mg.cudnn, 'R8_CUDNN_VERSION', fail_on_empty=not args.skip_cuda
+                ),
                 python=pick(mg.python, 'R8_PYTHON_VERSION'),
                 torch=[os.environ['R8_TORCH_VERSION']],
                 pip_pkgs=mg.pip_pkgs,

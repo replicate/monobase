@@ -35,7 +35,7 @@ def build_user_venv(args: argparse.Namespace) -> None:
 
     python_version = os.environ['R8_PYTHON_VERSION']
     torch_version = os.environ['R8_TORCH_VERSION']
-    cuda_version = os.environ['R8_CUDA_VERSION']
+    cuda_version = os.environ.get('R8_CUDA_VERSION', 'cpu')
 
     uv = os.path.join(args.prefix, 'bin', 'uv')
 
