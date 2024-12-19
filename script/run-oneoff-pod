@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -o errexit
+set -o pipefail
+set -o nounset
+
+main() {
+  local name="${1}"
+  shift
+
+  cd "$(git rev-parse --show-toplevel)"
+
+
+  local podname image fuse_rpc_env overrides
+  podname="monobase-${name}-$(id -u -n | tr A-Z a-z)-$(date +%s)"
+  image="$(_get-image)"
+  fuse_rpc_env="$(_get-fuse-rpc-env)"
+  overrides="$(_generate-overrides shell "${image}" "${fuse_rpc_env}" "${@}")"
+
+  echo "running pod ${podname}"
+  exec kubectl run \
+    --rm -i --tty \
+    --namespace services \
+    --restart=Never \
+    --image="${image}" \
+    --overrides="${overrides}" \
+    "${podname}"
+}
+
+_get-image() {
+  kubectl \
+    --namespace=services \
+    get daemonset/monobase \
+    -o jsonpath='{.spec.template.spec.initContainers[0].image}'
+}
+
+_get-fuse-rpc-env() {
+  kubectl \
+    --namespace=services \
+    get configmaps -o name |
+    awk -F/ '/fuse-rpc-env/ { print $2 }'
+}
+
+_generate-overrides() {
+  local name="${1}"
+  local image="${2}"
+  local fuse_rpc_env="${3}"
+  shift 3
+
+  local host_path='/srv/r8/monobase'
+  case "$(kubectl config current-context)" in
+  tailscale-operator-coreweave-*)
+    host_path='/mnt/local/srv/r8/monobase'
+    ;;
+  esac
+
+  kustomize build kubernetes/oneoff |
+    yq -o json |
+    jq 'del(.metadata) |
+       .spec.containers[0].name = "'${name}'" |
+       .spec.containers[0].image = "'${image}'" |
+       .spec.containers[0].envFrom[0].configMapRef.name = "'${fuse_rpc_env}'" |
+       .spec.volumes[0].hostPath.path = "'${host_path}'" |
+       .spec.containers[0].command = $ARGS.positional' --args -- "${@}"
+}
+
+main "${@}"
