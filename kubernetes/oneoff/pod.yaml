@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: .
+spec:
+  containers:
+    - name: oneoff
+      image: monobase:latest
+      command: ["sh", "-c", "This default command should be overridden!"]
+      envFrom:
+        - configMapRef:
+            name: fuse-rpc-env
+        - secretRef:
+            name: fuse-rpc-secrets
+      env:
+        - name: R8_CUDA_PREFIX
+          value: https://monobase.replicate.delivery/cuda
+        - name: R8_CUDNN_PREFIX
+          value: https://monobase.replicate.delivery/cudnn
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NAMESPACE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: >-
+            k8s.namespace.name=$(NAMESPACE_NAME),
+            k8s.node.name=$(NODE_NAME),
+            k8s.pod.name=$(POD_NAME),
+            $(EXTRA_OTEL_RESOURCE_ATTRIBUTES)
+        - name: OTEL_SERVICE_NAME
+          value: monobase
+      volumeMounts:
+        - name: monobase-prefix
+          mountPath: /srv/r8/monobase
+        - name: nfd
+          mountPath: /etc/kubernetes/node-feature-discovery
+      tty: true
+      stdin: true
+  nodeSelector:
+    kubernetes.io/arch: amd64
+    node.coreweave.cloud/class: gpu
+  tolerations:
+    - key: arch
+      operator: Equal
+      value: amd64
+      effect: NoSchedule
+  volumes:
+    - name: monobase-prefix
+      hostPath:
+        path: /srv/r8/monobase # kustomize this per provider
+        type: DirectoryOrCreate
+    - name: nfd
+      hostPath:
+        path: /etc/kubernetes/node-feature-discovery
+        type: Directory
