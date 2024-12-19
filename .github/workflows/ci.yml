@@ -35,8 +35,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
-      - run: ./script/build
-      - run: ./script/build-runtime
+      - run: ./script/build-image
+      - run: ./script/build-runtime-image
       - run: ./script/test
 
   test-mini:
@@ -48,7 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
-      - run: ./script/build
+      - run: ./script/build-image
       - run: ./script/test-mini
 
   build-release-monobase:
