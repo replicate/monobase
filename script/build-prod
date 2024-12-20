@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -o errexit
+set -o pipefail
+set -o nounset
+
+main() {
+  cd "$(git rev-parse --show-toplevel)"
+
+  printf '# ---> using kubectl context "%s"\n' "$(kubectl config current-context)"
+  exec ./script/run-oneoff-pod build /opt/r8/monobase/build.sh "${@}"
+}
+
+main "${@}"
