@@ -7,8 +7,14 @@ main() {
   local name="${1}"
   shift
 
-  cd "$(git rev-parse --show-toplevel)"
+  case "${name}" in
+  -h | --help | help)
+    _usage
+    exit 0
+    ;;
+  esac
 
+  cd "$(git rev-parse --show-toplevel)"
 
   local podname image fuse_rpc_env overrides
   podname="monobase-${name}-$(id -u -n | tr A-Z a-z)-$(date +%s)"
@@ -24,6 +30,15 @@ main() {
     --image="${image}" \
     --overrides="${overrides}" \
     "${podname}"
+}
+
+_usage() {
+  cat <<EOF
+Usage: $(basename "${0}") <pod-name> <cmd-args> [cmd-args, ...]
+
+Run a "one-off" pod with arbitrary command using the same image as the current monobase
+daemonset, environment from the fuse-rpc-env configmap, and same host path mount.
+EOF
 }
 
 _get-image() {
