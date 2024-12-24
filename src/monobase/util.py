@@ -46,7 +46,9 @@ class Version:
     repr: str
 
     @classmethod
-    def parse(cls, s: str) -> 'Version':
+    def parse(cls, s: str | None) -> 'Version':
+        if s is None:
+            return cls(0, 0, 0, '', '')
         m = VERSION_REGEX.search(s)
         if m is None:
             raise ValueError(f'Invalid version string: {s}')
@@ -156,7 +158,7 @@ def mark_done(d: str, *, kind: str, **attributes) -> None:
         f.write('\n')
 
 
-def desc_version(it: Iterable[str]) -> list[str]:
+def desc_version(it: Iterable[str | None]) -> list[str | None]:
     return sorted(it, key=Version.parse, reverse=True)
 
 

@@ -143,6 +143,8 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     for (k, v), m in itertools.product(
         desc_version_key(mg.cudnn), desc_version(cuda_majors)
     ):
+        if m is None:
+            raise ValueError('cuda cannot be null.')
         src = install_cudnn(args, v, m)
         dst = f'{gdir}/cudnn{k}-cuda{m}'
         reldst = os.path.relpath(src, gdir)
@@ -158,6 +160,8 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
         desc_version(mg.torch),
         desc_version(mg.cuda.keys()),
     ):
+        if c is None:
+            raise ValueError('cuda cannot be null.')
         install_venv(args, rdir, gdir, p, pf, t, c)
 
     optimize_ld_cache(args, gdir, mg)
@@ -207,7 +211,7 @@ def build(args: argparse.Namespace) -> None:
                     raise
                 return {}
 
-        torch = []
+        torch: list[str | None] = []
         if 'R8_TORCH_VERSION' in os.environ:
             torch.append(os.environ['R8_TORCH_VERSION'])
         else:

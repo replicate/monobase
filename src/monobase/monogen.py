@@ -13,7 +13,7 @@ class MonoGen:
     cuda: dict[str, str]
     cudnn: dict[str, str]
     python: dict[str, str]
-    torch: list[str]
+    torch: list[str | None]
     pip_pkgs: list[str]
 
     @property
