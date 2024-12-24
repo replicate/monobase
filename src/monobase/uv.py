@@ -84,7 +84,7 @@ def update_venv(
     tmp: str,
     python_version: str,
     python_full_version: str,
-    torch_version: str,
+    torch_version: str | None,
     cuda_version: str,
     pip_pkgs: list[str],
 ) -> None:
@@ -92,7 +92,7 @@ def update_venv(
         {
             'requirements_dir': rdir,
             'python_full_version': python_full_version,
-            'torch_version': torch_version,
+            'torch_version': torch_version if torch_version is not None else '',
             'cuda_version': cuda_version,
             'pip_pkgs': str(pip_pkgs),
         }
@@ -154,14 +154,14 @@ def install_venv(
     gdir: str,
     python_version: str,
     python_full_version: str,
-    torch_version: str,
+    torch_version: str | None,
     cuda_version: str,
 ) -> None:
     trace.get_current_span().set_attributes(
         {
             'requirements_dir': rdir,
             'python_full_version': python_full_version,
-            'torch_version': torch_version,
+            'torch_version': torch_version if torch_version is not None else '',
             'cuda_version': cuda_version,
         }
     )

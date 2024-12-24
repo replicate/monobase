@@ -29,6 +29,8 @@ def update_generation(
         desc_version(mg.torch),
         desc_version(mg.cuda.keys()),
     ):
+        if c is None:
+            raise ValueError('cuda version cannot be null.')
         update_venv(rdir, tmp.name, p, pf, t, c, mg.pip_pkgs)
 
 
