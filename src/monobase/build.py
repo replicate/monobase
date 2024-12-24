@@ -183,7 +183,6 @@ def build(args: argparse.Namespace) -> None:
 
         assert_env('R8_COG_VERSION')
         assert_env('R8_PYTHON_VERSION')
-        assert_env('R8_TORCH_VERSION')
         if not args.skip_cuda:
             assert_env('R8_CUDA_VERSION')
             assert_env('R8_CUDNN_VERSION')
@@ -208,6 +207,12 @@ def build(args: argparse.Namespace) -> None:
                     raise
                 return {}
 
+        torch = []
+        if 'R8_TORCH_VERSION' in os.environ:
+            torch.append(os.environ['R8_TORCH_VERSION'])
+        else:
+            torch.append(None)
+
         monogens = [
             MonoGen(
                 id=mg.id,
@@ -216,7 +221,7 @@ def build(args: argparse.Namespace) -> None:
                     mg.cudnn, 'R8_CUDNN_VERSION', fail_on_empty=not args.skip_cuda
                 ),
                 python=pick(mg.python, 'R8_PYTHON_VERSION'),
-                torch=[os.environ['R8_TORCH_VERSION']],
+                torch=torch,
                 pip_pkgs=mg.pip_pkgs,
             )
         ]
