@@ -34,7 +34,7 @@ def build_user_venv(args: argparse.Namespace) -> None:
     log.info(f'Building user venv {udir}...')
 
     python_version = os.environ['R8_PYTHON_VERSION']
-    torch_version = os.environ['R8_TORCH_VERSION']
+    torch_version = os.environ.get('R8_TORCH_VERSION')
     cuda_version = os.environ.get('R8_CUDA_VERSION', 'cpu')
 
     uv = os.path.join(args.prefix, 'bin', 'uv')
@@ -48,7 +48,11 @@ def build_user_venv(args: argparse.Namespace) -> None:
     cog_versions = parse_requirements(cog_req)
 
     gdir = os.path.realpath(os.path.join(args.prefix, 'monobase', 'latest'))
-    venv = f'python{python_version}-torch{torch_version}-{cuda_suffix(cuda_version)}'
+    venv_components = [f'python{python_version}']
+    if torch_version is not None:
+        venv_components.append(f'torch{torch_version}')
+    venv_components.append(f'{cuda_suffix(cuda_version)}')
+    venv = '-'.join(venv_components)
     vdir = os.path.join(gdir, venv)
     log.info(f'Freezing monobase venv {vdir}...')
     mono_req = freeze(uv, vdir)
