@@ -40,18 +40,30 @@ if [ -z "${R8_COG_VERSION:-}" ]; then
     echo "R8_COG_VERSION not set, using default $R8_COG_VERSION"
 else
     case $R8_COG_VERSION in
-    https://*)
-        name=$(printf '%s' "$R8_COG_VERSION" | sha256sum | cut -c 1-8)
-        pkg="cog @ $R8_COG_VERSION"
+    https://*|file://*)
+        pkg=cog
+        if echo "$R8_COG_VERSION" | grep -q coglet; then
+            pkg=coglet
+        fi
+        cog_name="$pkg$(printf '%s' "$R8_COG_VERSION" | sha256sum | cut -c 1-8)"
+        pkg="$pkg @ $R8_COG_VERSION"
+        ;;
+    coglet==*)
+        cog_name="$(echo "$R8_COG_VERSION" | sed 's/coglet==/coglet/')"
+        pkg=""
         ;;
     *)
-        name=$R8_COG_VERSION
+        cog_name="cog$R8_COG_VERSION"
         pkg="cog==$R8_COG_VERSION"
         ;;
     esac
 
-    COG_PATH="$MONOBASE_PREFIX/cog/latest/cog$name-python$R8_PYTHON_VERSION"
+    COG_PATH="$MONOBASE_PREFIX/cog/latest/$cog_name-python$R8_PYTHON_VERSION"
     if [ ! -d "$COG_PATH" ]; then
+        if [ -z "$pkg" ]; then
+            echo "Cog $R8_COG_VERSION not installed"
+            return 1
+        fi
         echo "Cog $R8_COG_VERSION not in monobase, installing..."
         uv venv --python "$R8_PYTHON_VERSION" /root/cog
         VIRTUAL_ENV=/root/cog uv pip install "$pkg"
