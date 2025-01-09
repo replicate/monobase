@@ -5,12 +5,12 @@ ENV MONOBASE_PREFIX=/srv/r8/monobase
 ENV PATH=$MONOBASE_PREFIX/bin:$PATH
 ENV TZ=Etc/UTC
 
-ADD ./apt-dependencies.txt /tmp/apt-dependencies.txt
+RUN --mount=type=bind,src=.,dst=/src,ro \
 RUN apt-get update \
-    && apt-get install -y $(grep -v '^#' </tmp/apt-dependencies.txt) \
-    && rm -rf /var/lib/apt/lists/* /tmp/apt-dependencies.txt
+    && apt-get install -y $(grep -v '^#' </src/apt-dependencies.txt) \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN --mount=type=bind,src=../../,dst=/src,ro \
+RUN --mount=type=bind,src=.,dst=/src,ro \
     ln -sv /usr/bin/tini /sbin/tini \
     && mkdir -p /opt/r8/monobase \
     && ls -la /src/ \
