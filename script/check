@@ -14,7 +14,7 @@ if [[ -z "${CI:-}" ]]; then
     uv tool run ruff check --fix
     uv tool run ruff format
 else
-    uv tool run ruff check
-    uv tool run ruff format --check
+    uv tool run ruff check --show-fixes
+    uv tool run ruff format --check --diff
 fi
 uv run --python "$MONOBASE_PYTHON" --with mypy mypy src
