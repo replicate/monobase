@@ -104,8 +104,7 @@ jobs:
       with:
         context: '{{defaultContext}}'
         file: ${{ matrix.image.file || '' }}
-#       push: ${{ github.event_name != 'pull_request' }}
-        push: true
+        push: ${{ github.event_name != 'pull_request' }}
         platforms: linux/amd64,linux/arm64
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
