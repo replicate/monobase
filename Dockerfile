@@ -8,7 +8,12 @@ WORKDIR /src
 ADD . .
 ENV UV_LINK_MODE=copy
 RUN if $(git rev-parse --is-shallow-repository); then git fetch --unshallow; fi  \
-    && git describe --always --dirty --tags \
+    && GIT_DESC="$(git describe --always --dirty --tags)" \
+    && if [ "$(echo "${GIT_DESC}" | cut -c1-10)" = 'refs/pull/' ]; then \
+         export SETUPTOOLS_SCM_PRETEND_VERSION='v0.0.0.dev+pr'; \
+       fi \
+    && echo "GIT_DESC=${GIT_DESC}" \
+    && echo "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}" \
     && uv build --sdist --wheel
 
 FROM ubuntu:jammy
