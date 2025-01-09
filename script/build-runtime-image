@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-# Build runtime image
-
-set -euo pipefail
-
-cd "$(git rev-parse --show-toplevel)"
-exec docker build --file runtime.Dockerfile --tag monobase-runtime:latest --platform=linux/amd64 .

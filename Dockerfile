@@ -16,15 +16,11 @@ RUN if $(git rev-parse --is-shallow-repository); then git fetch --unshallow; fi 
     && echo "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}" \
     && uv build --sdist --wheel
 
-FROM ubuntu:jammy
+FROM monobase-runtime:latest
 
 ARG PREFIX=/srv/r8/monobase
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV MONOBASE_PREFIX=$PREFIX
-ENV PATH=$MONOBASE_PREFIX/bin:$PATH
 ENV PYTHONPATH=/opt/r8
-ENV TZ=Etc/UTC
 ENV UV_CACHE_DIR=$PREFIX/uv/cache
 ENV UV_COMPILE_BYTECODE=true
 ENV UV_LINK_MODE=hardlink
@@ -33,16 +29,10 @@ ENV UV_PYTHON_PREFERENCE=only-managed
 ENV UV_TOOL_BIN_DIR=$PREFIX/bin
 ENV UV_TOOL_DIR=$PREFIX/uv/tools
 
-ADD ./apt-dependencies.txt /tmp/apt-dependencies.txt
-RUN apt-get update \
-    && apt-get install -y $(grep -v '^#' </tmp/apt-dependencies.txt) \
-    && rm -rf /var/lib/apt/lists/* /tmp/apt-dependencies.txt
-
 RUN --mount=type=bind,from=build,target=/tmp/build-layer,ro \
-    ln -sv /usr/bin/tini /sbin/tini \
-    && mkdir -p /opt/r8/monobase /tmp/r8 \
+    mkdir -p /opt/r8/monobase /tmp/r8 \
     && tar --strip-components=1 -C /tmp/r8 -xf $(find /tmp/build-layer/src/dist -name '*.tar.gz' | head -1) \
-    && cp -v /tmp/r8/src/monobase/*.sh /tmp/r8/src/monobase/pget /opt/r8/monobase/ \
+    && cp -v /tmp/r8/src/monobase/build.sh /tmp/r8/src/monobase/pget /opt/r8/monobase/ \
     && rsync -av /tmp/r8/src/monobase/requirements /opt/r8/monobase/ \
     && find /tmp/build-layer/src/dist/ -type f \
     && cp -v $(find /tmp/build-layer/src/dist/ -name '*.whl' | head -1) /opt/r8/ \

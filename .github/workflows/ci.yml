@@ -36,7 +36,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
       - run: ./script/build-image
-      - run: ./script/build-runtime-image
       - run: ./script/test
 
   test-mini:

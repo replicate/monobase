@@ -5,6 +5,11 @@
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
+
+# monobase-runtime
+docker build --file runtime.Dockerfile --tag monobase-runtime:latest --platform=linux/amd64 .
+
+# monobase is layered on top of monobase-runtime
 rm -vf ./dist/monobase*.*
 uv build --sdist --wheel
-exec docker build --tag monobase:latest --platform=linux/amd64 .
+docker build --tag monobase:latest --platform=linux/amd64 .
