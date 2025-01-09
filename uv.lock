@@ -218,7 +218,7 @@ wheels = [
 
 [[package]]
 name = "monobase"
-version = "0.1.dev135+g2d37e35.d20250106"
+version = "0.1.dev139+g88a3121.d20250109"
 source = { editable = "." }
 dependencies = [
     { name = "opentelemetry-api" },
