@@ -61,7 +61,7 @@ def install_cog(
             content = urllib.request.urlopen(url).read()
             blob = json.loads(content)
             whl = next(filter(lambda a: a['name'].endswith('.whl'), blob['assets']))
-            spec = f'coglet@{whl['browser_download_url']}'
+            spec = f'coglet@{whl["browser_download_url"]}'
         except Exception as e:
             log.error('Failed to fetch cog-runtime assets: %s', e)
             return
