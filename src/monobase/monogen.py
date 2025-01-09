@@ -614,9 +614,9 @@ def validate() -> None:
             for k, v in g.python.items():
                 assert v.startswith(f'{k}.'), f'[{env}] Python {v} is not {k}'
             for p in g.pip_pkgs:
-                assert (
-                    p in SEED_PKGS or '==' in p or '@' in p
-                ), f'PIP package {p} is not pinned'
+                assert p in SEED_PKGS or '==' in p or '@' in p, (
+                    f'PIP package {p} is not pinned'
+                )
     for mg in MONOGENS['prod']:
         rdir = os.path.join(os.path.dirname(__file__), 'requirements', f'g{mg.id:05d}')
         if not os.path.exists(rdir):
