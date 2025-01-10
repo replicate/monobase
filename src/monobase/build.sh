@@ -35,7 +35,7 @@ if [ -z "${NO_REINSTALL:-}" ]; then
 fi
 
 uv venv /var/tmp/.venv --python='3.13'
-VIRTUAL_ENV=/var/tmp/.venv uv pip install $(find /opt/r8 -name '*.whl' | head -1)
+VIRTUAL_ENV=/var/tmp/.venv uv pip install --link-mode=copy "$(find /opt/r8 -name '*.whl' | head -1)"
 
 log "Running monobase.build..."
 exec /var/tmp/.venv/bin/python -m monobase.build "$@"
