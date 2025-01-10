@@ -167,7 +167,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     optimize_ld_cache(args, gdir, mg)
     optimize_rdfind(args, gdir, mg)
 
-    mark_done(gdir, kind='monogen', **mg.__dict__)
+    mark_done(gdir, kind='monogen', **mg.otel_attributes)
     log.info(f'Generation {mg.id} installed in {gdir}')
 
 
