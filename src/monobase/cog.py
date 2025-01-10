@@ -39,21 +39,15 @@ def cog_gen_hash(
 def install_cog(
     uv: str, gdir: str, cog_version: str, is_default: bool, python_version: str
 ) -> None:
-    trace.get_current_span().set_attributes(
-        {
-            'uv': uv,
-            'cog_version': cog_version,
-            'cog_version_is_default': str(is_default),
-            'python_version': python_version,
-        }
-    )
-
     if cog_version.startswith('https://') or cog_version.startswith('file://'):
         h = hash_str(cog_version)[:8]
         pkg = 'coglet' if 'coglet' in cog_version else 'cog'
         cog_name = f'{pkg}{h}'
         spec = f'{pkg}@{cog_version}'
     elif cog_version.startswith('coglet=='):
+        if python_version == '3.8':
+            log.warning('cog-runtime does not support Python 3.8')
+            return
         try:
             tag = cog_version.lstrip('coglet==')
             cog_name = f'coglet{tag}'
@@ -68,6 +62,15 @@ def install_cog(
     else:
         cog_name = f'cog{cog_version}'
         spec = f'cog=={cog_version}'
+
+    trace.get_current_span().set_attributes(
+        {
+            'uv': uv,
+            'cog_version': cog_version,
+            'cog_version_is_default': str(is_default),
+            'python_version': python_version,
+        }
+    )
 
     venv = f'{cog_name}-python{python_version}'
     vdir = os.path.join(gdir, venv)
