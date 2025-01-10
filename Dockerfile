@@ -33,10 +33,10 @@ ENV UV_PYTHON_PREFERENCE=only-managed
 ENV UV_TOOL_BIN_DIR=$PREFIX/bin
 ENV UV_TOOL_DIR=$PREFIX/uv/tools
 
-ADD ./apt-dependencies.txt /tmp/apt-dependencies.txt
-RUN apt-get update \
-    && apt-get install -y $(grep -v '^#' </tmp/apt-dependencies.txt) \
-    && rm -rf /var/lib/apt/lists/* /tmp/apt-dependencies.txt
+RUN --mount=type=bind,src=.,dst=/src,ro \
+    apt-get update \
+    && apt-get install -y $(grep -v '^#' </src/apt-dependencies.txt) \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN --mount=type=bind,from=build,target=/tmp/build-layer,ro \
     ln -sv /usr/bin/tini /sbin/tini \
