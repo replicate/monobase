@@ -33,7 +33,7 @@ from monobase.uv import install_venv
 
 log = logging.getLogger(__name__)
 
-parser = argparse.ArgumentParser(description='Build monobase enviroment')
+parser = argparse.ArgumentParser(description='Build monobase environment')
 add_arguments(parser)
 parser.add_argument(
     '--prefix',
