@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 def cuda_suffix(cuda_version: str) -> str:
-    return f'cu{cuda_version.replace('.', '')}'
+    return f'cu{cuda_version.replace(".", "")}'
 
 
 def torch_index_url(torch_version: Version, cuda_version: str) -> str:
@@ -44,7 +44,7 @@ def pip_packages(
     cu = cuda_suffix(cuda_version)
     if torch_version.extra:
         prefix = torch_index_url(torch_version, cuda_version)
-        py = f'cp{python_version.replace('.', '')}'
+        py = f'cp{python_version.replace(".", "")}'
         pkgs = [
             f'torch @ {prefix}/torch-{torch_version}%2B{cu}-{py}-{py}-linux_x86_64.whl',
             f'torchaudio @ {prefix}/torchaudio-{deps.torchaudio}%2B{cu}-{py}-{py}-linux_x86_64.whl',

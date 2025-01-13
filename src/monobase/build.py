@@ -167,7 +167,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     optimize_ld_cache(args, gdir, mg)
     optimize_rdfind(args, gdir, mg)
 
-    mark_done(gdir, kind='monogen', **mg.__dict__)
+    mark_done(gdir, kind='monogen', **mg.otel_attributes)
     log.info(f'Generation {mg.id} installed in {gdir}')
 
 
@@ -191,12 +191,12 @@ def build(args: argparse.Namespace) -> None:
             assert_env('R8_CUDA_VERSION')
             assert_env('R8_CUDNN_VERSION')
 
-        assert (
-            args.cog_versions is None
-        ), 'Mini mono and --cog-versions are mutually exclusive'
-        assert (
-            args.default_cog_version is None
-        ), 'Mini mono and --default-cog-version are mutually exclusive'
+        assert args.cog_versions is None, (
+            'Mini mono and --cog-versions are mutually exclusive'
+        )
+        assert args.default_cog_version is None, (
+            'Mini mono and --default-cog-version are mutually exclusive'
+        )
         args.cog_versions = [os.environ['R8_COG_VERSION']]
         args.default_cog_version = os.environ['R8_COG_VERSION']
 
@@ -235,9 +235,9 @@ def build(args: argparse.Namespace) -> None:
     if args.default_cog_version is None:
         assert len(args.cog_versions) == 1, 'Missing --default-cog-version'
         args.default_cog_version = args.cog_versions[0]
-    assert (
-        args.default_cog_version in args.cog_versions
-    ), f'Default Cog {args.default_cog_version} not in {args.cog_versions}'
+    assert args.default_cog_version in args.cog_versions, (
+        f'Default Cog {args.default_cog_version} not in {args.cog_versions}'
+    )
 
     os.makedirs(args.cache, exist_ok=True)
 

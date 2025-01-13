@@ -8,7 +8,12 @@ WORKDIR /src
 ADD . .
 ENV UV_LINK_MODE=copy
 RUN if $(git rev-parse --is-shallow-repository); then git fetch --unshallow; fi  \
-    && git describe --always --dirty --tags \
+    && GIT_DESC="$(git describe --always --dirty --tags)" \
+    && if [ "$(echo "${GIT_DESC}" | cut -c1-10)" = 'refs/pull/' ]; then \
+         export SETUPTOOLS_SCM_PRETEND_VERSION='v0.0.0.dev+pr'; \
+       fi \
+    && echo "GIT_DESC=${GIT_DESC}" \
+    && echo "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}" \
     && uv build --sdist --wheel
 
 FROM ubuntu:jammy
@@ -28,10 +33,10 @@ ENV UV_PYTHON_PREFERENCE=only-managed
 ENV UV_TOOL_BIN_DIR=$PREFIX/bin
 ENV UV_TOOL_DIR=$PREFIX/uv/tools
 
-ADD ./apt-dependencies.txt /tmp/apt-dependencies.txt
-RUN apt-get update \
-    && apt-get install -y $(grep -v '^#' </tmp/apt-dependencies.txt) \
-    && rm -rf /var/lib/apt/lists/* /tmp/apt-dependencies.txt
+RUN --mount=type=bind,src=.,dst=/src,ro \
+    apt-get update \
+    && apt-get install -y $(grep -v '^#' </src/apt-dependencies.txt) \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN --mount=type=bind,from=build,target=/tmp/build-layer,ro \
     ln -sv /usr/bin/tini /sbin/tini \

@@ -7,6 +7,7 @@ import os.path
 import re
 import shutil
 import subprocess
+import urllib.request
 
 from opentelemetry import trace
 
@@ -38,6 +39,30 @@ def cog_gen_hash(
 def install_cog(
     uv: str, gdir: str, cog_version: str, is_default: bool, python_version: str
 ) -> None:
+    if cog_version.startswith('https://') or cog_version.startswith('file://'):
+        h = hash_str(cog_version)[:8]
+        pkg = 'coglet' if 'coglet' in cog_version else 'cog'
+        cog_name = f'{pkg}{h}'
+        spec = f'{pkg}@{cog_version}'
+    elif cog_version.startswith('coglet=='):
+        if python_version == '3.8':
+            log.warning('cog-runtime does not support Python 3.8')
+            return
+        try:
+            tag = cog_version.lstrip('coglet==')
+            cog_name = f'coglet{tag}'
+            url = f'https://api.github.com/repos/replicate/cog-runtime/releases/tags/v{tag}'
+            content = urllib.request.urlopen(url).read()
+            blob = json.loads(content)
+            whl = next(filter(lambda a: a['name'].endswith('.whl'), blob['assets']))
+            spec = f'coglet@{whl["browser_download_url"]}'
+        except Exception as e:
+            log.error('Failed to fetch cog-runtime assets: %s', e)
+            return
+    else:
+        cog_name = f'cog{cog_version}'
+        spec = f'cog=={cog_version}'
+
     trace.get_current_span().set_attributes(
         {
             'uv': uv,
@@ -47,14 +72,7 @@ def install_cog(
         }
     )
 
-    if cog_version.startswith('https://') or cog_version.startswith('file://'):
-        name = hash_str(cog_version)[:8]
-        spec = f'cog@{cog_version}'
-    else:
-        name = cog_version
-        spec = f'cog=={cog_version}'
-
-    venv = f'cog{name}-python{python_version}'
+    venv = f'{cog_name}-python{python_version}'
     vdir = os.path.join(gdir, venv)
     cmd = [uv, 'venv', '--python', python_version, vdir]
     subprocess.run(cmd, check=True)

@@ -27,7 +27,7 @@ def optimize_ld_cache(args: argparse.Namespace, gdir: str, mg: MonoGen) -> None:
         with tracer.start_as_current_span(f'optimize_ld_cache.{k}'):
             dirs = [
                 f'{gdir}/cuda{cuda}/lib64',
-                f'{gdir}/cudnn{cudnn}-cuda{cuda_major_p.sub('', cuda)}/lib',
+                f'{gdir}/cudnn{cudnn}-cuda{cuda_major_p.sub("", cuda)}/lib',
                 f'{args.prefix}/uv/python/cpython-{python_full}-linux-x86_64-gnu/lib',
             ]
             trace.get_current_span().set_attributes(
