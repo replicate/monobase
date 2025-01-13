@@ -5,23 +5,8 @@
 
 # Required environment variables
 
-if [ -z "${R8_CUDA_VERSION:-}" ]; then
-    echo "R8_CUDA_VERSION not set"
-    return 1
-fi
-
-if [ -z "${R8_CUDNN_VERSION:-}" ]; then
-    echo "R8_CUDNN_VERSION not set"
-    return 1
-fi
-
 if [ -z "${R8_PYTHON_VERSION:-}" ]; then
     echo "R8_PYTHON_VERSION not set"
-    return 1
-fi
-
-if [ -z "${R8_TORCH_VERSION:-}" ]; then
-    echo "R8_TORCH_VERSION not set"
     return 1
 fi
 
@@ -71,20 +56,16 @@ if [ -z "${MONOBASE_GEN_ID:-}" ]; then
 fi
 
 MONOBASE_PATH="$MONOBASE_PREFIX/monobase/$(printf 'g%05d' "$MONOBASE_GEN_ID")"
-CUDA_PATH="$MONOBASE_PATH/cuda$R8_CUDA_VERSION"
-CUDA_MAJOR="$(echo "$R8_CUDA_VERSION" | sed 's/\..\+//')"
-CUDA_SUFFIX="$(echo "$R8_CUDA_VERSION" | sed 's/\.//')"
-CUDNN_PATH="$MONOBASE_PATH/cudnn$R8_CUDNN_VERSION-cuda${CUDA_MAJOR}"
-export VIRTUAL_ENV="$MONOBASE_PATH/python$R8_PYTHON_VERSION-torch$R8_TORCH_VERSION-cu$CUDA_SUFFIX"
-
-if ! [ -d "$CUDA_PATH" ]; then
-    echo "CUDA $R8_CUDA_VERSION not installed"
-    return 1
-fi
-
-if ! [ -d "$CUDNN_PATH" ]; then
-    echo "CuDNN $R8_CUDNN_VERSION not installed"
-    return 1
+if [ -n "$R8_CUDA_VERSION" ] && [ -n "$R8_CUDNN_VERSION" ]; then
+    CUDA_PATH="$MONOBASE_PATH/cuda$R8_CUDA_VERSION"
+    CUDA_MAJOR="$(echo "$R8_CUDA_VERSION" | sed 's/\..\+//')"
+    CUDA_SUFFIX="$(echo "$R8_CUDA_VERSION" | sed 's/\.//')"
+    CUDNN_PATH="$MONOBASE_PATH/cudnn$R8_CUDNN_VERSION-cuda${CUDA_MAJOR}"
+    export VIRTUAL_ENV="$MONOBASE_PATH/python$R8_PYTHON_VERSION-torch$R8_TORCH_VERSION-cu$CUDA_SUFFIX"
+    export PATH="$VIRTUAL_ENV/bin:$CUDA_PATH/bin${PATH:+:${PATH}}"
+else
+    export VIRTUAL_ENV="$MONOBASE_PATH/python$R8_PYTHON_VERSION-torch$R8_TORCH_VERSION"
+    export PATH="$VIRTUAL_ENV/bin${PATH:+:${PATH}}"
 fi
 
 if ! [ -d "$VIRTUAL_ENV" ]; then
@@ -102,16 +83,18 @@ else
     export PYTHONPATH="$COG_PYTHONPATH:$MONO_PYTHONPATH"
 fi
 
-export PATH="$VIRTUAL_ENV/bin:$CUDA_PATH/bin${PATH:+:${PATH}}"
+if [ -n "$R8_CUDA_VERSION" ] && [ -n "$R8_CUDNN_VERSION" ]; then
+    # NVIDIA Container Toolkit mounts drivers here
+    NCT_PATH=/usr/lib/x86_64-linux-gnu
+    # NCCL is not part of CUDA or CuDNN and required by vLLM
+    NCCL_PATH="$MONO_PYTHONPATH/nvidia/nccl/lib"
+    export LD_LIBRARY_PATH="$NCT_PATH:$CUDA_PATH/lib64:$CUDNN_PATH/lib:$NCCL_PATH${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+    export LIBRARY_PATH="$CUDA_PATH/lib64/stubs"
+    LD_CACHE_PATH="$MONOBASE_PATH/ld.so.cache.d/cuda$R8_CUDA_VERSION-cudnn$R8_CUDNN_VERSION-python$R8_PYTHON_VERSION"
+    export R8_ATTRIBUTES_FILES="${COG_VENV}/.done ${CUDA_PATH}/.done ${CUDNN_PATH}/.done ${VIRTUAL_ENV}/.done"
+else
+    LD_CACHE_PATH="$MONOBASE_PATH/ld.so.cache.d/python$R8_PYTHON_VERSION"
+    export R8_ATTRIBUTES_FILES="${COG_VENV}/.done ${VIRTUAL_ENV}/.done"
+fi
 
-# NVIDIA Container Toolkit mounts drivers here
-NCT_PATH=/usr/lib/x86_64-linux-gnu
-# NCCL is not part of CUDA or CuDNN and required by vLLM
-NCCL_PATH="$MONO_PYTHONPATH/nvidia/nccl/lib"
-export LD_LIBRARY_PATH="$NCT_PATH:$CUDA_PATH/lib64:$CUDNN_PATH/lib:$NCCL_PATH${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-export LIBRARY_PATH="$CUDA_PATH/lib64/stubs"
-
-LD_CACHE_PATH="$MONOBASE_PATH/ld.so.cache.d/cuda$R8_CUDA_VERSION-cudnn$R8_CUDNN_VERSION-python$R8_PYTHON_VERSION"
 cp -f "$LD_CACHE_PATH" /etc/ld.so.cache
-
-export R8_ATTRIBUTES_FILES="${COG_VENV}/.done ${CUDA_PATH}/.done ${CUDNN_PATH}/.done ${VIRTUAL_ENV}/.done"
