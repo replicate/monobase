@@ -6,9 +6,17 @@ import shutil
 import subprocess
 import urllib.parse
 from dataclasses import dataclass
+from multiprocessing import Pool
 
 from monobase.urls import cuda_urls, cudnn_urls
-from monobase.util import Version, mark_done, require_done_or_rm
+from monobase.util import (
+    Version,
+    mark_done,
+    require_done_or_rm,
+    setup_logging,
+)
+
+R8_PACKAGE_PREFIX = 'https://monobase-packages.replicate.delivery'
 
 log = logging.getLogger(__name__)
 
@@ -65,26 +73,57 @@ CUDAS: dict[str, Cuda] = build_cudas()
 CUDNNS: dict[str, CuDNN] = build_cudnns()
 
 
-def install_cuda(args: argparse.Namespace, version: str) -> str:
-    cdir = os.path.join(args.prefix, 'cuda', f'cuda-{version}')
-    if require_done_or_rm(cdir):
-        log.info(f'CUDA {version} in {cdir} is complete')
-        return cdir
+def tar_and_delete(path: str, file: str) -> None:
+    # https://www.gnu.org/software//tar/manual/html_section/Reproducibility.html
+    tar_flags = [
+        '--sort=name',
+        '--format=posix',
+        '--pax-option=exthdr.name=%d/PaxHeaders/%f',
+        '--pax-option=delete=atime,delete=ctime,delete=btime,delete=mtime',
+        '--mtime=0',
+        '--numeric-owner',
+        '--owner=0',
+        '--group=0',
+        '--mode=go+u,go-w',
+    ]
+    tar_env = {
+        'LC_ALL': 'C',
+        'TZ': 'UTC',
+    }
+    cmd = (
+        ['tar', '-C', path]
+        + tar_flags
+        + ['--zstd', '-cf', file]
+        + sorted(os.listdir(path))
+    )
+    subprocess.run(cmd, check=True, env=tar_env)
+    shutil.rmtree(path, ignore_errors=True)
 
-    if os.environ.get('CI_SKIP_CUDA') is not None:
-        os.makedirs(cdir, exist_ok=True)
-        mark_done(cdir, kind='cuda', version=version, skipped=True)
-        log.info(f'CUDA {version} skipped in {cdir}')
-        return cdir
+
+def pget(args: argparse.Namespace, url: str, file: str) -> None:
+    cmd = [
+        f'{args.prefix}/bin/pget',
+        '--pid-file',
+        '/tmp/pget.pid',
+        url,
+        file,
+    ]
+    subprocess.run(cmd, check=True)
+
+
+def build_cuda_tarball(args: argparse.Namespace, version: str) -> None:
+    tf = os.path.join(args.cache, 'cuda', f'monobase-cuda-{version}.tar.zst')
+    if os.path.exists(tf):
+        return
 
     cuda = CUDAS[version]
-    file = os.path.join(args.cache, cuda.filename)
+    file = os.path.join(args.cache, 'cuda', cuda.filename)
     if not os.path.exists(file):
         log.info(f'Downloading CUDA {version}...')
-        cmd = [f'{args.prefix}/bin/pget', '--pid-file', '/tmp/pget.pid', cuda.url, file]
-        subprocess.run(cmd, check=True)
+        pget(args, cuda.url, file)
 
     log.info(f'Installing CUDA {version}...')
+    cdir = os.path.join(args.prefix, 'cuda', f'cuda-{version}')
     cmd = [
         '/bin/sh',
         file,
@@ -115,7 +154,60 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
     cmd = ['find', cdir, '-name', 'lib*.a', '-delete']
     subprocess.run(cmd, check=True)
 
-    mark_done(cdir, kind='cuda', version=version, url=cuda.url)
+    log.info(f'Creating CUDA tarball {tf}...')
+    tar_and_delete(cdir, tf)
+
+
+def build_cudnn_tarball(
+    args: argparse.Namespace, version: str, cuda_major: str
+) -> None:
+    key = f'{version}-cuda{cuda_major}'
+    tf = os.path.join(args.cache, 'cudnn', f'monobase-cudnn-{key}.tar.zst')
+    if os.path.exists(tf):
+        return
+
+    cudnn = CUDNNS[key]
+    file = os.path.join(args.cache, 'cudnn', cudnn.filename)
+    if not os.path.exists(file):
+        log.info(f'Downloading CuDNN {key}...')
+        pget(args, cudnn.url, file)
+
+    log.info(f'Installing CuDNN {key}...')
+    cdir = os.path.join(args.prefix, 'cuda', f'cudnn-{key}')
+    os.makedirs(cdir, exist_ok=True)
+    cmd = ['tar', '-xf', file, '--strip-components=1', '--exclude=lib*.a', '-C', cdir]
+    subprocess.run(cmd, check=True)
+
+    log.info(f'Creating CuDNN tarball {tf}...')
+    tar_and_delete(cdir, tf)
+
+
+def install_cuda(args: argparse.Namespace, version: str) -> str:
+    cdir = os.path.join(args.prefix, 'cuda', f'cuda-{version}')
+    if require_done_or_rm(cdir):
+        log.info(f'CUDA {version} in {cdir} is complete')
+        return cdir
+
+    if os.environ.get('CI_SKIP_CUDA') is not None:
+        os.makedirs(cdir, exist_ok=True)
+        mark_done(cdir, kind='cuda', version=version, skipped=True)
+        log.info(f'CUDA {version} skipped in {cdir}')
+        return cdir
+
+    filename = f'monobase-cuda-{version}.tar.zst'
+    path = os.path.join(args.cache, 'cuda', filename)
+    url = f'file://{path}'
+    if not os.path.exists(path):
+        log.info(f'Downloading CUDA {version}...')
+        url = f'{R8_PACKAGE_PREFIX}/cuda/{filename}'
+        pget(args, url, path)
+
+    log.info(f'Installing CUDA {version}...')
+    os.makedirs(cdir, exist_ok=True)
+    cmd = ['tar', '-xf', path, '-C', cdir]
+    subprocess.run(cmd, check=True)
+
+    mark_done(cdir, kind='cuda', version=version, url=url)
     log.info(f'CUDA {version} installed in {cdir}')
     return cdir
 
@@ -133,24 +225,55 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
         log.info(f'CuDNN {key} skipped in {cdir}')
         return cdir
 
-    cudnn = CUDNNS[key]
-    file = os.path.join(args.cache, cudnn.filename)
-    if not os.path.exists(file):
+    filename = f'monobase-cudnn-{key}.tar.zst'
+    path = os.path.join(args.cache, 'cudnn', filename)
+    url = f'file://{path}'
+    if not os.path.exists(path):
         log.info(f'Downloading CuDNN {key}...')
-        cmd = [
-            f'{args.prefix}/bin/pget',
-            '--pid-file',
-            '/tmp/pget.pid',
-            cudnn.url,
-            file,
-        ]
-        subprocess.run(cmd, check=True)
+        url = f'{R8_PACKAGE_PREFIX}/cudnn/{filename}'
+        pget(args, url, path)
 
     log.info(f'Installing CuDNN {key}...')
     os.makedirs(cdir, exist_ok=True)
-    cmd = ['tar', '-xf', file, '--strip-components=1', '--exclude=lib*.a', '-C', cdir]
+    cmd = ['tar', '-xf', path, '-C', cdir]
     subprocess.run(cmd, check=True)
 
-    mark_done(cdir, kind='cudnn', version=version, url=cudnn.url)
+    mark_done(cdir, kind='cudnn', version=version, url=url)
     log.info(f'CuDNN {key} installed in {cdir}')
     return cdir
+
+
+parser = argparse.ArgumentParser(description='Build monobase environment')
+parser.add_argument(
+    '--prefix',
+    metavar='PATH',
+    default='/srv/r8/monobase',
+    help='prefix for monobase',
+)
+parser.add_argument(
+    '--cache',
+    metavar='PATH',
+    default='/var/cache/monobase',
+    help='cache for monobase',
+)
+
+
+def build_tarballs(args: argparse.Namespace) -> None:
+    with Pool() as pool:
+        results = []
+        os.makedirs(os.path.join(args.cache, 'cuda'), exist_ok=True)
+        for k in CUDAS.keys():
+            r = pool.apply_async(build_cuda_tarball, (args, k))
+            results.append(r)
+        os.makedirs(os.path.join(args.cache, 'cudnn'), exist_ok=True)
+        for v in CUDNNS.values():
+            a = (args, str(v.cudnn_version), str(v.cuda_major))
+            r = pool.apply_async(build_cudnn_tarball, a)
+            results.append(r)
+        for r in results:
+            r.wait()
+
+
+if __name__ == '__main__':
+    setup_logging()
+    build_tarballs(parser.parse_args())
