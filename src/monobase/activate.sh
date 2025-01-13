@@ -68,7 +68,7 @@ if [ -z "${MONOBASE_GEN_ID:-}" ]; then
 fi
 
 MONOBASE_PATH="$MONOBASE_PREFIX/monobase/$(printf 'g%05d' "$MONOBASE_GEN_ID")"
-if [ -n "$R8_CUDA_VERSION" ] && [ -n "$R8_CUDNN_VERSION" ]; then
+if [ -n "${R8_CUDA_VERSION:-}" ] && [ -n "${R8_CUDNN_VERSION:-}" ]; then
     CUDA_PATH="$MONOBASE_PATH/cuda$R8_CUDA_VERSION"
     CUDA_MAJOR="$(echo "$R8_CUDA_VERSION" | sed 's/\..\+//')"
     CUDA_SUFFIX="$(echo "$R8_CUDA_VERSION" | sed 's/\.//')"
@@ -95,7 +95,7 @@ else
     export PYTHONPATH="$COG_PYTHONPATH:$MONO_PYTHONPATH"
 fi
 
-if [ -n "$R8_CUDA_VERSION" ] && [ -n "$R8_CUDNN_VERSION" ]; then
+if [ -n "${R8_CUDA_VERSION:-}" ] && [ -n "${R8_CUDNN_VERSION:-}" ]; then
     # NVIDIA Container Toolkit mounts drivers here
     NCT_PATH=/usr/lib/x86_64-linux-gnu
     # NCCL is not part of CUDA or CuDNN and required by vLLM
