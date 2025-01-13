@@ -18,6 +18,7 @@ cuda_prefix = getenv_or(
 )
 
 cuda_urls = [
+    f'{cuda_prefix}/cuda_12.6.3_560.35.05_linux.run',
     f'{cuda_prefix}/cuda_12.6.2_560.35.03_linux.run',
     f'{cuda_prefix}/cuda_12.6.1_560.35.03_linux.run',
     f'{cuda_prefix}/cuda_12.6.0_560.28.03_linux.run',
@@ -50,6 +51,10 @@ cudnn_prefix = getenv_or(
 )
 
 cudnn_urls = [
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.6.0.74_cuda12-archive.tar.xz',
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.6.0.74_cuda11-archive.tar.xz',
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.5.1.17_cuda12-archive.tar.xz',
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.5.1.17_cuda11-archive.tar.xz',
     f'{cudnn_prefix}/cudnn-linux-x86_64-9.5.0.50_cuda12-archive.tar.xz',
     f'{cudnn_prefix}/cudnn-linux-x86_64-9.5.0.50_cuda11-archive.tar.xz',
     f'{cudnn_prefix}/cudnn-linux-x86_64-9.4.0.58_cuda12-archive.tar.xz',

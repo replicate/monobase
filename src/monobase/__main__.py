@@ -10,6 +10,8 @@ if __name__ == '__main__':
 
         python -m monobase.build
 
+        python -m monobase.cuda
+
         python -m monobase.diff
 
         python -m monobase.monogen
