@@ -49,4 +49,4 @@ RUN --mount=type=bind,from=build,target=/tmp/build-layer,ro \
     && rm -rf /tmp/r8
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["/opt/r8/monobase/build.sh", "--help"]
+CMD ["/opt/r8/monobase/run.sh", "monobase.build", "--help"]

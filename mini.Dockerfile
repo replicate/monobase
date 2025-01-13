@@ -21,4 +21,4 @@ RUN /opt/r8/monobase/build.sh --skip-cuda --mini
 
 # Install a user venv
 # Do not reinstall uv & pget
-RUN NO_REINSTALL=1 /opt/r8/monobase/build.sh --skip-cuda --mini --requirements /tmp/requirements.txt
+RUN /opt/r8/monobase/run.sh monobase.build --skip-cuda --mini --requirements /tmp/requirements.txt
