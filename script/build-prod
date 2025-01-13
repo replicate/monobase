@@ -7,7 +7,7 @@ main() {
   cd "$(git rev-parse --show-toplevel)"
 
   printf '# ---> using kubectl context "%s"\n' "$(kubectl config current-context)"
-  exec ./script/run-oneoff-pod build /opt/r8/monobase/build.sh "${@}"
+  exec ./script/run-oneoff-pod build /opt/r8/monobase/run.sh monobase.build "${@}"
 }
 
 main "${@}"

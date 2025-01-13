@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build monobase
+# Run Python modules in monobase
 
 set -euo pipefail
 
@@ -15,10 +15,15 @@ log() {
     echo "$(date --iso-8601=seconds --utc) $*"
 }
 
+if [ $# -lt 1 ]; then
+    echo "Usage: $(basename "$0") <module> [arg]..."
+    exit 1
+fi
+
 # Always install latest uv and pget first
 # Unless explicitly disabled, e.g. in Dockerfile
 # So that we do not repack these into a user layer
-if [ -z "${NO_REINSTALL:-}" ]; then
+if ! [ -f "$MONOBASE_PREFIX/bin/uv" ] || ! [ -f "$MONOBASE_PREFIX/bin/pget-bin" ]; then
     mkdir -p "$MONOBASE_PREFIX/bin"
 
     log "Installing uv..."
@@ -34,8 +39,12 @@ if [ -z "${NO_REINSTALL:-}" ]; then
     cp /opt/r8/monobase/pget "$MONOBASE_PREFIX/bin/pget"
 fi
 
-uv venv /var/tmp/.venv --python='3.13'
-VIRTUAL_ENV=/var/tmp/.venv uv pip install --link-mode=copy "$(find /opt/r8 -name '*.whl' | head -1)"
+if ! [ -d /var/tmp/.venv ]; then
+    uv venv /var/tmp/.venv --python='3.13'
+    VIRTUAL_ENV=/var/tmp/.venv uv pip install --link-mode=copy "$(find /opt/r8 -name '*.whl' | head -1)"
+fi
 
-log "Running monobase.build..."
-exec /var/tmp/.venv/bin/python -m monobase.build "$@"
+module="$1"
+shift
+log "Running $module..."
+exec /var/tmp/.venv/bin/python -m "$module" "$@"
