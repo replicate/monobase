@@ -73,10 +73,18 @@ if [ -n "${R8_CUDA_VERSION:-}" ] && [ -n "${R8_CUDNN_VERSION:-}" ]; then
     CUDA_MAJOR="$(echo "$R8_CUDA_VERSION" | sed 's/\..\+//')"
     CUDA_SUFFIX="$(echo "$R8_CUDA_VERSION" | sed 's/\.//')"
     CUDNN_PATH="$MONOBASE_PATH/cudnn$R8_CUDNN_VERSION-cuda${CUDA_MAJOR}"
-    export VIRTUAL_ENV="$MONOBASE_PATH/python$R8_PYTHON_VERSION-torch$R8_TORCH_VERSION-cu$CUDA_SUFFIX"
     export PATH="$VIRTUAL_ENV/bin:$CUDA_PATH/bin${PATH:+:${PATH}}"
+    if [ -n "${R8_TORCH_VERSION:-}" ]; then
+        export VIRTUAL_ENV="$MONOBASE_PATH/python$R8_PYTHON_VERSION-torch$R8_TORCH_VERSION-cu$CUDA_SUFFIX"
+    else
+        export VIRTUAL_ENV="$MONOBASE_PATH/python$R8_PYTHON_VERSION-cu$CUDA_SUFFIX"
+    fi
 else
-    export VIRTUAL_ENV="$MONOBASE_PATH/python$R8_PYTHON_VERSION-torch$R8_TORCH_VERSION"
+    if [ -n "${R8_TORCH_VERSION:-}" ]; then
+        export VIRTUAL_ENV="$MONOBASE_PATH/python$R8_PYTHON_VERSION-torch$R8_TORCH_VERSION"
+    else
+        export VIRTUAL_ENV="$MONOBASE_PATH/python$R8_PYTHON_VERSION"
+    fi
     export PATH="$VIRTUAL_ENV/bin${PATH:+:${PATH}}"
 fi
 
