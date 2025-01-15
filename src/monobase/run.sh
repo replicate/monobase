@@ -4,7 +4,6 @@
 
 set -euo pipefail
 
-export OTEL_EXPORTER_OTLP_ENDPOINT="${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
 export OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME:-monobase}"
 export PATH="$MONOBASE_PREFIX/bin:$PATH"
 
