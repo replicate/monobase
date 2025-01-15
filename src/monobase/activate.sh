@@ -95,7 +95,6 @@ if [ -z "${MONOBASE_GEN_ID:-}" ]; then
     latest="$MONOBASE_PREFIX/monobase/latest"
     gdir="$(readlink -f "$latest")"
     MONOBASE_GEN_ID="$(basename "$gdir" | sed 's/^g0\{0,4\}//')"
-    if [ "${R8_SILENCE}"]
     log_info "MONOBASE_GEN_ID not set, using latest $MONOBASE_GEN_ID"
 fi
 
