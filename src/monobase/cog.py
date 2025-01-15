@@ -37,7 +37,12 @@ def cog_gen_hash(
 
 @tracer.start_as_current_span('install_cog')
 def install_cog(
-    uv: str, gdir: str, cog_version: str, is_default: bool, python_version: str
+    uv: str,
+    gdir: str,
+    cog_version: str,
+    is_default: bool,
+    python_version: str,
+    python_full_version: str,
 ) -> None:
     if cog_version.startswith('https://') or cog_version.startswith('file://'):
         h = hash_str(cog_version)[:8]
@@ -74,13 +79,13 @@ def install_cog(
 
     venv = f'{cog_name}-python{python_version}'
     vdir = os.path.join(gdir, venv)
-    cmd = [uv, 'venv', '--python', python_version, vdir]
+    cmd = [uv, 'venv', '--python', python_full_version, vdir]
     subprocess.run(cmd, check=True)
 
     env = os.environ.copy()
     env['VIRTUAL_ENV'] = vdir
 
-    cmd = [uv, 'pip', 'install', spec]
+    cmd = [uv, 'pip', 'install', '--compile-bytecode', spec]
     subprocess.run(cmd, check=True, env=env)
 
     if is_default:
@@ -91,13 +96,15 @@ def install_cog(
 
 
 @tracer.start_as_current_span('install_cogs')
-def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
+def install_cogs(args: argparse.Namespace, python_versions: dict[str, str]) -> None:
     cdir = os.path.join(args.prefix, 'cog')
     os.makedirs(cdir, exist_ok=True)
 
     # Consistent hash of Cog versions as generation ID
     cog_versions = sorted(set(args.cog_versions))
-    sha256 = cog_gen_hash(cog_versions, args.default_cog_version, python_versions)[:8]
+    sha256 = cog_gen_hash(
+        cog_versions, args.default_cog_version, sorted(python_versions.values())
+    )[:8]
     gid = f'g{sha256}'
     gdir = os.path.join(cdir, gid)
 
@@ -120,8 +127,8 @@ def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     # Since we only the site-packages, not Python interpreters
     uv = os.path.join(args.prefix, 'bin', 'uv')
 
-    for c, p in itertools.product(cog_versions, python_versions):
-        install_cog(uv, gdir, c, c == args.default_cog_version, p)
+    for c, (p, pf) in itertools.product(cog_versions, python_versions.items()):
+        install_cog(uv, gdir, c, c == args.default_cog_version, p, pf)
 
     latest = os.path.join(cdir, 'latest')
     if os.path.exists(latest):

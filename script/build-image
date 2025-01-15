@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build production images
+# Build production image
 
 set -euo pipefail
 

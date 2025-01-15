@@ -68,45 +68,53 @@ if [ -z "${MONOBASE_GEN_ID:-}" ]; then
 fi
 
 MONOBASE_PATH="$MONOBASE_PREFIX/monobase/$(printf 'g%05d' "$MONOBASE_GEN_ID")"
+
 if [ -n "${R8_CUDA_VERSION:-}" ] && [ -n "${R8_CUDNN_VERSION:-}" ]; then
     CUDA_PATH="$MONOBASE_PATH/cuda$R8_CUDA_VERSION"
+    export LIBRARY_PATH="$CUDA_PATH/lib64/stubs"
+    PATH="$CUDA_PATH/bin${PATH:+:${PATH}}"
+
     CUDA_MAJOR="$(echo "$R8_CUDA_VERSION" | sed 's/\..\+//')"
-    CUDA_SUFFIX="$(echo "$R8_CUDA_VERSION" | sed 's/\.//')"
     CUDNN_PATH="$MONOBASE_PATH/cudnn$R8_CUDNN_VERSION-cuda${CUDA_MAJOR}"
-    export VIRTUAL_ENV="$MONOBASE_PATH/python$R8_PYTHON_VERSION-torch$R8_TORCH_VERSION-cu$CUDA_SUFFIX"
-    export PATH="$VIRTUAL_ENV/bin:$CUDA_PATH/bin${PATH:+:${PATH}}"
-else
-    export VIRTUAL_ENV="$MONOBASE_PATH/python$R8_PYTHON_VERSION-torch$R8_TORCH_VERSION"
-    export PATH="$VIRTUAL_ENV/bin${PATH:+:${PATH}}"
-fi
 
-if ! [ -d "$VIRTUAL_ENV" ]; then
-    echo "Virtual environment $VIRTUAL_ENV not installed"
-    return 1
-fi
-
-COG_PYTHONPATH="$COG_VENV/lib/python$R8_PYTHON_VERSION/site-packages"
-MONO_PYTHONPATH="$VIRTUAL_ENV/lib/python$R8_PYTHON_VERSION/site-packages"
-USER_PYTHONPATH="$MONOBASE_PREFIX/user/lib/python$R8_PYTHON_VERSION/site-packages"
-
-if [ -d "$USER_PYTHONPATH" ]; then
-    export PYTHONPATH="$COG_PYTHONPATH:$MONO_PYTHONPATH:$USER_PYTHONPATH"
-else
-    export PYTHONPATH="$COG_PYTHONPATH:$MONO_PYTHONPATH"
-fi
-
-if [ -n "${R8_CUDA_VERSION:-}" ] && [ -n "${R8_CUDNN_VERSION:-}" ]; then
     # NVIDIA Container Toolkit mounts drivers here
     NCT_PATH=/usr/lib/x86_64-linux-gnu
-    # NCCL is not part of CUDA or CuDNN and required by vLLM
-    NCCL_PATH="$MONO_PYTHONPATH/nvidia/nccl/lib"
-    export LD_LIBRARY_PATH="$NCT_PATH:$CUDA_PATH/lib64:$CUDNN_PATH/lib:$NCCL_PATH${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-    export LIBRARY_PATH="$CUDA_PATH/lib64/stubs"
+    LD_LIBRARY_PATH="$NCT_PATH:$CUDA_PATH/lib64:$CUDNN_PATH/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+
     LD_CACHE_PATH="$MONOBASE_PATH/ld.so.cache.d/cuda$R8_CUDA_VERSION-cudnn$R8_CUDNN_VERSION-python$R8_PYTHON_VERSION"
-    export R8_ATTRIBUTES_FILES="${COG_VENV}/.done ${CUDA_PATH}/.done ${CUDNN_PATH}/.done ${VIRTUAL_ENV}/.done"
+    cp -f "$LD_CACHE_PATH" /etc/ld.so.cache
+
+    TORCH_CUDA_SUFFIX="cu$(echo "$R8_CUDA_VERSION" | sed 's/\.//')"
 else
-    LD_CACHE_PATH="$MONOBASE_PATH/ld.so.cache.d/python$R8_PYTHON_VERSION"
-    export R8_ATTRIBUTES_FILES="${COG_VENV}/.done ${VIRTUAL_ENV}/.done"
+    TORCH_CUDA_SUFFIX="cpu"
 fi
 
-cp -f "$LD_CACHE_PATH" /etc/ld.so.cache
+
+# Cog venv is guaranteed to be present
+# Use Python interpretor from there
+PATH="$COG_VENV/bin${PATH:+:${PATH}}"
+
+# Layer Cog venv first
+COG_PYTHONPATH="$COG_VENV/lib/python$R8_PYTHON_VERSION/site-packages"
+PYTHONPATH="$COG_PYTHONPATH"
+
+# Append Monobase venv if Torch version is set
+if [ -n "${R8_TORCH_VERSION:-}" ]; then
+    MONO_VENV="$MONOBASE_PATH/python$R8_PYTHON_VERSION-torch$R8_TORCH_VERSION-$TORCH_CUDA_SUFFIX"
+    MONO_PYTHONPATH="$MONO_VENV/lib/python$R8_PYTHON_VERSION/site-packages"
+    PYTHONPATH="$PYTHONPATH:$MONO_PYTHONPATH"
+
+    # NCCL is not part of CUDA or CuDNN and required by vLLM
+    NCCL_PATH="$MONO_PYTHONPATH/nvidia/nccl/lib"
+    LD_LIBRARY_PATH="$NCCL_PATH${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+fi
+
+# Append user venv last
+USER_PYTHONPATH="/root/.venv/lib/python$R8_PYTHON_VERSION/site-packages"
+if [ -d "$USER_PYTHONPATH" ]; then
+    PYTHONPATH="$PYTHONPATH:$USER_PYTHONPATH"
+fi
+
+export PATH
+export PYTHONPATH
+export LD_LIBRARY_PATH

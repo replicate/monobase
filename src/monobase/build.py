@@ -13,7 +13,6 @@ from monobase.cuda import install_cuda, install_cudnn
 from monobase.monogen import MONOGENS, MonoGen
 from monobase.optimize import optimize_ld_cache, optimize_rdfind
 from monobase.prune import clean_uv_cache, prune_cuda, prune_old_gen, prune_uv_cache
-from monobase.user import build_user_venv
 from monobase.util import (
     HERE,
     IN_KUBERNETES,
@@ -65,22 +64,12 @@ parser.add_argument(
     action='store_true',
     help='Build a mini mono of 1 generation * 1 venv',
 )
-parser.add_argument(
-    '--requirements',
-    metavar='FILE',
-    help='Python requirements.txt for user layer',
-)
+
 parser.add_argument(
     '--prune-old-gen',
     default=False,
     action='store_true',
     help='prune old generations',
-)
-parser.add_argument(
-    '--skip-cuda',
-    default=False,
-    action='store_true',
-    help='skip CUDAs and CuDNNs',
 )
 parser.add_argument(
     '--prune-cuda',
@@ -129,6 +118,9 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     log.info(f'Building monobase generation {mg.id}...')
     os.makedirs(gdir, exist_ok=True)
 
+    # CUDA & CuDNN must both be set or empty i.e. no CUDA/CuDNN
+    assert (len(mg.cuda) == 0) == (len(mg.cudnn) == 0)
+
     for k, v in desc_version_key(mg.cuda):
         src = install_cuda(args, v)
         dst = f'{gdir}/cuda{k}'
@@ -143,8 +135,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     for (k, v), m in itertools.product(
         desc_version_key(mg.cudnn), desc_version(cuda_majors)
     ):
-        if m is None:
-            raise ValueError('cuda cannot be null.')
+        assert m is not None
         src = install_cudnn(args, v, m)
         dst = f'{gdir}/cudnn{k}-cuda{m}'
         reldst = os.path.relpath(src, gdir)
@@ -155,13 +146,20 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
 
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
     rdir = os.path.join(HERE, f'requirements{suffix}', f'g{mg.id:05d}')
+
+    if args.mini and len(mg.torch) == 1 and len(mg.cuda) == 0:
+        # Mini mono with Torch but without CUDA or CuDNN, use CPU Torch
+        cuda_versions = ['cpu']
+    else:
+        # Production, always add CPU torch
+        cuda_versions = ['cpu'] + desc_version(mg.cuda.keys())
+
     for (p, pf), t, c in itertools.product(
         desc_version_key(mg.python),
         desc_version(mg.torch),
-        desc_version(mg.cuda.keys()),
+        cuda_versions,
     ):
-        if c is None:
-            raise ValueError('cuda cannot be null.')
+        assert c is not None
         install_venv(args, rdir, gdir, p, pf, t, c)
 
     optimize_ld_cache(args, gdir, mg)
@@ -182,14 +180,26 @@ def build(args: argparse.Namespace) -> None:
     if args.mini:
         mg = monogens[0]
 
-        def assert_env(e: str) -> None:
-            assert os.environ.get(e) is not None, f'{e} is required for mini mono'
+        def pick(d: dict[str, str], e: str, required: bool) -> dict[str, str]:
+            k = os.environ.get(e)
+            if required:
+                assert k is not None, f'{e} is required for mini mono'
+            return {} if k is None else {k: d[k]}
 
-        assert_env('R8_COG_VERSION')
-        assert_env('R8_PYTHON_VERSION')
-        if not args.skip_cuda:
-            assert_env('R8_CUDA_VERSION')
-            assert_env('R8_CUDNN_VERSION')
+        assert os.environ.get('R8_COG_VERSION') is not None, (
+            'R8_COG_VERSION is required for mini mono'
+        )
+
+        # CUDA & CuDNN versions are optional, use CPU Torch if not set
+        cuda = pick(mg.cuda, 'R8_CUDA_VERSION', required=False)
+        cudnn = pick(mg.cudnn, 'R8_CUDNN_VERSION', required=False)
+
+        # Python version is required
+        python = pick(mg.python, 'R8_PYTHON_VERSION', required=True)
+
+        # Torch version is optional, no venv will be installed if not set
+        torch_version = os.environ.get('R8_TORCH_VERSION')
+        torch: list[str] = [] if torch_version is None else [torch_version]
 
         assert args.cog_versions is None, (
             'Mini mono and --cog-versions are mutually exclusive'
@@ -200,37 +210,16 @@ def build(args: argparse.Namespace) -> None:
         args.cog_versions = [os.environ['R8_COG_VERSION']]
         args.default_cog_version = os.environ['R8_COG_VERSION']
 
-        def pick(
-            d: dict[str, str], env: str, fail_on_empty: bool = True
-        ) -> dict[str, str]:
-            try:
-                key = os.environ[env]
-                return {key: d[key]}
-            except KeyError:
-                if fail_on_empty:
-                    raise
-                return {}
-
-        torch: list[str | None] = []
-        if 'R8_TORCH_VERSION' in os.environ:
-            torch.append(os.environ['R8_TORCH_VERSION'])
-        else:
-            torch.append(None)
-
         monogens = [
             MonoGen(
                 id=mg.id,
-                cuda=pick(mg.cuda, 'R8_CUDA_VERSION', fail_on_empty=not args.skip_cuda),
-                cudnn=pick(
-                    mg.cudnn, 'R8_CUDNN_VERSION', fail_on_empty=not args.skip_cuda
-                ),
-                python=pick(mg.python, 'R8_PYTHON_VERSION'),
+                cuda=cuda,
+                cudnn=cudnn,
+                python=python,
                 torch=torch,
                 pip_pkgs=mg.pip_pkgs,
             )
         ]
-    if args.requirements is not None:
-        assert args.mini, 'Mini mono is a prerequisite for --requirements'
 
     if args.default_cog_version is None:
         assert len(args.cog_versions) == 1, 'Missing --default-cog-version'
@@ -244,11 +233,14 @@ def build(args: argparse.Namespace) -> None:
     if args.clean_uv_cache:
         clean_uv_cache()
 
-    pvs: list[Version] = []
+    # Find latest full version of each Python major.minor
+    pvs: dict[str, Version] = {}
     for mg in monogens:
-        pvs += map(Version.parse, mg.python.keys())
-    python_versions = list(map(str, sorted(set(pvs), reverse=True)))
-    install_cogs(args, python_versions)
+        for k, vs in mg.python.items():
+            v = Version.parse(vs)
+            if k not in pvs or pvs[k] < v:
+                pvs[k] = v
+    install_cogs(args, dict((k, str(v)) for k, v in pvs.items()))
 
     gens = []
     for i, mg in enumerate(monogens):
@@ -274,9 +266,6 @@ def build(args: argparse.Namespace) -> None:
                 os.chmod(NODE_FEATURE_LABEL_FILE, 0o644)
 
                 log.info(f'Wrote done={done} to {NODE_FEATURE_LABEL_FILE}')
-
-    if args.requirements is not None:
-        build_user_venv(args)
 
     if args.prune_old_gen:
         prune_old_gen(args)

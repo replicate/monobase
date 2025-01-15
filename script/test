@@ -19,12 +19,12 @@ docker run --rm \
     --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --volume "$PWD/build/cache:/var/cache/monobase" \
     --volume "$PWD/build/nfd-features.d:/etc/kubernetes/node-feature-discovery/features.d" \
-    -e OTEL_EXPORTER_OTLP_ENDPOINT \
+    --env OTEL_EXPORTER_OTLP_ENDPOINT \
+    --env CI_SKIP_CUDA=1 \
     monobase:latest \
     /opt/r8/monobase/run.sh \
     monobase.build \
     --environment test \
-    --skip-cuda \
     --cog-versions \
     0.11.3 \
     coglet==0.1.0-alpha1 \
@@ -47,9 +47,9 @@ test() {
     esac
 
     if [ "$r" -eq 0 ]; then
-        echo "PASS: [ $op /srv/r8/monobase/$2 ]"
+        echo "PASS: [ $op $2 ]"
     else
-        echo "FAIL: [ $op /srv/r8/monobase/$2 ]"
+        echo "FAIL: [ $op $2 ]"
         fail=$((fail + 1))
     fi
 }
@@ -57,9 +57,9 @@ test() {
 is-json() {
     f="$PWD/build/$1"
     if jq < "$f" >/dev/null; then
-        echo "PASS: is-json /srv/r8/monobase/$1"
+        echo "PASS: is-json $1"
     else
-        echo "FAIL: is-json /srv/r8/monobase/$1"
+        echo "FAIL: is-json $1"
         fail=$((fail + 1))
     fi
 }
@@ -84,6 +84,9 @@ test -h 'monobase/monobase/g00000/cudnn9-cuda12'
 test -s 'monobase/monobase/g00000/cudnn9-cuda12/.done'
 is-json 'monobase/monobase/g00000/cudnn9-cuda12/.done'
 test -d 'monobase/monobase/g00000/ld.so.cache.d'
+test -d 'monobase/monobase/g00000/python3.12-torch2.4.1-cpu'
+test -s 'monobase/monobase/g00000/python3.12-torch2.4.1-cpu/.done'
+is-json 'monobase/monobase/g00000/python3.12-torch2.4.1-cpu/.done'
 test -d 'monobase/monobase/g00000/python3.12-torch2.4.1-cu124'
 test -s 'monobase/monobase/g00000/python3.12-torch2.4.1-cu124/.done'
 is-json 'monobase/monobase/g00000/python3.12-torch2.4.1-cu124/.done'
@@ -93,9 +96,13 @@ if [ "$fail" -gt 0 ]; then
     exit 1
 fi
 
+####################
+# Test Monobase
+####################
+
 read -r -d '' SCRIPT << EOF || :
 import sys, cog, torch
-assert sys.version.startswith('3.12.7'), f'sys.version is not 3.12.7: {sys.version}'
+assert sys.version.startswith('3.12.8'), f'sys.version is not 3.12.8: {sys.version}'
 assert cog.__file__.startswith('/srv/r8/monobase/cog'), f'cog is not pre-installed: {cog.__file__}'
 assert cog.__version__ == '0.11.3', f'cog.__version__ is not 0.11.3: {cog.__version__}'
 assert torch.__version__ == '2.4.1+cu124', f'torch.__version__ is not 2.4.1+cu124: {torch.__version__}'
@@ -112,6 +119,52 @@ docker run --rm \
     monobase:latest \
     '/opt/r8/monobase/exec.sh' \
     python -c "$SCRIPT"
+
+# Missing CUDA & CuDNN versions
+read -r -d '' SCRIPT << EOF || :
+import sys, cog, torch
+assert sys.version.startswith('3.12.8'), f'sys.version is not 3.12.8: {sys.version}'
+assert cog.__file__.startswith('/srv/r8/monobase/cog'), f'cog is not pre-installed: {cog.__file__}'
+assert cog.__version__ == '0.11.3', f'cog.__version__ is not 0.11.3: {cog.__version__}'
+assert torch.__version__ == '2.4.1+cpu', f'torch.__version__ is not 2.4.1+cpu: {torch.__version__}'
+print('PASS: venv versions')
+EOF
+
+docker run --rm \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
+    --env R8_PYTHON_VERSION=3.12 \
+    --env R8_TORCH_VERSION=2.4.1 \
+    monobase:latest \
+    '/opt/r8/monobase/exec.sh' \
+    python -c "$SCRIPT"
+
+# Missing Torch version
+read -r -d '' SCRIPT << EOF || :
+import sys, cog
+assert sys.version.startswith('3.12.8'), f'sys.version is not 3.12.8: {sys.version}'
+assert cog.__file__.startswith('/srv/r8/monobase/cog'), f'cog is not pre-installed: {cog.__file__}'
+assert cog.__version__ == '0.11.3', f'cog.__version__ is not 0.11.3: {cog.__version__}'
+try:
+    import torch
+except ModuleNotFoundError:
+    pass
+print('PASS: venv versions')
+EOF
+
+docker run --rm \
+    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
+    --env R8_CUDA_VERSION=12.4 \
+    --env R8_CUDNN_VERSION=9 \
+    --env R8_PYTHON_VERSION=3.12 \
+    monobase:latest \
+    '/opt/r8/monobase/exec.sh' \
+    python -c "$SCRIPT"
+
+####################
+# Test Cog
+####################
 
 read -r -d '' SCRIPT << EOF || :
 import cog
@@ -220,6 +273,10 @@ docker run --rm \
     monobase:latest \
     '/opt/r8/monobase/exec.sh' \
     python -c "$SCRIPT"
+
+####################
+# Test Misc
+####################
 
 # NCCL
 read -r -d '' SCRIPT << EOF || :

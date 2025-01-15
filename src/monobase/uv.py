@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 def cuda_suffix(cuda_version: str) -> str:
-    return f'cu{cuda_version.replace(".", "")}'
+    return 'cpu' if cuda_version == 'cpu' else f'cu{cuda_version.replace(".", "")}'
 
 
 def torch_index_url(torch_version: Version, cuda_version: str) -> str:
@@ -43,6 +43,7 @@ def pip_packages(
     deps = torch_deps[torch_version]
     cu = cuda_suffix(cuda_version)
     if torch_version.extra:
+        # Nightly build
         prefix = torch_index_url(torch_version, cuda_version)
         py = f'cp{python_version.replace(".", "")}'
         pkgs = [
@@ -58,7 +59,7 @@ def pip_packages(
         ]
     # Older Torch versions do not bundle CUDA or CuDNN
     nvidia_pkgs = []
-    if torch_version < Version.parse('2.2.0'):
+    if cu != 'cpu' and torch_version < Version.parse('2.2.0'):
         nvidia_pkgs = [
             'nvidia-cublas',
             'nvidia-cuda-cupti',
@@ -84,7 +85,7 @@ def update_venv(
     tmp: str,
     python_version: str,
     python_full_version: str,
-    torch_version: str | None,
+    torch_version: str,
     cuda_version: str,
     pip_pkgs: list[str],
 ) -> None:
@@ -154,14 +155,14 @@ def install_venv(
     gdir: str,
     python_version: str,
     python_full_version: str,
-    torch_version: str | None,
+    torch_version: str,
     cuda_version: str,
 ) -> None:
     trace.get_current_span().set_attributes(
         {
             'requirements_dir': rdir,
             'python_full_version': python_full_version,
-            'torch_version': torch_version if torch_version is not None else '',
+            'torch_version': torch_version,
             'cuda_version': cuda_version,
         }
     )

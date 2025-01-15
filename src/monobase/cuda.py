@@ -71,7 +71,7 @@ def install_cuda(args: argparse.Namespace, version: str) -> str:
         log.info(f'CUDA {version} in {cdir} is complete')
         return cdir
 
-    if args.skip_cuda:
+    if os.environ.get('CI_SKIP_CUDA') is not None:
         os.makedirs(cdir, exist_ok=True)
         mark_done(cdir, kind='cuda', version=version, skipped=True)
         log.info(f'CUDA {version} skipped in {cdir}')
@@ -127,7 +127,7 @@ def install_cudnn(args: argparse.Namespace, version: str, cuda_major: str) -> st
         log.info(f'CuDNN {key} in {cdir} is complete')
         return cdir
 
-    if args.skip_cuda:
+    if os.environ.get('CI_SKIP_CUDA') is not None:
         os.makedirs(cdir, exist_ok=True)
         mark_done(cdir, kind='cudnn', version=version, skipped=True)
         log.info(f'CuDNN {key} skipped in {cdir}')
