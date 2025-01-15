@@ -2,8 +2,10 @@
 # curl - download uv, PGET, etc.
 # libxml2 - CUDA installer
 # rdfind - find duplicate CUDA .so files
-# xz-utils - CuDNN tarball
+# binutils, bzip2, xz-utils, zstd - .deb files
 
+binutils
+bzip2
 build-essential
 ca-certificates
 cmake
