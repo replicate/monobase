@@ -1,12 +1,43 @@
 # This file is meant to be sourced in any environment that requires the monobase layers to
 # be active.
 
+ERROR=0
+WARNING=1
+INFO=2
+DEBUG=3
+
+VERBOSE=${VERBOSE:-2}  # Default verbosity is INFO (2)
+
+log_error() {
+    if [ "$VERBOSE" -ge "$ERROR" ]; then
+        echo "[ERROR] $1"
+    fi
+}
+
+log_warning() {
+    if [ "$VERBOSE" -ge "$WARNING" ]; then
+        echo "[WARNING] $1"
+    fi
+}
+
+log_info() {
+    if [ "$VERBOSE" -ge "$INFO" ]; then
+        echo "[INFO] $1"
+    fi
+}
+
+log_debug() {
+    if [ "$VERBOSE" -ge "$DEBUG" ]; then
+        echo "[DEBUG] $1"
+    fi
+}
+
 ########################################
 
 # Required environment variables
 
 if [ -z "${R8_PYTHON_VERSION:-}" ]; then
-    echo "R8_PYTHON_VERSION not set"
+    log_error "R8_PYTHON_VERSION not set"
     return 1
 fi
 
@@ -17,12 +48,12 @@ fi
 if [ -z "${R8_COG_VERSION:-}" ]; then
     COG_PATH="$MONOBASE_PREFIX/cog/latest/default-python$R8_PYTHON_VERSION"
     if [ ! -d "$COG_PATH" ]; then
-        echo "Cog $COG_PATH does not exist"
+        log_error "Cog $COG_PATH does not exist"
         return 1
     fi
     COG_VENV="$(readlink -f "$COG_PATH")"
     R8_COG_VERSION="$(basename "$COG_VENV" | sed 's/cog\(.*\)-python.*/\1/')"
-    echo "R8_COG_VERSION not set, using default $R8_COG_VERSION"
+    log_warning "R8_COG_VERSION not set, using default $R8_COG_VERSION"
 else
     case $R8_COG_VERSION in
     https://*|file://*)
@@ -46,10 +77,10 @@ else
     COG_PATH="$MONOBASE_PREFIX/cog/latest/$cog_name-python$R8_PYTHON_VERSION"
     if [ ! -d "$COG_PATH" ]; then
         if [ -z "$pkg" ]; then
-            echo "Cog $R8_COG_VERSION not installed"
+            log_error "Cog $R8_COG_VERSION not installed"
             return 1
         fi
-        echo "Cog $R8_COG_VERSION not in monobase, installing..."
+        log_warning "Cog $R8_COG_VERSION not in monobase, installing..."
         uv venv --python "$R8_PYTHON_VERSION" /root/cog
         VIRTUAL_ENV=/root/cog uv pip install "$pkg"
         COG_VENV=/root/cog
@@ -64,7 +95,7 @@ if [ -z "${MONOBASE_GEN_ID:-}" ]; then
     latest="$MONOBASE_PREFIX/monobase/latest"
     gdir="$(readlink -f "$latest")"
     MONOBASE_GEN_ID="$(basename "$gdir" | sed 's/^g0\{0,4\}//')"
-    echo "MONOBASE_GEN_ID not set, using latest $MONOBASE_GEN_ID"
+    log_info "MONOBASE_GEN_ID not set, using latest $MONOBASE_GEN_ID"
 fi
 
 MONOBASE_PATH="$MONOBASE_PREFIX/monobase/$(printf 'g%05d' "$MONOBASE_GEN_ID")"
