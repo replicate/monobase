@@ -22,6 +22,10 @@ RUN --mount=type=cache,target=/srv/r8/monobase/uv/cache,id=uv-cache \
 # Start of user layers
 # These should be ready to push as is
 
+# Install APT tarball produced by apt.sh in a separate docker run
+RUN --mount=type=bind,src=.,dst=/src,ro \
+    tar -xf /src/apt.tar.zst -C /
+
 # Install a user venv
 # Disabling UV_COMPILE_BYTECODE because it creates .pyc for the managed Python
 # interpretor files while we only want the user venv
