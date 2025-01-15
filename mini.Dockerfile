@@ -28,3 +28,8 @@ RUN --mount=type=cache,target=/srv/r8/monobase/uv/cache,id=uv-cache \
 RUN --mount=type=cache,target=/srv/r8/monobase/uv/cache,id=uv-cache \
     --mount=type=bind,src=.,dst=/src,ro \
     CI_SKIP_CUDA=1 UV_COMPILE_BYTECODE=0 /opt/r8/monobase/run.sh monobase.user --requirements /src/requirements-user.txt
+
+ENV VERBOSE=0
+WORKDIR "/src"
+ENTRYPOINT ["/usr/bin/tini", "--", "/opt/r8/monobase/exec.sh"]
+CMD ["python3", "-m", "cog.server.http"]
