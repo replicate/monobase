@@ -24,13 +24,13 @@ def update_generation(
     )
     os.makedirs(rdir, exist_ok=True)
 
+    # Always include CPU Torch
+    cudas = ['cpu'] + desc_version(mg.cuda.keys())
     for (p, pf), t, c in itertools.product(
         desc_version_key(mg.python),
         desc_version(mg.torch),
-        desc_version(mg.cuda.keys()),
+        cudas,
     ):
-        if c is None:
-            raise ValueError('cuda version cannot be null.')
         update_venv(rdir, tmp.name, p, pf, t, c, mg.pip_pkgs)
 
 

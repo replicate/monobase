@@ -158,7 +158,7 @@ def mark_done(d: str, *, kind: str, **attributes) -> None:
         f.write('\n')
 
 
-def desc_version(it: Iterable[str | None]) -> list[str | None]:
+def desc_version(it: Iterable[str]) -> list[str]:
     return sorted(it, key=Version.parse, reverse=True)
 
 
@@ -263,7 +263,7 @@ def setup_logging() -> None:
 
 
 def setup_opentelemetry():
-    if not os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT'):
+    if os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT') is None:
         return
 
     from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter

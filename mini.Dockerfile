@@ -11,14 +11,20 @@ ENV R8_TORCH_VERSION=2.4.1
 ########################################
 # Layers overlapping with many-mono
 
-COPY requirements-user.txt /tmp/requirements.txt
+# UV cache is a cache mount and doesn't support hard links
+ENV UV_LINK_MODE=copy
+
 # Install a single mini-mono venv
-RUN /opt/r8/monobase/build.sh --skip-cuda --mini
+RUN --mount=type=cache,target=/srv/r8/monobase/uv/cache,id=uv-cache \
+    CI_SKIP_CUDA=1 /opt/r8/monobase/run.sh monobase.build --mini
 
 ########################################
 # Start of user layers
 # These should be ready to push as is
 
 # Install a user venv
-# Do not reinstall uv & pget
-RUN /opt/r8/monobase/run.sh monobase.build --skip-cuda --mini --requirements /tmp/requirements.txt
+# Disabling UV_COMPILE_BYTECODE because it creates .pyc for the managed Python
+# interpretor files while we only want the user venv
+RUN --mount=type=cache,target=/srv/r8/monobase/uv/cache,id=uv-cache \
+    --mount=type=bind,src=.,dst=/src,ro \
+    CI_SKIP_CUDA=1 UV_COMPILE_BYTECODE=0 /opt/r8/monobase/run.sh monobase.user --requirements /src/requirements-user.txt

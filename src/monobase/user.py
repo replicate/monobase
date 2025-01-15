@@ -9,11 +9,24 @@ from monobase.util import (
     mark_done,
     parse_requirements,
     require_done_or_rm,
-    tracer,
+    setup_logging,
 )
 from monobase.uv import cuda_suffix
 
 log = logging.getLogger(__name__)
+
+parser = argparse.ArgumentParser(description='Build monobase user layer')
+parser.add_argument(
+    '--prefix',
+    metavar='PATH',
+    default='/srv/r8/monobase',
+    help='prefix for monobase',
+)
+parser.add_argument(
+    '--requirements',
+    metavar='FILE',
+    help='Python requirements.txt for user layer',
+)
 
 
 def freeze(uv: str, vdir: str) -> str:
@@ -24,9 +37,9 @@ def freeze(uv: str, vdir: str) -> str:
     return proc.stdout
 
 
-@tracer.start_as_current_span('build_user_venv')
 def build_user_venv(args: argparse.Namespace) -> None:
-    udir = os.path.join(args.prefix, 'user')
+    # User venv must not be inside args.prefix which might be mounted read-only
+    udir = '/root/.venv'
     if require_done_or_rm(udir):
         log.info(f'User venv in {udir} is complete')
         return
@@ -43,31 +56,39 @@ def build_user_venv(args: argparse.Namespace) -> None:
     vdir = os.path.realpath(os.path.join(cdir, f'default-python{python_version}'))
     log.info(f'Freezing Cog venv {vdir}...')
     cog_req = freeze(uv, vdir)
-    with open(os.path.join(args.prefix, 'requirements-cog.txt'), 'w') as f:
+    with open('/root/requirements-cog.txt', 'w') as f:
         f.write(cog_req)
     cog_versions = parse_requirements(cog_req)
 
-    gdir = os.path.realpath(os.path.join(args.prefix, 'monobase', 'latest'))
-    venv_components = [f'python{python_version}']
-    if torch_version is not None:
-        venv_components.append(f'torch{torch_version}')
-    venv_components.append(f'{cuda_suffix(cuda_version)}')
-    venv = '-'.join(venv_components)
-    vdir = os.path.join(gdir, venv)
-    log.info(f'Freezing monobase venv {vdir}...')
-    mono_req = freeze(uv, vdir)
-    with open(os.path.join(args.prefix, 'requirements-mono.txt'), 'w') as f:
-        f.write(mono_req)
-    mono_versions = parse_requirements(mono_req)
+    if torch_version is None:
+        # Missing Torch version, skipping monobase venv
+        mono_versions: dict[str, str | Version] = {}
+    else:
+        gdir = os.path.realpath(os.path.join(args.prefix, 'monobase', 'latest'))
+        venv = (
+            f'python{python_version}-torch{torch_version}-{cuda_suffix(cuda_version)}'
+        )
+        vdir = os.path.join(gdir, venv)
+        log.info(f'Freezing monobase venv {vdir}...')
+        mono_req = freeze(uv, vdir)
+        with open('/root/requirements-mono.txt', 'w') as f:
+            f.write(mono_req)
+        mono_versions = parse_requirements(mono_req)
 
     log.info(f'Creating user venv {udir}...')
+    env = os.environ.copy()
     cmd = ['uv', 'venv', '--python', python_version, udir]
-    subprocess.run(cmd, check=True)
+    subprocess.run(cmd, check=True, env=env)
 
     log.info(f'Compiling user requirements {args.requirements}...')
-    cmd = [uv, 'pip', 'compile', '--python-platform', 'x86_64-unknown-linux-gnu']
-    cmd = cmd + [args.requirements]
-    env = os.environ.copy()
+    cmd = [
+        uv,
+        'pip',
+        'compile',
+        '--python-platform',
+        'x86_64-unknown-linux-gnu',
+        args.requirements,
+    ]
     env['VIRTUAL_ENV'] = udir
     try:
         proc = subprocess.run(cmd, check=True, env=env, capture_output=True, text=True)
@@ -108,7 +129,7 @@ def build_user_venv(args: argparse.Namespace) -> None:
                 f'probable incompatible versions for {k}: cog=={cvs}, mono=={mvs}, user=={uvs}'
             )
 
-    user_req_path = os.path.join(args.prefix, 'requirements-user.txt')
+    user_req_path = '/root/requirements-user.txt'
     with open(user_req_path, 'w') as f:
         for k, uvs in sorted(user_versions.items()):
             mvs = mono_versions.get(k)
@@ -130,3 +151,8 @@ def build_user_venv(args: argparse.Namespace) -> None:
         cuda_version=cuda_version,
     )
     log.info(f'User venv installed in {udir}')
+
+
+if __name__ == '__main__':
+    setup_logging()
+    build_user_venv(parser.parse_args())

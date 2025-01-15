@@ -40,6 +40,7 @@ if ! [ -f "$MONOBASE_PREFIX/bin/uv" ] || ! [ -f "$MONOBASE_PREFIX/bin/pget-bin" 
 fi
 
 if ! [ -d /var/tmp/.venv ]; then
+    log "Installing monobase..."
     uv venv /var/tmp/.venv --python='3.13'
     VIRTUAL_ENV=/var/tmp/.venv uv pip install --link-mode=copy "$(find /opt/r8 -name '*.whl' | head -1)"
 fi
