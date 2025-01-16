@@ -147,12 +147,14 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
     rdir = os.path.join(HERE, f'requirements{suffix}', f'g{mg.id:05d}')
 
-    if args.mini and len(mg.torch) == 1 and len(mg.cuda) == 0:
+    cuda_versions = desc_version(mg.cuda.keys())
+    if args.mini:
         # Mini mono with Torch but without CUDA or CuDNN, use CPU Torch
-        cuda_versions = ['cpu']
+        if len(mg.torch) == 1 and len(mg.cuda) == 0:
+            cuda_versions = ['cpu']
     else:
         # Production, always add CPU torch
-        cuda_versions = ['cpu'] + desc_version(mg.cuda.keys())
+        cuda_versions = ['cpu'] + cuda_versions
 
     for (p, pf), t, c in itertools.product(
         desc_version_key(mg.python),
