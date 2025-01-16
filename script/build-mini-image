@@ -7,6 +7,6 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 # Run apt.sh to produce a tarball
-docker run --rm --volume "$PWD":/src monobase:mini /opt/r8/monobase/apt.sh /src/apt.tar.zst fzf protobuf-compiler ripgrep
+docker run --rm --volume "$PWD":/src monobase:latest /opt/r8/monobase/apt.sh /src/apt.tar.zst fzf protobuf-compiler ripgrep
 
 exec docker build --file mini.Dockerfile --tag monobase:mini --platform=linux/amd64 .
