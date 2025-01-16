@@ -16,6 +16,7 @@ ENV UV_LINK_MODE=copy
 
 # Install a single mini-mono venv
 RUN --mount=type=cache,target=/srv/r8/monobase/uv/cache,id=uv-cache \
+    --mount=type=cache,target=/var/cache/monobase/,id=var-cache \
     CI_SKIP_CUDA=1 /opt/r8/monobase/run.sh monobase.build --mini
 
 ########################################
