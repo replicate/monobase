@@ -34,9 +34,8 @@ find /var/cache/apt/archives -type f -name "*.deb" -print0 | while IFS= read -r 
     rm ./*
 done
 
-# /src should be a bind mount to working directory to expose the tarball
-cd /tmp/apt-root
-tar -cvf "$tarball" --zstd .
+# tarball should be in a working directory bind mount to expose it to the host
+/opt/r8/monobase/tar.sh "$tarball" /tmp/apt-root .
 
 rm -rf /tmp/apt-temp /tmp/apt-root
 
