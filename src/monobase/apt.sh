@@ -12,12 +12,8 @@ fi
 tarball=$1
 shift
 
-# Disable post install clean so we can access downloaded .deb files
-mv /etc/apt/apt.conf.d/docker-clean{,.skip}
-
-# We need ar from binutils and compression codes used by various packages
 apt-get update
-apt-get install -y binutils bzip2 xz-utils zstd "$@"
+apt-get install --yes --download-only "$@"
 
 mkdir /tmp/apt-temp /tmp/apt-root
 
@@ -44,6 +40,5 @@ tar -cvf "$tarball" --zstd .
 
 rm -rf /tmp/apt-temp /tmp/apt-root
 
-# Clean up and restore conf
+# Clean up
 rm -f /var/cache/apt/archives/*.deb /var/cache/apt/archives/partial/*.deb /var/cache/apt/*.bin
-mv /etc/apt/apt.conf.d/docker-clean{.skip,}
