@@ -84,12 +84,7 @@ def build_user_venv(args: argparse.Namespace) -> None:
     cmd = [uv, 'pip', 'compile', '--python-platform', 'x86_64-unknown-linux-gnu']
     # PyPI is inconsistent with Torch index and may include nvidia packages for CPU torch
     # Use the same Torch index instead
-    tv = (
-        Version.parse('0.0.0')
-        if torch_version is None
-        else Version.parse(torch_version)
-    )
-    cmd = cmd + index_args(tv, cuda_version) + [args.requirements]
+    cmd = cmd + index_args(torch_version, cuda_version) + [args.requirements]
     env['VIRTUAL_ENV'] = udir
     try:
         proc = subprocess.run(cmd, check=True, env=env, capture_output=True, text=True)

@@ -2,6 +2,7 @@ import argparse
 import logging
 import os.path
 import subprocess
+from typing import Optional
 
 from opentelemetry import trace
 
@@ -15,18 +16,22 @@ def cuda_suffix(cuda_version: str) -> str:
     return 'cpu' if cuda_version == 'cpu' else f'cu{cuda_version.replace(".", "")}'
 
 
-def torch_index_url(torch_version: Version, cuda_version: str) -> str:
+def torch_index_url(cuda_version: str, nightly: bool) -> str:
     prefix = 'https://download.pytorch.org/whl'
-    if torch_version.extra:
-        prefix = f'{prefix}/nightly'
-    return f'{prefix}/{cuda_suffix(cuda_version)}'
+    cu = cuda_suffix(cuda_version)
+    if nightly:
+        return f'{prefix}/nightly/{cu}'
+    else:
+        return f'{prefix}/{cu}'
 
 
-def index_args(torch_version: Version, cuda_version: str) -> list[str]:
+def index_args(torch_version: Optional[str], cuda_version: str) -> list[str]:
+    # Nightly builds e.g. 2.6.1.dev20241121
+    nightly = torch_version is not None and '.dev' in torch_version
     return [
         # --extra-index-url has high priority than --index-url
         '--extra-index-url',
-        torch_index_url(torch_version, cuda_version),
+        torch_index_url(cuda_version, nightly),
         # PyPI is the default index URL
         '--index-url',
         'https://pypi.org/simple',
@@ -44,7 +49,7 @@ def pip_packages(
     cu = cuda_suffix(cuda_version)
     if torch_version.extra:
         # Nightly build
-        prefix = torch_index_url(torch_version, cuda_version)
+        prefix = torch_index_url(cuda_version, True)
         py = f'cp{python_version.replace(".", "")}'
         pkgs = [
             f'torch @ {prefix}/torch-{torch_version}%2B{cu}-{py}-{py}-linux_x86_64.whl',
@@ -125,7 +130,7 @@ def update_venv(
         '--emit-index-annotation',
     ]
     cmd = ['uv', 'pip', 'compile', '--python-platform', 'x86_64-unknown-linux-gnu']
-    cmd = cmd + emit_args + index_args(t, cuda_version) + ['-']
+    cmd = cmd + emit_args + index_args(torch_version, cuda_version) + ['-']
     pkgs = pip_packages(t, python_version, cuda_version, pip_pkgs)
     env = os.environ.copy()
     env['VIRTUAL_ENV'] = vdir
@@ -192,7 +197,7 @@ def install_venv(
 
     requirements = os.path.join(rdir, f'{venv}.txt')
     cmd = [uv, 'pip', 'install', '--no-deps', '--requirement', requirements]
-    cmd += index_args(t, cuda_version)
+    cmd += index_args(torch_version, cuda_version)
     env = os.environ.copy()
     env['VIRTUAL_ENV'] = vdir
     subprocess.run(cmd, check=True, env=env)
