@@ -4,4 +4,3 @@ ipython
 mypy
 pyyaml
 requests
-torch==2.5.1
