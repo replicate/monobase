@@ -109,8 +109,8 @@ print('PASS: venv versions')
 EOF
 
 docker run --rm \
-    --volume "$PWD/src/monobase:/opt/r8/monobase" \
-    --volume "$PWD/build/monobase:/srv/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase:ro" \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \
     --env R8_PYTHON_VERSION=3.12 \
@@ -130,8 +130,8 @@ print('PASS: venv versions')
 EOF
 
 docker run --rm \
-    --volume "$PWD/src/monobase:/opt/r8/monobase" \
-    --volume "$PWD/build/monobase:/srv/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase:ro" \
     --env R8_PYTHON_VERSION=3.12 \
     --env R8_TORCH_VERSION=2.4.1 \
     monobase:latest \
@@ -152,8 +152,8 @@ print('PASS: venv versions')
 EOF
 
 docker run --rm \
-    --volume "$PWD/src/monobase:/opt/r8/monobase" \
-    --volume "$PWD/build/monobase:/srv/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase:ro" \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \
     --env R8_PYTHON_VERSION=3.12 \
@@ -172,8 +172,8 @@ assert cog.__version__ == '0.11.3', f'cog.__version__ is not 0.11.3: {cog.__vers
 print('PASS: Pre-installed cog==0.11.3')
 EOF
 docker run --rm \
-    --volume "$PWD/src/monobase:/opt/r8/monobase" \
-    --volume "$PWD/build/monobase:/srv/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase:ro" \
     --env R8_COG_VERSION=0.11.3 \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \

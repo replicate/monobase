@@ -20,11 +20,10 @@ docker run --rm \
     --env R8_PYTHON_VERSION=3.12 \
     --env R8_TORCH_VERSION=2.4.1 \
     --env CI_SKIP_CUDA=1 \
-    --volume "$PWD/requirements-user.txt:/tmp/requirements-user.txt" \
-    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/requirements-user.txt:/tmp/requirements-user.txt:ro" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
     --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --volume "$PWD/build/cache:/var/cache/monobase" \
-    --volume "$PWD/build/root:/root" \
     monobase:latest \
     /opt/r8/monobase/run.sh \
     monobase.build \
@@ -39,10 +38,9 @@ docker run --rm \
     --env R8_PYTHON_VERSION=3.12 \
     --env R8_TORCH_VERSION=2.4.1 \
     --env CI_SKIP_CUDA=1 \
-    --volume "$PWD/requirements-user.txt:/tmp/requirements-user.txt" \
-    --volume "$PWD/src/monobase:/opt/r8/monobase" \
+    --volume "$PWD/requirements-user.txt:/tmp/requirements-user.txt:ro" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
     --volume "$PWD/build/monobase:/srv/r8/monobase" \
-    --volume "$PWD/build/cache:/var/cache/monobase" \
     --volume "$PWD/build/root:/root" \
     monobase:latest \
     /opt/r8/monobase/run.sh \
@@ -123,8 +121,8 @@ print('PASS: venv versions')
 EOF
 
 docker run --rm \
-    --volume "$PWD/src/monobase:/opt/r8/monobase" \
-    --volume "$PWD/build/monobase:/srv/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase:ro" \
     --volume "$PWD/build/root:/root" \
     --env R8_COG_VERSION=0.11.3 \
     --env R8_CUDA_VERSION=12.4 \
@@ -141,8 +139,8 @@ print('PASS: user venv')
 EOF
 
 docker run --rm \
-    --volume "$PWD/src/monobase:/opt/r8/monobase" \
-    --volume "$PWD/build/monobase:/srv/r8/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase:ro" \
     --volume "$PWD/build/root:/root" \
     --env R8_COG_VERSION=0.11.3 \
     --env R8_CUDA_VERSION=12.4 \
