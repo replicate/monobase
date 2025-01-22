@@ -242,7 +242,7 @@ def build(args: argparse.Namespace) -> None:
             v = Version.parse(vs)
             if k not in pvs or pvs[k] < v:
                 pvs[k] = v
-    install_cogs(args, dict((k, str(v)) for k, v in pvs.items()))
+    install_cogs(args, list(map(str, pvs.values())))
 
     gens = []
     for i, mg in enumerate(monogens):
