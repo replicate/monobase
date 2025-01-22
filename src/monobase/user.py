@@ -62,6 +62,7 @@ def build_user_venv(args: argparse.Namespace) -> None:
 
     if torch_version is None:
         # Missing Torch version, skipping monobase venv
+        mono_req = ''
         mono_versions: dict[str, str | Version] = {}
     else:
         gdir = os.path.realpath(os.path.join(args.prefix, 'monobase', 'latest'))
@@ -80,14 +81,31 @@ def build_user_venv(args: argparse.Namespace) -> None:
     cmd = ['uv', 'venv', '--python', python_version, udir]
     subprocess.run(cmd, check=True, env=env)
 
+    with open(args.requirements, 'r') as f:
+        user_req = f.read()
+    # Combine monobase and user requirements to detect unsatisfiable requirements
+    # Reasons:
+    # * mono_req is from uv pip freeze and contains exact versions
+    # * It has higher precedence than user_req in PYTHONPATH
+    # * Duplicates in user_req are removed
+    #
+    # Example: mono_req has jinja2==3.1.3 for torch==2.5.1
+    # user_req with jinja2==3.1.4, jinja2<3.0.0, or jina2>=4.0.0 will fail
+    # while jina2>=3.0.0 should pass
+    #
+    # Cog req is not included as we manage that and will reduce its dependencies
+    combined_req = '\n'.join(mono_req.splitlines() + user_req.splitlines())
+
     log.info(f'Compiling user requirements {args.requirements}...')
     cmd = [uv, 'pip', 'compile', '--python-platform', 'x86_64-unknown-linux-gnu']
     # PyPI is inconsistent with Torch index and may include nvidia packages for CPU torch
     # Use the same Torch index instead
-    cmd = cmd + index_args(torch_version, cuda_version) + [args.requirements]
+    cmd = cmd + index_args(torch_version, cuda_version) + ['-']
     env['VIRTUAL_ENV'] = udir
     try:
-        proc = subprocess.run(cmd, check=True, env=env, capture_output=True, text=True)
+        proc = subprocess.run(
+            cmd, check=True, env=env, input=combined_req, capture_output=True, text=True
+        )
     except subprocess.CalledProcessError as e:
         log.error(e.stdout)
         log.error(e.stderr)
