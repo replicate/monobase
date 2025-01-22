@@ -11,7 +11,7 @@ import urllib.request
 
 from opentelemetry import trace
 
-from monobase.util import mark_done, require_done_or_rm, tracer
+from monobase.util import Version, mark_done, require_done_or_rm, tracer
 
 LINK_REGEX = re.compile(r'<(?P<url>https://[^>]+)>; rel="next"')
 
@@ -96,14 +96,15 @@ def install_cog(
 
 
 @tracer.start_as_current_span('install_cogs')
-def install_cogs(args: argparse.Namespace, python_versions: dict[str, str]) -> None:
+def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     cdir = os.path.join(args.prefix, 'cog')
     os.makedirs(cdir, exist_ok=True)
 
     # Consistent hash of Cog versions as generation ID
+    pvs = list(map(Version.parse, python_versions))
     cog_versions = sorted(set(args.cog_versions))
     sha256 = cog_gen_hash(
-        cog_versions, args.default_cog_version, sorted(python_versions.values())
+        cog_versions, args.default_cog_version, sorted(python_versions)
     )[:8]
     gid = f'g{sha256}'
     gdir = os.path.join(cdir, gid)
@@ -127,8 +128,10 @@ def install_cogs(args: argparse.Namespace, python_versions: dict[str, str]) -> N
     # Since we only the site-packages, not Python interpreters
     uv = os.path.join(args.prefix, 'bin', 'uv')
 
-    for c, (p, pf) in itertools.product(cog_versions, python_versions.items()):
-        install_cog(uv, gdir, c, c == args.default_cog_version, p, pf)
+    for c, pv in itertools.product(cog_versions, pvs):
+        is_default = c == args.default_cog_version
+        v = f'{pv.major}.{pv.minor}'
+        install_cog(uv, gdir, c, is_default, v, str(pv))
 
     latest = os.path.join(cdir, 'latest')
     if os.path.exists(latest):
