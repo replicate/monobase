@@ -64,6 +64,12 @@ parser.add_argument(
     action='store_true',
     help='Build a mini mono of 1 generation * 1 venv',
 )
+parser.add_argument(
+    '--no-cuda',
+    default=False,
+    action='store_true',
+    help='Skip CUDA and CUDA Torch venvs, e.g. on CPU nodes',
+)
 
 parser.add_argument(
     '--prune-old-gen',
@@ -118,10 +124,14 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     log.info(f'Building monobase generation {mg.id}...')
     os.makedirs(gdir, exist_ok=True)
 
+    cudas, cudnns = mg.cuda, mg.cudnn
+    if args.no_cuda:
+        cudas = {}
+        cudnns = {}
     # CUDA & CuDNN must both be set or empty i.e. no CUDA/CuDNN
-    assert (len(mg.cuda) == 0) == (len(mg.cudnn) == 0)
+    assert (len(cudas) == 0) == (len(cudnns) == 0)
 
-    for k, v in desc_version_key(mg.cuda):
+    for k, v in desc_version_key(cudas):
         src = install_cuda(args, v)
         dst = f'{gdir}/cuda{k}'
         reldst = os.path.relpath(src, gdir)
@@ -131,9 +141,9 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
         log.info(f'CUDA symlinked in {dst}')
 
     cuda_major_p = re.compile(r'\.\d+$')
-    cuda_majors = set(cuda_major_p.sub('', k) for k in mg.cuda.keys())
+    cuda_majors = set(cuda_major_p.sub('', k) for k in cudas.keys())
     for (k, v), m in itertools.product(
-        desc_version_key(mg.cudnn), desc_version(cuda_majors)
+        desc_version_key(cudnns), desc_version(cuda_majors)
     ):
         assert m is not None
         src = install_cudnn(args, v, m)
@@ -147,13 +157,16 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     suffix = '' if args.environment == 'prod' else f'-{args.environment}'
     rdir = os.path.join(HERE, f'requirements{suffix}', f'g{mg.id:05d}')
 
-    cuda_versions = desc_version(mg.cuda.keys())
+    cuda_versions = desc_version(cudas.keys())
     if args.mini:
         # Mini mono with Torch but without CUDA or CuDNN, use CPU Torch
-        if len(mg.torch) == 1 and len(mg.cuda) == 0:
+        if len(mg.torch) == 1 and len(cudas) == 0:
             cuda_versions = ['cpu']
+    elif args.no_cuda:
+        # CPU node, install CPU Torch only
+        cuda_versions = ['cpu']
     else:
-        # Production, always add CPU torch
+        # GPU node, install both GPU & CPU Torch
         cuda_versions = ['cpu'] + cuda_versions
 
     for (p, pf), t, c in itertools.product(
@@ -209,6 +222,7 @@ def build(args: argparse.Namespace) -> None:
         assert args.default_cog_version is None, (
             'Mini mono and --default-cog-version are mutually exclusive'
         )
+        assert not args.no_cuda, 'Mini mono and --no-cuda are mutually exclusive'
         args.cog_versions = [os.environ['R8_COG_VERSION']]
         args.default_cog_version = os.environ['R8_COG_VERSION']
 
