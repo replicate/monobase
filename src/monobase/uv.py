@@ -93,7 +93,7 @@ def update_venv(
     torch_version: str,
     cuda_version: str,
     pip_pkgs: list[str],
-) -> None:
+) -> bool:
     trace.get_current_span().set_attributes(
         {
             'requirements_dir': rdir,
@@ -108,11 +108,11 @@ def update_venv(
     t = Version.parse(torch_version)
     tv = Version.parse(f'{t.major}.{t.minor}')
     if tv not in torch_specs:
-        return
+        return False
     if p < torch_specs[tv].python_min or p > torch_specs[tv].python_max:
-        return
+        return False
     if cuda_version not in torch_specs[tv].cudas:
-        return
+        return False
 
     venv = f'python{python_version}-torch{torch_version}-{cuda_suffix(cuda_version)}'
     vdir = os.path.join(tmp, venv)
@@ -151,6 +151,7 @@ def update_venv(
         log.error(e.stdout)
         log.error(e.stderr)
         raise e
+    return True
 
 
 @tracer.start_as_current_span('install_venv')
