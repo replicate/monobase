@@ -1,7 +1,9 @@
 import argparse
 import itertools
+import json
 import logging
 import os.path
+import pathlib
 from tempfile import TemporaryDirectory
 
 from monobase.monogen import MONOGENS, MonoGen
@@ -26,12 +28,27 @@ def update_generation(
 
     # Always include CPU Torch
     cudas = ['cpu'] + desc_version(mg.cuda.keys())
+    venvs = []
     for (p, pf), t, c in itertools.product(
         desc_version_key(mg.python),
         desc_version(mg.torch),
         cudas,
     ):
-        update_venv(rdir, tmp.name, p, pf, t, c, mg.pip_pkgs)
+        updated = update_venv(rdir, tmp.name, p, pf, t, c, mg.pip_pkgs)
+        if updated:
+            venvs.append({'python': p, 'torch': t, 'cuda': c})
+
+    matrix = {
+        'id': mg.id,
+        'cuda_versions': list(mg.cuda.keys()),
+        'cudnn_versions': list(mg.cudnn.keys()),
+        'python_versions': list(mg.python.keys()),
+        'torch_versions': mg.torch,
+        'venvs': venvs,
+    }
+    project_dir = pathlib.Path(__file__).absolute().parent.parent.parent
+    with open(os.path.join(project_dir, 'matrix.json'), 'w') as f:
+        json.dump(matrix, f, indent=2)
 
 
 def update(args: argparse.Namespace) -> None:
