@@ -49,14 +49,22 @@ def install_cog(
         pkg = 'coglet' if 'coglet' in cog_version else 'cog'
         cog_name = f'{pkg}{h}'
         spec = f'{pkg}@{cog_version}'
-    elif cog_version.startswith('coglet=='):
+    elif cog_version.startswith('coglet'):
         if python_version == '3.8':
             log.warning('cog-runtime does not support Python 3.8')
             return
         try:
-            tag = cog_version.lstrip('coglet==')
-            cog_name = f'coglet{tag}'
-            url = f'https://api.github.com/repos/replicate/cog-runtime/releases/tags/v{tag}'
+            if cog_version == 'coglet':
+                v = 'latest'
+                part = 'latest'
+            elif '==' in cog_version:
+                v = cog_version.split('==')[1].strip()
+                part = f'tags/v{v}'
+            else:
+                log.error(f'Unsupported cog version {cog_version}')
+                return
+            cog_name = f'coglet{v}'
+            url = f'https://api.github.com/repos/replicate/cog-runtime/releases/{part}'
             content = urllib.request.urlopen(url).read()
             blob = json.loads(content)
             whl = next(filter(lambda a: a['name'].endswith('.whl'), blob['assets']))
