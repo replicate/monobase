@@ -124,6 +124,7 @@ docker run --rm \
     --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
     --volume "$PWD/build/monobase:/srv/r8/monobase:ro" \
     --volume "$PWD/build/root:/root" \
+    --env R8_COG_VERSION=coglet \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \
     --env R8_PYTHON_VERSION=3.12 \

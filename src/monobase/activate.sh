@@ -64,8 +64,12 @@ else
         cog_name="$pkg$(printf '%s' "$R8_COG_VERSION" | sha256sum | cut -c 1-8)"
         pkg="$pkg @ $R8_COG_VERSION"
         ;;
-    coglet==*)
-        cog_name="$(echo "$R8_COG_VERSION" | sed 's/coglet==/coglet/')"
+    coglet*)
+        if [ "$R8_COG_VERSION" = coglet ]; then
+            cog_name=cogletlatest
+        else
+            cog_name="$(echo "$R8_COG_VERSION" | sed 's/coglet==/coglet/')"
+        fi
         pkg=""
         ;;
     *)
