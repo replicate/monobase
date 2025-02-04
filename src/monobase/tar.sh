@@ -27,6 +27,6 @@ exec tar \
     --group=0 \
     --mode=go+u,go-w \
     --zstd \
-    -cvf "$tarball" \
+    -cf "$tarball" \
     -C "$root" \
     "$@"
