@@ -27,17 +27,12 @@ fuse_pget() {
     name="pget/sha256/$sha256"
     size="$(echo "$fingerprint" | grep -ioP '(?<=^content-length: )[0-9]+')"
 
-    if [[ $size -le 1048576 ]]; then
-        # Fallback for small files
-        "$PGET_BIN" "$@"
-    else
-        # Request file from FUSE
-        echo "{\"name\":\"$name\",\"size\":$size,\"url\":\"$url\"}" > "$PROC_FILE"
+    # Request file from FUSE
+    echo "{\"name\":\"$name\",\"size\":$size,\"url\":\"$url\"}" > "$PROC_FILE"
 
-        # Symlink file to destination
-        mkdir -p "$(dirname "$dst")"
-        ln -sf "$FUSE_MOUNT/$name" "$dst"
-    fi
+    # Symlink file to destination
+    mkdir -p "$(dirname "$dst")"
+    ln -sf "$FUSE_MOUNT/$name" "$dst"
 }
 
 if [ ! -f "$PROC_FILE" ]; then
