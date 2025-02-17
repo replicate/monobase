@@ -14,9 +14,9 @@ spec:
             name: fuse-rpc-secrets
       env:
         - name: R8_CUDA_PREFIX
-          value: https://monobase.replicate.delivery/cuda
+          value: https://monobase-packages.replicate.delivery/cuda
         - name: R8_CUDNN_PREFIX
-          value: https://monobase.replicate.delivery/cudnn
+          value: https://monobase-packages.replicate.delivery/cudnn
         - name: POD_NAME
           valueFrom:
             fieldRef:
