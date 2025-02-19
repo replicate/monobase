@@ -60,6 +60,7 @@ def build_user_venv(args: argparse.Namespace) -> None:
         f.write(cog_req)
     cog_versions = parse_requirements(cog_req)
 
+    uv_install_env = {}
     if torch_version is None:
         # Missing Torch version, skipping monobase venv
         mono_req = ''
@@ -75,6 +76,15 @@ def build_user_venv(args: argparse.Namespace) -> None:
         with open('/root/requirements-mono.txt', 'w') as f:
             f.write(mono_req)
         mono_versions = parse_requirements(mono_req)
+
+        # Extra envs for uv install
+        # flash-attn needs torch at build time, expose monobase venv to user venv
+        uv_install_env['PYTHONPATH'] = os.path.join(
+            vdir, 'lib', f'python{python_version}', 'site-packages'
+        )
+        # flash-attn also needs CUDA for compilation
+        if cuda_version != 'cpu':
+            uv_install_env['CUDA_HOME'] = os.path.join(gdir, f'cuda{cuda_version}')
 
     log.info(f'Creating user venv {udir}...')
     env = os.environ.copy()
@@ -155,6 +165,7 @@ def build_user_venv(args: argparse.Namespace) -> None:
             else:
                 print(f'{k}=={uvs}', file=f)
     cmd = [uv, 'pip', 'install', '--no-deps', '--requirement', user_req_path]
+    env.update(uv_install_env)
     subprocess.run(cmd, check=True, env=env)
 
     mark_done(
