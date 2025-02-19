@@ -22,9 +22,10 @@ class MonoGen:
 
 
 # uv venv --seed does not install deprecated setuptools or wheel for Python 3.12
+# Packaging is needed for flash-attn, etc.
 # Explicitly declare them here
 # Versions are not pinned and we will use whatever Torch index has
-SEED_PKGS = ['pip', 'setuptools', 'wheel']
+SEED_PKGS = ['pip', 'packaging', 'setuptools', 'wheel']
 
 TEST_MONOGENS: list[MonoGen] = [
     MonoGen(
