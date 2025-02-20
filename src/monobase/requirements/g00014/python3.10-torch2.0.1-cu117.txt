@@ -97,3 +97,5 @@ urllib3==1.26.13
     # from https://download.pytorch.org/whl/cu117
 wheel==0.45.1
     # from https://pypi.org/simple
+packaging==24.1
+    # from https://download.pytorch.org/whl/cpu
