@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 import urllib.request
+from typing import Any
 
 from opentelemetry import trace
 
@@ -22,13 +23,27 @@ def hash_str(s: str) -> str:
     return hashlib.sha256(s.encode('utf-8')).hexdigest()
 
 
+def get_coglet_release(part: str) -> dict[str, Any]:
+    url = f'https://api.github.com/repos/replicate/cog-runtime/releases/{part}'
+    content = urllib.request.urlopen(url).read()
+    return json.loads(content)
+
+
 def cog_gen_hash(
     cog_versions: list[str],
     default_cog_version: str,
     python_versions: list[str],
 ) -> str:
+    cvs = []
+    for cv in cog_versions:
+        # Hash actual coglet version instead of 'coglet'
+        # So that new releases trigger hash change and re-install
+        if cv == 'coglet':
+            v = get_coglet_release('latest')['name']
+            cv = f'coglet=={v}'
+        cvs.append(cv)
     j = {
-        'cog_versions': cog_versions,
+        'cog_versions': cvs,
         'default_cog_version': default_cog_version,
         'python_versions': python_versions,
     }
@@ -64,9 +79,7 @@ def install_cog(
                 log.error(f'Unsupported cog version {cog_version}')
                 return
             cog_name = f'coglet{v}'
-            url = f'https://api.github.com/repos/replicate/cog-runtime/releases/{part}'
-            content = urllib.request.urlopen(url).read()
-            blob = json.loads(content)
+            blob = get_coglet_release(part)
             whl = next(filter(lambda a: a['name'].endswith('.whl'), blob['assets']))
             spec = f'coglet@{whl["browser_download_url"]}'
         except Exception as e:
