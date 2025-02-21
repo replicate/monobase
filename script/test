@@ -26,7 +26,7 @@ docker run --rm \
     --environment test \
     --cog-versions \
     0.11.3 \
-    coglet==0.1.0-alpha1 \
+    coglet==0.1.0-alpha2 \
     https://github.com/replicate/cog/archive/00b98bc90bb784102243b7aec41ad1cbffaefece.zip \
     --default-cog-version 0.11.3 \
     --write-node-feature-discovery-labels \
@@ -240,13 +240,13 @@ docker run --rm \
 read -r -d '' SCRIPT << EOF || :
 import coglet
 assert coglet.__file__.startswith('/srv/r8/monobase/cog'), f'coglet is not pre-installed: {coglet.__file__}'
-assert coglet.__version__ == '0.1.0a1', f'coglet.__version__ is not 0.1.0a1: {coglet.__version__}'
-print('PASS: Pre-installed coglet==0.1.0-alpha1')
+assert coglet.__version__ == '0.1.0a2', f'coglet.__version__ is not 0.1.0a2: {coglet.__version__}'
+print('PASS: Pre-installed coglet==0.1.0-alpha2')
 EOF
 docker run --rm \
     --volume "$PWD/src/monobase:/opt/r8/monobase" \
     --volume "$PWD/build/monobase:/srv/r8/monobase" \
-    --env R8_COG_VERSION=coglet==0.1.0-alpha1 \
+    --env R8_COG_VERSION=coglet==0.1.0-alpha2 \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \
     --env R8_PYTHON_VERSION=3.12 \
@@ -258,13 +258,13 @@ docker run --rm \
 read -r -d '' SCRIPT << EOF || :
 import coglet
 assert coglet.__file__.startswith('/root/cog'), f'coglet is not installed on the fly: {coglet.__file__}'
-assert coglet.__version__ == '0.1.0a1', f'coglet.__version__ is not 0.1.0a1: {coglet.__version__}'
-print('PASS: On-demand coglet==0.1.0-alpha1')
+assert coglet.__version__ == '0.1.0a2', f'coglet.__version__ is not 0.1.0a2: {coglet.__version__}'
+print('PASS: On-demand coglet==0.1.0-alpha2')
 EOF
 docker run --rm \
     --volume "$PWD/src/monobase:/opt/r8/monobase" \
     --volume "$PWD/build/monobase:/srv/r8/monobase" \
-    --env R8_COG_VERSION=https://github.com/replicate/cog-runtime/releases/download/v0.1.0-alpha1/coglet-0.1.0a1-py3-none-any.whl \
+    --env R8_COG_VERSION=https://github.com/replicate/cog-runtime/releases/download/v0.1.0-alpha2/coglet-0.1.0a2-py3-none-any.whl \
     --env R8_CUDA_VERSION=12.4 \
     --env R8_CUDNN_VERSION=9 \
     --env R8_PYTHON_VERSION=3.12 \
