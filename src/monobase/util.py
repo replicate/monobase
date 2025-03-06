@@ -176,6 +176,10 @@ def parse_requirements(req: str) -> dict[str, str | Version]:
             parts = line.split('==', 1)
         elif '@' in line:
             parts = line.split('@', 1)
+        elif os.path.exists(line):
+            # Local file, version unknown, use exact path as version
+            p = os.path.abspath(line)
+            parts = [p, p]
         else:
             raise ValueError(f'invalid requirement: {line}')
         vs = parts[1].strip()
