@@ -20,7 +20,6 @@ docker run --rm \
     --env R8_PYTHON_VERSION=3.12 \
     --env R8_TORCH_VERSION=2.4.1 \
     --env CI_SKIP_CUDA=1 \
-    --volume "$PWD/requirements-user.txt:/tmp/requirements-user.txt:ro" \
     --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
     --volume "$PWD/build/monobase:/srv/r8/monobase" \
     --volume "$PWD/build/cache:/var/cache/monobase" \
