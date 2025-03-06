@@ -52,7 +52,7 @@ if [ -z "${R8_COG_VERSION:-}" ]; then
         return 1
     fi
     COG_VENV="$(readlink -f "$COG_PATH")"
-    R8_COG_VERSION="$(basename "$COG_VENV" | sed 's/cog\(.*\)-python.*/\1/')"
+    R8_COG_VERSION="$(basename "$COG_VENV" | sed 's/\(cog\(let\)\?\)\(.*\)-python.*/\1==\3/')"
     log_warning "R8_COG_VERSION not set, using default $R8_COG_VERSION"
 else
     case $R8_COG_VERSION in
