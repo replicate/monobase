@@ -160,7 +160,10 @@ def build_user_venv(args: argparse.Namespace) -> None:
             if mvs is not None:
                 log.warning(f'excluding {k} from user venv: mono=={mvs}, user=={uvs}')
                 continue
-            if type(uvs) is str:
+            if k == uvs and type(uvs) is str and os.path.exists(uvs):
+                # Local path, always include, even if it might conflict with monobase, e.g. ./torch-2.6.0.dev*.whl
+                print(k, file=f)
+            elif type(uvs) is str:
                 print(f'{k} @ {uvs}', file=f)
             else:
                 print(f'{k}=={uvs}', file=f)
