@@ -117,8 +117,8 @@ def build_user_venv(args: argparse.Namespace) -> None:
             cmd, check=True, env=env, input=combined_req, capture_output=True, text=True
         )
     except subprocess.CalledProcessError as e:
-        log.error(e.stdout)
-        log.error(e.stderr)
+        print(e.stdout)
+        print(e.stderr)
         raise e
 
     user_req = proc.stdout
