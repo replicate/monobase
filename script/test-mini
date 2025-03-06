@@ -111,11 +111,12 @@ if [ "$fail" -gt 0 ]; then
     exit 1
 fi
 
+coglet_version="$(script/latest_coglet.py)"
 read -r -d '' SCRIPT << EOF || :
 import sys, coglet, torch
 assert sys.version.startswith('3.12.8'), f'sys.version is not 3.12.8: {sys.version}'
 assert coglet.__file__.startswith('/srv/r8/monobase/cog'), f'coglet is not pre-installed: {coglet.__file__}'
-assert coglet.__version__ == '0.1.0a2', f'coglet.__version__ is not 0.1.0a2: {coglet.__version__}'
+assert coglet.__version__ == '$coglet_version', f'coglet.__version__ is not $coglet_version: {coglet.__version__}'
 assert torch.__version__ == '2.4.1+cu124', f'torch.__version__ is not 2.4.1+cu124: {torch.__version__}'
 print('PASS: venv versions')
 EOF
