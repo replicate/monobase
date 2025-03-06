@@ -50,6 +50,18 @@ jobs:
       - run: ./script/build-image
       - run: ./script/test-mini
 
+  test-user:
+    name: Test User
+    runs-on: ubuntu-latest-4-cores
+    env:
+      R8_CUDA_PREFIX: ${{ secrets.R8_CUDA_PREFIX }}
+      R8_CUDNN_PREFIX: ${{ secrets.R8_CUDNN_PREFIX }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: ./script/build-image
+      - run: ./script/test-user
+
   build-release:
     name: Build + release image
     needs:

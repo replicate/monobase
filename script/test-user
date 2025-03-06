@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+
+# Build mini image for local development
+
+set -euo pipefail
+
+MONOBASE_PYTHON='3.13'
+
+cd "$(git rev-parse --show-toplevel)"
+
+# Build test requirements
+uv run --python "$MONOBASE_PYTHON" python -m monobase.update --environment test
+
+# Build test PREFIX
+mkdir -p build/monobase build/cache build/src
+docker run --rm \
+    --env R8_COG_VERSION=coglet \
+    --env R8_CUDA_VERSION=12.4 \
+    --env R8_CUDNN_VERSION=9 \
+    --env R8_PYTHON_VERSION=3.12 \
+    --env R8_TORCH_VERSION=2.4.1 \
+    --env CI_SKIP_CUDA=1 \
+    --volume "$PWD/requirements-user.txt:/tmp/requirements-user.txt:ro" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase" \
+    --volume "$PWD/build/cache:/var/cache/monobase" \
+    monobase:latest \
+    /opt/r8/monobase/run.sh \
+    monobase.build \
+    --environment test \
+    --mini \
+    "$@"
+
+test() {
+    package="$1"
+    version="$2"
+    requirements="$3"
+    tmp="$(mktemp -d -t monobase.XXXXXXXX)"
+    echo "$requirements" > "$tmp/requirements.txt"
+    mkdir "$tmp/root"
+
+    docker run --rm \
+        --env R8_COG_VERSION=coglet \
+        --env R8_CUDA_VERSION=12.4 \
+        --env R8_CUDNN_VERSION=9 \
+        --env R8_PYTHON_VERSION=3.12 \
+        --env R8_TORCH_VERSION=2.4.1 \
+        --env CI_SKIP_CUDA=1 \
+        --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
+        --volume "$PWD/build/monobase:/srv/r8/monobase" \
+        --volume "$PWD/build/src:/src:ro" \
+        --volume "$tmp/requirements.txt:/tmp/requirements.txt:ro" \
+        --volume "$tmp/root:/root" \
+        --workdir /src \
+        monobase:latest \
+        /opt/r8/monobase/run.sh \
+        monobase.user \
+        --requirements /tmp/requirements.txt \
+
+    read -r -d '' SCRIPT << EOF || :
+import $package
+assert $package.__version__ == '$version', f'$package.__version__ is not $version: {$package.__version__}'
+print('PASS: requirements $requirements')
+EOF
+
+    docker run --rm \
+        --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
+        --volume "$PWD/build/monobase:/srv/r8/monobase:ro" \
+        --volume "$tmp/root:/root" \
+        --env R8_CUDA_VERSION=12.4 \
+        --env R8_CUDNN_VERSION=9 \
+        --env R8_PYTHON_VERSION=3.12 \
+        --env R8_TORCH_VERSION=2.4.1 \
+        monobase:latest \
+        '/opt/r8/monobase/exec.sh' \
+        python -c "$SCRIPT"
+}
+
+# 2.28.1 (4d39457) is the latest available from Torch index
+test requests 2.28.1 'requests==2.28.1'
+
+# Wheel files
+test requests 2.28.1 'requests @ https://github.com/psf/requests/releases/download/v2.28.1/requests-2.28.1-py3-none-any.whl'
+test requests 2.28.1 'https://github.com/psf/requests/releases/download/v2.28.1/requests-2.28.1-py3-none-any.whl'
+
+# ZIP files
+test requests 2.28.1 'requests @ https://github.com/psf/requests/archive/4d394574f5555a8ddcc38f707e0c9f57f55d9a3b.zip'
+test requests 2.28.1 'https://github.com/psf/requests/archive/4d394574f5555a8ddcc38f707e0c9f57f55d9a3b.zip'
+
+# Github
+test requests 2.28.1 'git+https://github.com/psf/requests@v2.28.1'
+test requests 2.28.1 'git+https://github.com/psf/requests@4d394574f5555a8ddcc38f707e0c9f57f55d9a3b'
+
+# Local files
+rm -rf build/src/requests*
+curl -fsSL 'https://github.com/psf/requests/releases/download/v2.28.1/requests-2.28.1-py3-none-any.whl' -o build/src/requests-2.28.1-py3-none-any.whl
+test requests 2.28.1 './requests-2.28.1-py3-none-any.whl'
+curl -fsSL 'https://github.com/psf/requests/archive/4d394574f5555a8ddcc38f707e0c9f57f55d9a3b.zip' -o build/src/requests.zip
+test requests 2.28.1 './requests.zip'
+# FIXME: build fails due to read-only file system
+# git clone --depth 1 --branch v2.28.1 https://github.com/psf/requests.git build/src/requests.git
+# test requests 2.28.1 './requests.git'
