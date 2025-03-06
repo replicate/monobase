@@ -47,8 +47,9 @@ def update_generation(
         'venvs': venvs,
     }
     project_dir = pathlib.Path(__file__).absolute().parent.parent.parent
-    with open(os.path.join(project_dir, 'matrix.json'), 'w') as f:
-        json.dump(matrix, f, indent=2)
+    if args.environment == 'prod':
+        with open(os.path.join(project_dir, 'matrix.json'), 'w') as f:
+            json.dump(matrix, f, indent=2)
 
 
 def update(args: argparse.Namespace) -> None:
