@@ -173,12 +173,11 @@ def parse_requirements(req: str) -> dict[str, str | Version]:
         if line == '' or line.startswith('#') or line.startswith('--'):
             continue
         if '==' in line:
-            parts = line.split('==')
+            parts = line.split('==', 1)
         elif '@' in line:
-            parts = line.split('@')
+            parts = line.split('@', 1)
         else:
             raise ValueError(f'invalid requirement: {line}')
-        assert len(parts) == 2, f'invalid requirement: {line}'
         vs = parts[1].strip()
         try:
             versions[parts[0].strip()] = Version.parse(vs)
