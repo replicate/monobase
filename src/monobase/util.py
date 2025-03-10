@@ -55,7 +55,7 @@ class Version:
         major = int(m.group('major'))
         minor = int(m.group('minor') or 0)
         patch = int(m.group('patch') or 0)
-        extra = m.group('extra')
+        extra = m.group('extra') or ''
         return cls(major, minor, patch, extra, s)
 
     def __repr__(self) -> str:
