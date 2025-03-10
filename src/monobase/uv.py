@@ -62,6 +62,10 @@ def pip_packages(
             f'torchaudio=={deps.torchaudio}+{cu}',
             f'torchvision=={deps.torchvision}+{cu}',
         ]
+    # Numpy was bumped to 2.x in PyTorch index around early 2025
+    # Pin it to 1.x for older Torch versions to avoid a breaking change
+    if torch_version < Version.parse('2.6.0'):
+        pkgs += ['numpy<2.0.0']
     # Older Torch versions do not bundle CUDA or CuDNN
     nvidia_pkgs = []
     if cu != 'cpu' and torch_version < Version.parse('2.2.0'):
