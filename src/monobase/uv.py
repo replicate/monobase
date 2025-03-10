@@ -148,8 +148,8 @@ def update_venv(
         with open(requirements, 'w') as f:
             f.write(proc.stdout)
     except subprocess.CalledProcessError as e:
-        log.error(e.stdout)
-        log.error(e.stderr)
+        print(e.stdout)
+        print(e.stderr)
         raise e
     return True
 
