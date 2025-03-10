@@ -6,7 +6,7 @@ from typing import Optional
 
 from opentelemetry import trace
 
-from monobase.torch import torch_deps, torch_specs
+from monobase.torch import get_torch_spec, torch_deps
 from monobase.util import Version, mark_done, require_done_or_rm, tracer
 
 log = logging.getLogger(__name__)
@@ -106,12 +106,12 @@ def update_venv(
 
     p = Version.parse(python_version)
     t = Version.parse(torch_version)
-    tv = Version.parse(f'{t.major}.{t.minor}')
-    if tv not in torch_specs:
+    spec = get_torch_spec(t)
+    if spec is None:
         return False
-    if p < torch_specs[tv].python_min or p > torch_specs[tv].python_max:
+    if p < spec.python_min or p > spec.python_max:
         return False
-    if cuda_version not in torch_specs[tv].cudas:
+    if cuda_version not in spec.cudas:
         return False
 
     venv = f'python{python_version}-torch{torch_version}-{cuda_suffix(cuda_version)}'
@@ -175,12 +175,12 @@ def install_venv(
 
     p = Version.parse(python_version)
     t = Version.parse(torch_version)
-    tv = Version.parse(f'{t.major}.{t.minor}')
-    if tv not in torch_specs:
+    spec = get_torch_spec(t)
+    if spec is None:
         return
-    if p < torch_specs[tv].python_min or p > torch_specs[tv].python_max:
+    if p < spec.python_min or p > spec.python_max:
         return
-    if cuda_version not in torch_specs[tv].cudas:
+    if cuda_version not in spec.cudas:
         return
 
     venv = f'python{python_version}-torch{torch_version}-{cuda_suffix(cuda_version)}'

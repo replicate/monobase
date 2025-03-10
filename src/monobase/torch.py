@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from monobase.util import Version
 
@@ -50,7 +51,7 @@ torch_deps_dict = {
     '2.0.0': TorchDeps('2.0.0', '0.15.0'),
 }
 
-torch_specs: dict[Version, TorchSpec] = dict(
+_torch_specs: dict[Version, TorchSpec] = dict(
     (Version.parse(k), TorchSpec(Version.parse(pmin), Version.parse(pmax), cudas))
     for k, (pmin, pmax, cudas) in torch_specs_dict.items()
 )
@@ -58,3 +59,12 @@ torch_specs: dict[Version, TorchSpec] = dict(
 torch_deps: dict[Version, TorchDeps] = dict(
     (Version.parse(k), v) for k, v in torch_deps_dict.items()
 )
+
+
+def get_torch_spec(version: Version) -> Optional[TorchSpec]:
+    # Check full version first, e.g. nightly
+    spec = _torch_specs.get(version)
+    if spec is None:
+        # Fall back to major.minor
+        spec = _torch_specs.get(Version.parse(f'{version.major}.{version.minor}'))
+    return spec
