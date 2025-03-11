@@ -11,6 +11,8 @@ filelock==3.13.1
 fsspec==2024.6.1
     # via torch
     # from https://download.pytorch.org/whl/cu121
+hf-transfer==0.1.9
+    # from https://pypi.org/simple
 jinja2==3.1.4
     # via torch
     # from https://download.pytorch.org/whl/cu121

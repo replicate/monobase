@@ -142,6 +142,12 @@ if [ -n "${R8_TORCH_VERSION:-}" ]; then
     # NCCL is not part of CUDA or CuDNN and required by vLLM
     NCCL_PATH="$MONO_PYTHONPATH/nvidia/nccl/lib"
     LD_LIBRARY_PATH="$NCCL_PATH${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+
+    # Torch venvs include hf_transfer, enable it
+    export HF_HUB_ENABLE_HF_TRANSFER=1
+else
+    # Torchless, using Cog venv only, no hf_transfer
+    unset HF_HUB_ENABLE_HF_TRANSFER
 fi
 
 # Append user venv last

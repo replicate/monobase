@@ -17,6 +17,8 @@ filelock==3.13.1
 fsspec==2024.6.1
     # via torch
     # from https://download.pytorch.org/whl/cu118
+hf-transfer==0.1.9
+    # from https://pypi.org/simple
 idna==3.4
     # via requests
     # from https://download.pytorch.org/whl/cu118
