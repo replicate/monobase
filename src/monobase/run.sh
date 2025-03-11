@@ -19,19 +19,23 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-# Always install latest uv and pget first
-# Unless explicitly disabled, e.g. in Dockerfile
-# So that we do not repack these into a user layer
-if ! [ -f "$MONOBASE_PREFIX/bin/uv" ] || ! [ -f "$MONOBASE_PREFIX/bin/pget-bin" ]; then
+module="$1"
+shift
+
+# Install uv and pget if missing
+# Always install latest if module is monobase.build
+if [ "$module" == "monobase.build" ] || ! [ -f "$MONOBASE_PREFIX/bin/uv" ] || ! [ -f "$MONOBASE_PREFIX/bin/pget-bin" ]; then
     mkdir -p "$MONOBASE_PREFIX/bin"
 
     log "Installing uv..."
-    curl -fsSL "$UV_URL" | tar -xz --strip-components=1 -C "$MONOBASE_PREFIX/bin"
+    curl -fsSL "$UV_URL" | tar -xz --strip-components=1 -C /tmp
+    mv /tmp/uv "$MONOBASE_PREFIX/bin"
     "$MONOBASE_PREFIX/bin/uv" --version
 
     log "Installing pget..."
-    curl -fsSL -o "$MONOBASE_PREFIX/bin/pget-bin" "$PGET_URL"
-    chmod +x "$MONOBASE_PREFIX/bin/pget-bin"
+    curl -fsSL "$PGET_URL" -o /tmp/pget-bin
+    chmod +x /tmp/pget-bin
+    mv /tmp/pget-bin "$MONOBASE_PREFIX/bin/pget-bin"
     "$MONOBASE_PREFIX/bin/pget-bin" version
 
     # PGET FUSE wrapper
@@ -44,7 +48,5 @@ if ! [ -d /var/tmp/.venv ]; then
     VIRTUAL_ENV=/var/tmp/.venv uv pip install --link-mode=copy "$(find /opt/r8 -name '*.whl' | head -1)"
 fi
 
-module="$1"
-shift
 log "Running $module..."
 exec /var/tmp/.venv/bin/python -m "$module" "$@"
