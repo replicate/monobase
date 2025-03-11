@@ -25,7 +25,7 @@ class MonoGen:
 # Packaging is needed for flash-attn, etc.
 # Explicitly declare them here
 # Versions are not pinned and we will use whatever Torch index has
-SEED_PKGS = ['pip', 'packaging', 'setuptools', 'wheel']
+SEED_PKGS = ['pip', 'packaging', 'setuptools', 'wheel', 'hf_transfer']
 
 TEST_MONOGENS: list[MonoGen] = [
     MonoGen(
