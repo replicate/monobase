@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# Test PGet FUSE wrapper
+
+set -euo pipefail
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $(basename "$0") <FUSE_MOUNT>"
+    exit 1
+fi
+
+platform="$(uname -s)/$(uname -m)"
+if [ "$platform" != 'Linux/x86_64' ]; then
+    echo "Unsupported platform: $platform"
+fi
+
+wrapper="$(git rev-parse --show-toplevel)/src/monobase/pget"
+
+tmp=$(mktemp -d)
+cd "$tmp"
+
+curl -fsSL https://github.com/replicate/pget/releases/latest/download/pget_Linux_x86_64 -o pget
+chmod +x pget
+
+test() {
+    code="$1"
+    name="$2"
+    if [ "$code" -eq 0 ]; then
+        echo "PASS: $name"
+    else
+        echo "FAIL: $name"
+        exit 1
+    fi
+}
+
+url1=https://raw.githubusercontent.com/replicate/monobase/refs/heads/main/README.md
+url2=https://raw.githubusercontent.com/replicate/monobase/refs/heads/main/Dockerfile
+
+# GitHub tarball HEAD responses are missing Content-Length
+# This is one of the smaller public tarball I can find
+url3=https://ftp.gnu.org/gnu/bool/bool-0.1.1.tar.gz
+
+# `pget version` should fall back to go binary
+
+PATH="$PWD:$PATH" "$wrapper" version | grep -qi version && r=0 || r=$?
+test $r 'fallback to PATH'
+
+mv pget pget-bin
+export PGET_BIN="$tmp/pget-bin"
+"$wrapper" version | grep -qi version && r=0 || r=$?
+test $r 'fallback to PGET_BIN'
+
+# No FUSE mount, fall back
+unset FUSE_MOUNT
+"$wrapper" "$url1" README.md
+grep -qi monobase README.md && r=0 || r=$?
+test $r 'fallback download'
+
+# No longer needed and tests bellow should not fall back
+rm -f pget-bin
+
+export FUSE_MOUNT=$1
+"$wrapper" "$url1" file1
+grep -qi monobase file1 && r=0 || r=$?
+test $r 'pget <url> <dest>'
+
+"$wrapper" -f "$url1" file1
+grep -qi monobase file1 && r=0 || r=$?
+test $r 'pget -f <url> <dest>'
+
+"$wrapper" -x "$url3" tarball
+[ -f tarball/bool-0.1.1/README ] && r=0 || r=$?
+test $r 'pget -x <url> <dest>'
+
+"$wrapper" -xf "$url3" tarball
+[ -f tarball/bool-0.1.1/README ] && r=0 || r=$?
+test $r 'pget -xf <url> <dest>'
+
+echo "$url1 multi1" >> manifest.txt
+echo "$url2 multi2" >> manifest.txt
+
+"$wrapper" multifile manifest.txt
+if [ -f multi1 ] && [ -f multi2 ]; then
+    r=0
+else
+    r=1
+fi
+test $r 'pget multifile <manifest>'
+
+"$wrapper" -f multifile manifest.txt
+if [ -f multi1 ] && [ -f multi2 ]; then
+    r=0
+else
+    r=1
+fi
+test $r 'pget -f multifile <manifest>'

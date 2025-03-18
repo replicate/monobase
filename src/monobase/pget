@@ -1,65 +1,124 @@
-#!/bin/bash
+#!/usr/bin/env python
 
-# Hijack PGET and serve file lazily with FUSE RPC
+import argparse
+import hashlib
+import json
+import os
+import shutil
+import subprocess
+import sys
+import urllib.request
 
-set -euo pipefail
+MONOBASE_PREFIX = os.environ.get('MONOBASE_PREFIX', '/srv/r8/monobase')
+PGET_BIN = os.environ.get('PGET_BIN', os.path.join(MONOBASE_PREFIX, 'bin/pget-bin'))
+FUSE_MOUNT = os.environ.get('FUSE_MOUNT', '/srv/r8/fuse-rpc')
+PROC_FILE = os.path.join(FUSE_MOUNT, 'proc', 'pget')
 
-PGET_BIN="${PGET_BIN:-${MONOBASE_PREFIX:-/srv/r8/monobase}/bin/pget-bin}"
-FUSE_MOUNT="${FUSE_MOUNT:-/srv/r8/fuse-rpc}"
+parser = argparse.ArgumentParser('pget')
 
-PROC_FILE="$FUSE_MOUNT/proc/pget"
+# All arguments are ignored, they are here to make argument parsing compatible with pget
+parser.add_argument('-m', '--chunk-size', type=str, metavar='string', default='125M')
+parser.add_argument('-c', '--concurrency', type=int, metavar='int', default='128')
+parser.add_argument('--connection-timeout', type=str, metavar='duration', default='5s')
+parser.add_argument('-x', '--extract', default=False, action='store_true')
+parser.add_argument('-f', '--force', default=False, action='store_true')
+parser.add_argument('--log-level', type=str, metavar='string', default='info')
+parser.add_argument('--pid-file', type=str, metavar='string', default='/run/user/1000/pget.pid')
+parser.add_argument('--resolve', type=str, metavar='strings', default=None)
+parser.add_argument('-r', '--retries', type=int, metavar='int', default=5)
+parser.add_argument('-v', '--verbose', default=False, action='store_true')
 
-fuse_pget() {
-    url="$1"
-    dst="$2"
 
-    # Finger print object name with URL, size, ETag, and last modified
-    echo "$(date --iso-8601=seconds --utc) pget $*"
-    out="$(curl -fsSL -I "$url" | grep -i '^\(content-length:\|etag:\|last-modified:\)')"
-    fingerprint="$({
-        echo "URL: $url"
-        echo "$out" | grep -i '^content-length:' | tail -n 1
-        echo "$out" | grep -i '^etag:' | tail -n 1
-        echo "$out" | grep -i '^last-modified:' | tail -n 1
-    })"
+def find_pget_exe() -> str:
+    # PGET_BIN is executable
+    if os.path.isfile(PGET_BIN) and os.access(PGET_BIN, os.X_OK):
+        return PGET_BIN
+    # Look for real executable in PATH
+    for p in os.environ['PATH'].split(os.pathsep):
+        f = shutil.which('pget', path=p)
+        if f is not None and f != __file__:
+            return f
+    print('Cannot find pget executable', file=sys.stderr)
+    sys.exit(1)
 
-    sha256="$(echo "$fingerprint" | sha256sum | cut -d ' ' -f 1)"
-    name="pget/sha256/$sha256"
-    size="$(echo "$fingerprint" | grep -ioP '(?<=^content-length: )[0-9]+')"
 
-    # Request file from FUSE
-    echo "{\"name\":\"$name\",\"size\":$size,\"url\":\"$url\"}" > "$PROC_FILE"
+# https://github.com/replicate/pget/blob/main/cmd/multifile/manifest.go
+def parse_manifest(manifest: str) -> dict[str, str]:
+    f = sys.stdin if manifest == '-' else open(manifest, 'r')
+    d = {}
+    for line in f:
+        line = line.strip()
+        if len(line) == 0:
+            continue
+        url, dest = line.split()
+        assert dest not in d
+        d[dest] = url
+    return d
 
-    # Symlink file to destination
-    mkdir -p "$(dirname "$dst")"
-    ln -sf "$FUSE_MOUNT/$name" "$dst"
-}
 
-if [ ! -f "$PROC_FILE" ]; then
-    # No FUSE proc file, fallback
-    exec "$PGET_BIN" "$@"
-elif [[ $# -ne 2 ]]; then
-    # Fallback
-    exec "$PGET_BIN" "$@"
-elif [[ "$1" == http://* ]] || [[ "$1" == https://* ]]; then
-    # pget <url> <dst>
-    fuse_pget "$@"
-elif [[ "$1" == multifile ]]; then
-    in="$2"
-    if [[ "$2" == - ]]; then
-        in=/dev/stdin
-    fi
-    while read -r line; do
-        [[ -n "$line" ]] || continue
-        url="${line// */}"
-        dst="${line//* /}"
-        if [[ "$line" != "$url $dst" ]]; then
-            echo "Error: error parsing manifest: invalid line format \`$line\`"
-            exit 1
-        fi
-        fuse_pget "$url" "$dst"
-    done < "$in"
-else
-    # Fallback
-    exec "$PGET_BIN" "$@"
-fi
+def multi_pget(manifest: str, force: bool) -> None:
+    urls = parse_manifest(manifest)
+    for dest, url in urls.items():
+        single_pget(url, dest, extract=False, force=force)
+
+
+def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
+    if not force:
+        assert not os.path.exists(dest)
+
+    req = urllib.request.Request(url, method='HEAD')
+    resp = urllib.request.urlopen(req)
+
+    assert resp.status == 200
+    length = int(resp.getheader('Content-Length'))
+    etag = resp.getheader('Etag')
+    modified = resp.getheader('Last-Modified')
+    fingerprint = f'{url}|{length}|{etag}|{modified}'
+    sha = hashlib.sha256(fingerprint.encode('utf-8')).hexdigest()
+    name = f'pget/sha256/{sha}'
+    payload = {'name': name, 'size': length, 'url': url}
+
+    print(f'pget {url} {dest}', file=sys.stderr)
+    with open(PROC_FILE, 'w') as f:
+        json.dump(payload, f)
+
+    src = os.path.join(FUSE_MOUNT, name)
+    if extract:
+        # dest is a directory
+        os.makedirs(dest, exist_ok=True)
+        # pget does not support zip
+        # tar will overwrite existing files
+        cmd = ['tar', '-xf', src, '-C', dest]
+        subprocess.run(cmd, check=True)
+    else:
+        dir = os.path.dirname(dest)
+        if dir != '':
+            os.makedirs(dir, exist_ok=True)
+        if force and os.path.exists(dest):
+            os.unlink(dest)
+        os.symlink(src, dest)
+
+def smart_pget() -> None:
+    # Fall back if no FUSE
+    assert os.path.exists(PROC_FILE)
+
+    args, vargs = parser.parse_known_args()
+
+    # Supported:
+    # pget [flags] <URL> <dest>
+    # pget [flags] multifile <file>
+    assert len(vargs) == 2
+    if vargs[0] == 'multifile':
+        # multifile does not support extract
+        assert not args.extract
+        multi_pget(vargs[1], args.force)
+    else:
+        single_pget(vargs[0], vargs[1], args.extract, args.force)
+
+
+if __name__ == '__main__':
+    try:
+        smart_pget()
+    except Exception:
+        p = find_pget_exe()
+        os.execv(p, [p] + sys.argv[1:])
