@@ -11,6 +11,13 @@ from monobase.util import Version, mark_done, require_done_or_rm, tracer
 
 log = logging.getLogger(__name__)
 
+# UV --python-platform flag expands linux => x86_64-unknown-linux-gnu => x86_64-manylinux_2_17
+# While some packages require a higher version, e.g. bitsandbytes
+# https://docs.astral.sh/uv/reference/cli/#uv-pip-compile--python-platform
+# manylinux_2_35 is supported for Ubuntu 22.04 according to this matrix
+# https://github.com/mayeut/pep600_compliance
+PYTHON_PLATFORM = 'x86_64-manylinux_2_35'
+
 
 def cuda_suffix(cuda_version: str) -> str:
     return 'cpu' if cuda_version == 'cpu' else f'cu{cuda_version.replace(".", "")}'
@@ -133,7 +140,7 @@ def update_venv(
         '--emit-build-options',
         '--emit-index-annotation',
     ]
-    cmd = ['uv', 'pip', 'compile', '--python-platform', 'x86_64-unknown-linux-gnu']
+    cmd = ['uv', 'pip', 'compile', '--python-platform', PYTHON_PLATFORM]
     cmd = cmd + emit_args + index_args(torch_version, cuda_version) + ['-']
     pkgs = pip_packages(t, python_version, cuda_version, pip_pkgs)
     env = os.environ.copy()

@@ -11,7 +11,7 @@ from monobase.util import (
     require_done_or_rm,
     setup_logging,
 )
-from monobase.uv import cuda_suffix, index_args
+from monobase.uv import PYTHON_PLATFORM, cuda_suffix, index_args
 
 log = logging.getLogger(__name__)
 
@@ -107,7 +107,7 @@ def build_user_venv(args: argparse.Namespace) -> None:
     combined_req = '\n'.join(mono_req.splitlines() + user_req.splitlines())
 
     log.info(f'Compiling user requirements {args.requirements}...')
-    cmd = [uv, 'pip', 'compile', '--python-platform', 'x86_64-unknown-linux-gnu']
+    cmd = [uv, 'pip', 'compile', '--python-platform', PYTHON_PLATFORM]
     # PyPI is inconsistent with Torch index and may include nvidia packages for CPU torch
     # Use the same Torch index instead
     cmd = cmd + index_args(torch_version, cuda_version) + ['-']
