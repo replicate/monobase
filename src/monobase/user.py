@@ -107,7 +107,7 @@ def build_user_venv(args: argparse.Namespace) -> None:
     combined_req = '\n'.join(mono_req.splitlines() + user_req.splitlines())
 
     log.info(f'Compiling user requirements {args.requirements}...')
-    cmd = [uv, 'pip', 'compile', '--python-platform', 'x86_64-unknown-linux-gnu']
+    cmd = [uv, 'pip', 'compile']
     # PyPI is inconsistent with Torch index and may include nvidia packages for CPU torch
     # Use the same Torch index instead
     cmd = cmd + index_args(torch_version, cuda_version) + ['-']
