@@ -168,6 +168,7 @@ def build_user_venv(args: argparse.Namespace) -> None:
             else:
                 print(f'{k}=={uvs}', file=f)
     cmd = [uv, 'pip', 'install', '--no-deps', '--requirement', user_req_path]
+    cmd += index_args(torch_version, cuda_version)
     env.update(uv_install_env)
     subprocess.run(cmd, check=True, env=env)
 
