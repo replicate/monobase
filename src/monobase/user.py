@@ -123,8 +123,10 @@ def build_user_venv(args: argparse.Namespace) -> None:
 
     user_req = proc.stdout
     user_versions = parse_requirements(user_req)
-    if "torch" in user_versions and torch_version is None:
-        raise ValueError(f"You did not specify a torch version in your requirements.txt, but your build requires torch=={user_versions['torch']}, please specify that in your requirements.txt.")
+    if 'torch' in user_versions and torch_version is None:
+        raise ValueError(
+            f'You did not specify a torch version in your requirements.txt, but your build requires torch=={user_versions["torch"]}, please specify that in your requirements.txt.'
+        )
     keys = set(
         list(cog_versions.keys())
         + list(mono_versions.keys())
