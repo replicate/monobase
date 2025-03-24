@@ -91,9 +91,9 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
         cmd = ['tar', '-xf', src, '-C', dest]
         subprocess.run(cmd, check=True)
     else:
-        dir = os.path.dirname(dest)
-        if dir != '':
-            os.makedirs(dir, exist_ok=True)
+        d = os.path.dirname(dest)
+        if d != '':
+            os.makedirs(d, exist_ok=True)
         if force and os.path.exists(dest):
             os.unlink(dest)
         os.symlink(src, dest)
