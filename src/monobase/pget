@@ -14,6 +14,7 @@ import urllib.request
 
 MONOBASE_PREFIX = os.environ.get('MONOBASE_PREFIX', '/srv/r8/monobase')
 PGET_BIN = os.environ.get('PGET_BIN', os.path.join(MONOBASE_PREFIX, 'bin/pget-bin'))
+PGET_METRICS_ENDPOINT = os.environ.get('PGET_METRICS_ENDPOINT')
 FUSE_MOUNT = os.environ.get('FUSE_MOUNT', '/srv/r8/fuse-rpc')
 PROC_FILE = os.path.join(FUSE_MOUNT, 'proc', 'pget')
 
@@ -79,6 +80,24 @@ def normalize_url(url: str) -> str:
     return url
 
 
+def send_pget_metrics(url: str, size: int) -> None:
+    if PGET_METRICS_ENDPOINT is None:
+        return
+    payload = {
+        'source': 'pget-fuse',
+        'type': 'download',
+        'data': {
+            'url': url,
+            'size': size,
+        }
+    }
+    data = json.dumps(payload).encode('utf-8')
+    try:
+        urllib.request.urlopen(url, data=data, timeout=1).read()
+    except:
+        # Ignore errors
+        pass
+
 def multi_pget(manifest: str, force: bool) -> None:
     urls = parse_manifest(manifest)
     for dest, url in urls.items():
@@ -105,6 +124,10 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
     print(f'pget {url} {dest}', file=sys.stderr)
     with open(PROC_FILE, 'w') as f:
         json.dump(payload, f)
+
+    # Send metrics if endpoint is set
+    # Send after writing proc file, i.e. no FUSE error
+    send_pget_metrics(url, length)
 
     src = os.path.join(FUSE_MOUNT, name)
     if extract:
