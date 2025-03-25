@@ -133,6 +133,9 @@ PATH="$COG_VENV/bin${PATH:+:${PATH}}"
 COG_PYTHONPATH="$COG_VENV/lib/python$R8_PYTHON_VERSION/site-packages"
 PYTHONPATH="$COG_PYTHONPATH"
 
+# Cog venv includes hf_transfer with pget, enable it
+export HF_HUB_ENABLE_HF_TRANSFER=1
+
 # Append Monobase venv if Torch version is set
 if [ -n "${R8_TORCH_VERSION:-}" ]; then
     MONO_VENV="$MONOBASE_PATH/python$R8_PYTHON_VERSION-torch$R8_TORCH_VERSION-$TORCH_CUDA_SUFFIX"
@@ -142,12 +145,6 @@ if [ -n "${R8_TORCH_VERSION:-}" ]; then
     # NCCL is not part of CUDA or CuDNN and required by vLLM
     NCCL_PATH="$MONO_PYTHONPATH/nvidia/nccl/lib"
     LD_LIBRARY_PATH="$NCCL_PATH${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-
-    # Torch venvs include hf_transfer, enable it
-    export HF_HUB_ENABLE_HF_TRANSFER=1
-else
-    # Torchless, using Cog venv only, no hf_transfer
-    unset HF_HUB_ENABLE_HF_TRANSFER
 fi
 
 # Append user venv last
