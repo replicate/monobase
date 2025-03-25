@@ -29,6 +29,19 @@ def get_coglet_release(part: str) -> dict[str, Any]:
     return json.loads(content)
 
 
+def get_hf_transfer_wheel() -> str:
+    url = 'https://api.github.com/repos/replicate/hf_transfer/releases/latest'
+    content = urllib.request.urlopen(url).read()
+    blob = json.loads(content)
+    for a in blob['assets']:
+        # We build 2 wheels, abi3 for Python 3.8+ and cp313t for free threaded Python
+        if a['name'].endswith('.whl') and '-abi3-' in a['name']:
+            return a['browser_download_url']
+    # Fallback to upstream hf_transfer
+    log.warning('could not find hf_transfer wheel')
+    return 'hf_transfer'
+
+
 def cog_gen_hash(
     cog_versions: list[str],
     default_cog_version: str,
@@ -58,6 +71,7 @@ def install_cog(
     is_default: bool,
     python_version: str,
     python_full_version: str,
+    extra_packages: list[str],
 ) -> None:
     if cog_version.startswith('https://') or cog_version.startswith('file://'):
         h = hash_str(cog_version)[:8]
@@ -106,7 +120,7 @@ def install_cog(
     env = os.environ.copy()
     env['VIRTUAL_ENV'] = vdir
 
-    cmd = [uv, 'pip', 'install', '--compile-bytecode', spec]
+    cmd = [uv, 'pip', 'install', '--compile-bytecode', spec] + extra_packages
     subprocess.run(cmd, check=True, env=env)
 
     if is_default:
@@ -149,10 +163,12 @@ def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     # Since we only the site-packages, not Python interpreters
     uv = os.path.join(args.prefix, 'bin', 'uv')
 
+    hf_transfer = get_hf_transfer_wheel()
+
     for c, pv in itertools.product(cog_versions, pvs):
         is_default = c == args.default_cog_version
         v = f'{pv.major}.{pv.minor}'
-        install_cog(uv, gdir, c, is_default, v, str(pv))
+        install_cog(uv, gdir, c, is_default, v, str(pv), [hf_transfer])
 
     latest = os.path.join(cdir, 'latest')
     if os.path.exists(latest):
