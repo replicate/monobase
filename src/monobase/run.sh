@@ -49,5 +49,4 @@ if ! [ -d /var/tmp/.venv ]; then
 fi
 
 log "Running $module..."
-export PATH="$PATH:/var/tmp/.venv/bin"
 exec /var/tmp/.venv/bin/python3 -m "$module" "$@"
