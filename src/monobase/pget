@@ -93,7 +93,7 @@ def send_pget_metrics(url: str, size: int) -> None:
     }
     data = json.dumps(payload).encode('utf-8')
     try:
-        urllib.request.urlopen(url, data=data, timeout=1).read()
+        urllib.request.urlopen(PGET_METRICS_ENDPOINT, data=data, timeout=1).read()
     except:
         # Ignore errors
         pass
