@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import hashlib
@@ -9,6 +9,8 @@ import subprocess
 import sys
 import urllib.parse
 import urllib.request
+
+from typing import Dict
 
 MONOBASE_PREFIX = os.environ.get('MONOBASE_PREFIX', '/srv/r8/monobase')
 PGET_BIN = os.environ.get('PGET_BIN', os.path.join(MONOBASE_PREFIX, 'bin/pget-bin'))
@@ -52,7 +54,7 @@ def find_pget_exe() -> str:
 
 
 # https://github.com/replicate/pget/blob/main/cmd/multifile/manifest.go
-def parse_manifest(manifest: str) -> dict[str, str]:
+def parse_manifest(manifest: str) -> Dict[str, str]:
     f = sys.stdin if manifest == '-' else open(manifest, 'r')
     d = {}
     for line in f:

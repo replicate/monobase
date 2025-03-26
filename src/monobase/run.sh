@@ -40,6 +40,11 @@ if [ "$module" == "monobase.build" ] || ! [ -f "$MONOBASE_PREFIX/bin/uv" ] || ! 
 
     # PGET FUSE wrapper
     cp /opt/r8/monobase/pget "$MONOBASE_PREFIX/bin/pget"
+
+    # Remove venv for pget that didn't work
+    if [ -d "$MONOBASE_PREFIX/venv" ]; then
+        rm -rf "$MONOBASE_PREFIX/venv"
+    fi
 fi
 
 if ! [ -d /var/tmp/.venv ]; then

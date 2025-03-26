@@ -62,12 +62,22 @@ jobs:
       - run: ./script/build-image
       - run: ./script/test-user
 
+  test-pget:
+    name: Test PGet
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: ./script/test-pget
+
   build-release:
     name: Build + release image
     needs:
       - check
       - test
       - test-mini
+      - test-user
+      - test-pget
     permissions:
       contents: read
       id-token: write
