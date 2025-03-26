@@ -4,23 +4,33 @@
 
 set -euo pipefail
 
-if [ $# -ne 1 ]; then
-    echo "Usage: $(basename "$0") <FUSE_MOUNT>"
-    exit 1
+project_dir="$(git rev-parse --show-toplevel)"
+wrapper="$project_dir/src/monobase/pget"
+
+tmp=$(mktemp -d)
+cd "$tmp"
+
+curl -fsSL "https://github.com/replicate/pget/releases/latest/download/pget_$(uname -s)_$(uname -m)" -o pget
+chmod +x pget
+
+# Test PGet with all supported Python versions
+while IFS="" read -r python
+do
+    PATH="$PWD:$PATH" uv run --python "$python" "$wrapper" version
+done < "$project_dir/python-versions"
+
+# Test beyond this point requires FUSE setup, not feasible in CI yet
+if [ $# -lt 1 ]; then
+    exit
 fi
 
 platform="$(uname -s)/$(uname -m)"
 if [ "$platform" != 'Linux/x86_64' ]; then
     echo "Unsupported platform: $platform"
+    exit 1
 fi
 
-wrapper="$(git rev-parse --show-toplevel)/src/monobase/pget"
-
-tmp=$(mktemp -d)
-cd "$tmp"
-
-curl -fsSL https://github.com/replicate/pget/releases/latest/download/pget_Linux_x86_64 -o pget
-chmod +x pget
+fuse_mount=$1
 
 test() {
     code="$1"
@@ -59,7 +69,7 @@ test $r 'fallback download'
 # No longer needed and tests bellow should not fall back
 rm -f pget-bin
 
-export FUSE_MOUNT=$1
+export FUSE_MOUNT=$fuse_mount
 "$wrapper" "$url1" file1
 grep -qi monobase file1 && r=0 || r=$?
 test $r 'pget <url> <dest>'

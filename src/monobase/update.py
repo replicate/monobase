@@ -38,6 +38,7 @@ def update_generation(
             venvs.append({'python': p, 'torch': t, 'cuda': c})
 
     if latest:
+        # Write a version matrix for cog build, etc.
         matrix = {
             'id': mg.id,
             'cuda_versions': list(mg.cuda.keys()),
@@ -52,7 +53,14 @@ def update_generation(
         dest = os.path.join(
             os.path.dirname(__file__), f'requirements{suffix}', 'latest'
         )
+        if os.path.exists(dest):
+            os.remove(dest)
         os.symlink(gid, dest)
+
+        # Write all Python versions for test scripts
+        with open(os.path.join(project_dir, 'python-versions'), 'w') as f:
+            for v in mg.python.keys():
+                print(v, file=f)
 
 
 def update(args: argparse.Namespace) -> None:
