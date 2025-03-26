@@ -5,7 +5,6 @@ import logging
 import os
 import os.path
 import re
-import subprocess
 
 from opentelemetry import trace
 
@@ -257,15 +256,6 @@ def build(args: argparse.Namespace) -> None:
             v = Version.parse(vs)
             if k not in pvs or pvs[k] < v:
                 pvs[k] = v
-
-    # Always install the latest Python in <prefix>/venv
-    # This is used in model runtime by wrapper scripts like pget
-    uv = os.path.join(args.prefix, 'bin', 'uv')
-    venv = os.path.join(args.prefix, 'venv')
-    cmd = [uv, 'venv', '--python', str(max(pvs.values())), venv]
-    subprocess.run(cmd, check=True)
-
-    # Always install Cog with latest full version of each Python major.minor
     install_cogs(args, list(map(str, pvs.values())))
 
     gens = []
