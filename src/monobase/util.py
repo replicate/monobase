@@ -106,7 +106,7 @@ def _is_done(d: str) -> bool:
         with open(os.path.join(d, DONE_FILE_BASENAME)) as done_file:
             done_state = json.load(done_file)
             return _get_tree_sha1sum(d) == done_state.get('sha1sum', '')
-    except OSError:
+    except Exception:
         return False
 
 

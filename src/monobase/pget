@@ -166,6 +166,6 @@ def smart_pget() -> None:
 if __name__ == '__main__':
     try:
         smart_pget()
-    except Exception:
+    except:
         p = find_pget_exe()
         os.execv(p, [p] + sys.argv[1:])
