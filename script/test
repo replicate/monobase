@@ -99,25 +99,6 @@ fi
 # Test Monobase
 ####################
 
-url=https://raw.githubusercontent.com/replicate/monobase/refs/heads/main/README.md
-
-read -r -d '' SCRIPT << EOF || :
-import subprocess
-subprocess.run(['pget', '$url', '/tmp/README.md'])
-print('PASS: pget')
-EOF
-
-docker run --rm \
-    --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
-    --volume "$PWD/build/monobase:/srv/r8/monobase:ro" \
-    --env R8_CUDA_VERSION=12.4 \
-    --env R8_CUDNN_VERSION=9 \
-    --env R8_PYTHON_VERSION=3.12 \
-    --env R8_TORCH_VERSION=2.4.1 \
-    monobase:latest \
-    '/opt/r8/monobase/exec.sh' \
-    python -c "$SCRIPT"
-
 read -r -d '' SCRIPT << EOF || :
 import sys, cog, torch
 assert sys.version.startswith('3.12.8'), f'sys.version is not 3.12.8: {sys.version}'

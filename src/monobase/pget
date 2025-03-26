@@ -1,6 +1,4 @@
-#!/srv/r8/monobase/venv/bin/python
-
-# Hard code shebang since the model might run with an older Python
+#!/usr/bin/env python
 
 import argparse
 import hashlib
