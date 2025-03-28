@@ -68,13 +68,25 @@ def parse_manifest(manifest: str) -> Dict[str, str]:
     return d
 
 
-# These are likely HuggingFace CloudFront URLs, redirected from
-# https://huggingface.co/<org>/<repo>/resolve/<sha256>/<filename>
-# Strip query params to reduce noise
-# https://discuss.huggingface.co/t/how-to-get-a-list-of-all-huggingface-download-redirections-to-whitelist/30486/11
+def is_hf_presigned(u: urllib.parse.ParseResult) -> bool:
+    # These are likely HuggingFace CloudFront URLs, redirected from
+    # https://huggingface.co/<org>/<repo>/resolve/<sha256>/<filename>
+    # Strip query params to reduce noise
+    # https://discuss.huggingface.co/t/how-to-get-a-list-of-all-huggingface-download-redirections-to-whitelist/30486/11
+    return u.hostname in HF_HOSTS
+
+
+def is_s3_presigned(u: urllib.parse.ParseResult) -> bool:
+    return (
+        u.hostname is not None
+        and '.s3.' in u.hostname
+        and u.hostname.endswith('.amazonaws.com')
+    )
+
+
 def normalize_url(url: str) -> str:
     u = urllib.parse.urlparse(url)
-    if u.hostname in HF_HOSTS:
+    if is_hf_presigned(u) or is_s3_presigned(u):
         # Reuse <schema>://<host>:<port>/<path> from original URL
         # Strip query params
         return urllib.parse.urljoin(url, u.path)
