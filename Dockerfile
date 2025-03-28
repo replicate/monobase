@@ -42,7 +42,7 @@ RUN --mount=type=bind,from=build,target=/tmp/build-layer,ro \
     ln -sv /usr/bin/tini /sbin/tini \
     && mkdir -p /opt/r8/monobase /tmp/r8 \
     && tar --strip-components=1 -C /tmp/r8 -xf $(find /tmp/build-layer/src/dist -name '*.tar.gz' | head -1) \
-    && cp -v /tmp/r8/src/monobase/*.sh /tmp/r8/src/monobase/pget /opt/r8/monobase/ \
+    && cp -v /tmp/r8/src/monobase/*.sh /tmp/r8/src/monobase/pget.py /opt/r8/monobase/ \
     && rsync -av /tmp/r8/src/monobase/requirements /opt/r8/monobase/ \
     && find /tmp/build-layer/src/dist/ -type f \
     && cp -v $(find /tmp/build-layer/src/dist/ -name '*.whl' | head -1) /opt/r8/ \

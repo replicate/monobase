@@ -9,7 +9,6 @@ import subprocess
 import sys
 import urllib.parse
 import urllib.request
-
 from typing import Dict
 
 MONOBASE_PREFIX = os.environ.get('MONOBASE_PREFIX', '/srv/r8/monobase')
@@ -19,10 +18,10 @@ FUSE_MOUNT = os.environ.get('FUSE_MOUNT', '/srv/r8/fuse-rpc')
 PROC_FILE = os.path.join(FUSE_MOUNT, 'proc', 'pget')
 
 HF_HOSTS = {
-	"cdn-lfs-us-1.hf.co",
-	"cdn-lfs-eu-1.hf.co",
-	"cdn-lfs.hf.co",
-	"cas-bridge.xethub.hf.co",
+    'cdn-lfs-us-1.hf.co',
+    'cdn-lfs-eu-1.hf.co',
+    'cdn-lfs.hf.co',
+    'cas-bridge.xethub.hf.co',
 }
 
 parser = argparse.ArgumentParser('pget')
@@ -34,7 +33,9 @@ parser.add_argument('--connection-timeout', type=str, metavar='duration', defaul
 parser.add_argument('-x', '--extract', default=False, action='store_true')
 parser.add_argument('-f', '--force', default=False, action='store_true')
 parser.add_argument('--log-level', type=str, metavar='string', default='info')
-parser.add_argument('--pid-file', type=str, metavar='string', default='/run/user/1000/pget.pid')
+parser.add_argument(
+    '--pid-file', type=str, metavar='string', default='/run/user/1000/pget.pid'
+)
 parser.add_argument('--resolve', type=str, metavar='strings', default=None)
 parser.add_argument('-r', '--retries', type=int, metavar='int', default=5)
 parser.add_argument('-v', '--verbose', default=False, action='store_true')
@@ -89,14 +90,15 @@ def send_pget_metrics(url: str, size: int) -> None:
         'data': {
             'url': url,
             'size': size,
-        }
+        },
     }
     data = json.dumps(payload).encode('utf-8')
     try:
         urllib.request.urlopen(PGET_METRICS_ENDPOINT, data=data, timeout=1).read()
-    except:
+    except Exception:
         # Ignore errors
         pass
+
 
 def multi_pget(manifest: str, force: bool) -> None:
     urls = parse_manifest(manifest)
@@ -145,6 +147,7 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
             os.unlink(dest)
         os.symlink(src, dest)
 
+
 def smart_pget() -> None:
     # Fall back if no FUSE
     assert os.path.exists(PROC_FILE)
@@ -166,6 +169,6 @@ def smart_pget() -> None:
 if __name__ == '__main__':
     try:
         smart_pget()
-    except:
+    except Exception:
         p = find_pget_exe()
         os.execv(p, [p] + sys.argv[1:])

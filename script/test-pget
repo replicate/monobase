@@ -5,7 +5,7 @@
 set -euo pipefail
 
 project_dir="$(git rev-parse --show-toplevel)"
-wrapper="$project_dir/src/monobase/pget"
+wrapper="$project_dir/src/monobase/pget.py"
 
 tmp=$(mktemp -d)
 cd "$tmp"

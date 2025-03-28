@@ -39,7 +39,7 @@ if [ "$module" == "monobase.build" ] || ! [ -f "$MONOBASE_PREFIX/bin/uv" ] || ! 
     "$MONOBASE_PREFIX/bin/pget-bin" version
 
     # PGET FUSE wrapper
-    cp /opt/r8/monobase/pget "$MONOBASE_PREFIX/bin/pget"
+    cp /opt/r8/monobase/pget.py "$MONOBASE_PREFIX/bin/pget"
 
     # Remove venv for pget that didn't work
     if [ -d "$MONOBASE_PREFIX/venv" ]; then
