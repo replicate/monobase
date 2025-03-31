@@ -166,6 +166,11 @@ def smart_pget() -> None:
 
     args, vargs = parser.parse_known_args()
 
+    # FUSE server is not configured to use storage cache
+    # So these tar files are downloaded from CDN at lower speed
+    # That plus tar files are not lazily loadable defeats the point of having them in FUSE cache
+    assert not args.extract
+
     # Supported:
     # pget [flags] <URL> <dest>
     # pget [flags] multifile <file>
