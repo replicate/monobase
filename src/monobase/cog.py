@@ -163,7 +163,7 @@ def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     # Since we only the site-packages, not Python interpreters
     uv = os.path.join(args.prefix, 'bin', 'uv')
 
-    hf_transfer = get_hf_transfer_wheel()
+    hf_transfer = f'hf_transfer@{get_hf_transfer_wheel()}'
 
     for c, pv in itertools.product(cog_versions, pvs):
         is_default = c == args.default_cog_version
