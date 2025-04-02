@@ -120,7 +120,14 @@ def install_cog(
     env = os.environ.copy()
     env['VIRTUAL_ENV'] = vdir
 
-    cmd = [uv, 'pip', 'install', '--compile-bytecode', spec] + extra_packages
+    cmd = [
+        uv,
+        'pip',
+        'install',
+        '--no-cache',
+        '--compile-bytecode',
+        spec,
+    ] + extra_packages
     subprocess.run(cmd, check=True, env=env)
 
     if is_default:
