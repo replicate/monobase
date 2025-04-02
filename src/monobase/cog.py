@@ -124,7 +124,7 @@ def install_cog(
         uv,
         'pip',
         'install',
-        '--refresh-package',
+        '--no-cache',
         '--compile-bytecode',
         spec,
     ] + extra_packages
