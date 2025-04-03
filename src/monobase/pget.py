@@ -180,7 +180,13 @@ def smart_pget() -> None:
         assert not args.extract
         multi_pget(vargs[1], args.force)
     else:
-        single_pget(vargs[0], vargs[1], args.extract, args.force)
+        url, dst = vargs
+        u = urllib.parse.urlparse(url)
+
+        # Prevent `pget <URL> <dst.tar>` without --extract
+        assert not u.path.endswith('.tar')
+
+        single_pget(url, dst, args.extract, args.force)
 
 
 if __name__ == '__main__':
