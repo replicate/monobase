@@ -27,7 +27,7 @@ exec tar \
     --group=0 \
     --mode=go+u,go-w \
     --zstd \
-    -h \
+    --keep-directory-symlink \
     -cf "$tarball" \
     -C "$root" \
     "$@"
