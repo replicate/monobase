@@ -27,6 +27,11 @@ parser.add_argument(
     metavar='FILE',
     help='Python requirements.txt for user layer',
 )
+parser.add_argument(
+    '--override',
+    metavar='FILE',
+    help='Python requirements.txt for overriding versions',
+)
 
 
 def freeze(uv: str, vdir: str) -> str:
@@ -108,6 +113,9 @@ def build_user_venv(args: argparse.Namespace) -> None:
 
     log.info(f'Compiling user requirements {args.requirements}...')
     cmd = [uv, 'pip', 'compile']
+    # Override version conflicts, e.g.
+    if args.override is not None:
+        cmd = cmd + ['--override', args.override]
     # PyPI is inconsistent with Torch index and may include nvidia packages for CPU torch
     # Use the same Torch index instead
     cmd = cmd + index_args(torch_version, cuda_version, True) + ['-']
