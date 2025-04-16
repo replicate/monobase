@@ -10,8 +10,8 @@ R8_CUDNN_VERSION=${R8_CUDNN_VERSION:-9}
 R8_PYTHON_VERSION=${R8_PYTHON_VERSION:-3.13}
 R8_TORCH_VERSION=${R8_TORCH_VERSION:-2.6.0}
 
-if [ $# -lt 1 ]; then
-    echo "Usage: $(basename "$0") [package]..."
+if [ $# -ne 1 ]; then
+    echo "Usage: $(basename "$0") <requirements.txt>"
     exit 1
 fi
 
@@ -41,10 +41,12 @@ if ! [ -f build/.env ] || [ "$(cat build/.env)" != "$env" ]; then
 fi
 
 tmp="$(mktemp -d -t monobase.XXXXXXXX)"
-for p in "$@"; do
-    echo "$p" >> "$tmp/requirements.txt"
-done
 mkdir "$tmp/root"
+if [ "$1" == "-" ]; then
+    cat < /dev/stdin > "$tmp/requirements.txt"
+else
+    cp "$1" "$tmp/requirements.txt"
+fi
 
 # Build user venv
 docker run --rm \
