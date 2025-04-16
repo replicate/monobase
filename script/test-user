@@ -34,8 +34,10 @@ test() {
     package="$1"
     version="$2"
     requirements="$3"
+    override="${4:-}"
     tmp="$(mktemp -d -t monobase.XXXXXXXX)"
     echo "$requirements" > "$tmp/requirements.txt"
+    echo "$override" > "$tmp/override.txt"
     mkdir "$tmp/root"
 
     docker run --rm \
@@ -49,12 +51,14 @@ test() {
         --volume "$PWD/build/monobase:/srv/r8/monobase" \
         --volume "$PWD/build/src:/src:ro" \
         --volume "$tmp/requirements.txt:/tmp/requirements.txt:ro" \
+        --volume "$tmp/override.txt:/tmp/override.txt:ro" \
         --volume "$tmp/root:/root" \
         --workdir /src \
         monobase:latest \
         /opt/r8/monobase/run.sh \
         monobase.user \
         --requirements /tmp/requirements.txt \
+        --override /tmp/override.txt
 
     read -r -d '' SCRIPT << EOF || :
 import $package
@@ -77,6 +81,9 @@ EOF
 
 # 2.28.1 (4d39457) is the latest available from Torch index
 test requests 2.28.1 'requests==2.28.1'
+
+# Override
+test requests 2.32.3 'requests<=2.28.1' 'requests==2.32.3'
 
 # Wheel files
 test requests 2.28.1 'requests @ https://github.com/psf/requests/releases/download/v2.28.1/requests-2.28.1-py3-none-any.whl'
