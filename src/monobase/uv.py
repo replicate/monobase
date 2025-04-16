@@ -28,6 +28,12 @@ def torch_index_url(cuda_version: str, nightly: bool) -> str:
 def index_args(torch_version: Optional[str], cuda_version: str) -> list[str]:
     # Nightly builds e.g. 2.6.1.dev20241121
     nightly = torch_version is not None and '.dev' in torch_version
+    # New UV flag, fetch Torch dependencies from PyTorch index
+    # Everything else from PyPI
+    if not nightly:
+        return ['--torch-backend', cuda_suffix(cuda_version)]
+
+    # Old way, fetch everything from PyTorch index, some packages might be outdated
     return [
         # --extra-index-url has high priority than --index-url
         '--extra-index-url',
@@ -65,7 +71,12 @@ def pip_packages(
     # Numpy was bumped to 2.x in PyTorch index around early 2025
     # Pin it to 1.x for older Torch versions to avoid a breaking change
     if torch_version < Version.parse('2.6.0'):
-        pkgs += ['numpy<2.0.0']
+        # 1.26.4 is the last 1.x release and required for some packages like pyreft
+        # Except it's not available for Python 3.8
+        if python_version == '3.8':
+            pkgs += ['numpy<2.0.0']
+        else:
+            pkgs += ['numpy==1.26.4']
     # Older Torch versions do not bundle CUDA or CuDNN
     nvidia_pkgs = []
     if cu != 'cpu' and torch_version < Version.parse('2.2.0'):
