@@ -25,7 +25,9 @@ def torch_index_url(cuda_version: str, nightly: bool) -> str:
         return f'{prefix}/{cu}'
 
 
-def index_args(torch_version: Optional[str], cuda_version: str) -> list[str]:
+def index_args(
+    torch_version: Optional[str], cuda_version: str, user: bool
+) -> list[str]:
     # Nightly builds e.g. 2.6.1.dev20241121
     nightly = torch_version is not None and '.dev' in torch_version
     return [
@@ -35,10 +37,11 @@ def index_args(torch_version: Optional[str], cuda_version: str) -> list[str]:
         # PyPI is the default index URL
         '--index-url',
         'https://pypi.org/simple',
-        # Prefer first index i.e. Torch, as it might pin some transitives
+        # For base venv, prefer first index i.e. Torch, as it might pin some transitives
         # e.g. numpy 1.x over 2.x
+        # For user venv, unsafe is fine since we filter out those already in base anyway
         '--index-strategy',
-        'first-index',
+        'unsafe-first-match' if user else 'first-index',
     ]
 
 
@@ -136,7 +139,7 @@ def update_venv(
     # We specify --python-platform here because update is usually ran outside the container
     # e.g. on a developer's Mac
     cmd = ['uv', 'pip', 'compile', '--python-platform', 'x86_64-unknown-linux-gnu']
-    cmd = cmd + emit_args + index_args(torch_version, cuda_version) + ['-']
+    cmd = cmd + emit_args + index_args(torch_version, cuda_version, False) + ['-']
     pkgs = pip_packages(t, python_version, cuda_version, pip_pkgs)
     env = os.environ.copy()
     env['VIRTUAL_ENV'] = vdir
@@ -204,7 +207,7 @@ def install_venv(
 
     requirements = os.path.join(rdir, f'{venv}.txt')
     cmd = [uv, 'pip', 'install', '--no-deps', '--requirement', requirements]
-    cmd += index_args(torch_version, cuda_version)
+    cmd += index_args(torch_version, cuda_version, False)
     env = os.environ.copy()
     env['VIRTUAL_ENV'] = vdir
     subprocess.run(cmd, check=True, env=env)
