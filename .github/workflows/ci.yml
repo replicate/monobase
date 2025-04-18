@@ -38,6 +38,15 @@ jobs:
       - run: ./script/build-image
       - run: ./script/test
 
+  test-apt:
+    name: Test APT
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: ./script/build-image
+      - run: ./script/test-apt
+
   test-mini:
     name: Test Mini
     runs-on: ubuntu-latest-4-cores
@@ -75,6 +84,7 @@ jobs:
     needs:
       - check
       - test
+      - test-apt
       - test-mini
       - test-user
       - test-pget

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# Test apt.sh, i.e. the apt tarball layer of cog build
+
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+test() {
+    package="$1"
+    shift
+    tmp="$(mktemp -d -t monobase.XXXXXXXX)"
+    docker run --rm \
+        --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
+        --volume "$tmp:/tmp/apt" \
+        monobase:latest \
+        /opt/r8/monobase/apt.sh \
+        /tmp/apt/apt.tar.zst \
+        "$package"
+
+    docker run --rm \
+        --volume "$tmp:/tmp/apt:ro" \
+        monobase:latest \
+        bash -c "tar --keep-directory-symlink -xf /tmp/apt/apt.tar.zst -C / && $* &> /dev/null"
+    echo "PASS: $package"
+}
+
+test zsh zsh --version
