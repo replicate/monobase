@@ -25,5 +25,9 @@ test() {
     echo "PASS: $package"
 }
 
+# zsh installs symlink in /bin which is a symlink to /usr/bin
 test zsh zsh --version
+
+# Third-party packages
+test awscli aws --version
 test s5cmd s5cmd version
