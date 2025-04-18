@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build mini image for local development
+# Test mini monobase, i.e. the base layer for cog build
 
 set -euo pipefail
 
