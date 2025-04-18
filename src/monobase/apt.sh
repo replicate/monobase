@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-# Install APT + third party packages and bundle installed files into a tarball
+# Install APT + third-party packages and bundle installed files into a tarball
 
 if [ $# -le 1 ]; then
     echo "Usage $(basename "$0") <TARBALL> [PKG]..."
@@ -22,6 +22,20 @@ _gh_latest_assets() {
     curl -fsSL "https://api.github.com/repos/$1/releases/latest" | jq --raw-output '.assets[].browser_download_url'
 }
 
+install_awscli() {
+    tmp="$(mktemp -d -t monobase.XXXXXXXX)"
+    cd "$tmp"
+    curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
+    unzip awscliv2.zip
+
+    # This installs in /usr/local/aws-cli and absolute symlinks in /usr/local/bin
+    ./aws/install
+    mkdir -p "$prefix/usr/local/bin"
+    mv /usr/local/bin/aws* "$prefix/usr/local/bin"
+    mv /usr/local/aws-cli "$prefix/usr/local"
+    rm -rf "$tmp"
+}
+
 install_s5cmd() {
     url="$(_gh_latest_assets peak/s5cmd | grep Linux-64bit.tar.gz)"
     mkdir -p "$prefix/usr/bin"
@@ -32,7 +46,7 @@ install_s5cmd() {
 # Main script
 ##############################
 
-# Split packages into APTs and third party ones
+# Split packages into APTs and third-party ones
 apts=()
 pkgs=()
 for p in "$@"; do
