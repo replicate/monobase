@@ -120,6 +120,7 @@ def build_user_venv(args: argparse.Namespace) -> None:
     # Use the same Torch index instead
     cmd = cmd + index_args(torch_version, cuda_version, True) + ['-']
     env['VIRTUAL_ENV'] = udir
+    env.update(uv_install_env)
     try:
         proc = subprocess.run(
             cmd, check=True, env=env, input=combined_req, capture_output=True, text=True
@@ -181,7 +182,6 @@ def build_user_venv(args: argparse.Namespace) -> None:
                 print(f'{k}=={uvs}', file=f)
     cmd = [uv, 'pip', 'install', '--no-deps', '--requirement', user_req_path]
     cmd += index_args(torch_version, cuda_version, True)
-    env.update(uv_install_env)
     subprocess.run(cmd, check=True, env=env)
 
     mark_done(
