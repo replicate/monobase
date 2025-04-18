@@ -26,3 +26,4 @@ test() {
 }
 
 test zsh zsh --version
+test s5cmd s5cmd version

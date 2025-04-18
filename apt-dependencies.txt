@@ -15,6 +15,7 @@ findutils
 g++
 gcc
 git
+jq
 libavcodec-dev
 libbz2-dev
 libcairo2-dev
