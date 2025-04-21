@@ -47,9 +47,11 @@ if [ "$module" == "monobase.build" ] || ! [ -f "$MONOBASE_PREFIX/bin/uv" ] || ! 
     fi
 fi
 
+MONOBASE_PYTHON_VERSION=3.13
+
 if ! [ -d /var/tmp/.venv ]; then
     log "Installing monobase..."
-    uv venv /var/tmp/.venv --python='3.13'
+    uv venv /var/tmp/.venv --python="$MONOBASE_PYTHON_VERSION"
     VIRTUAL_ENV=/var/tmp/.venv uv pip install --link-mode=copy "$(find /opt/r8 -name '*.whl' | head -1)"
 fi
 
@@ -59,4 +61,8 @@ fi
 
 log "Running $module..."
 export PATH="$PATH:/var/tmp/.venv/bin"
+
+# We mount $PWD/src/monobase:/opt/r8/monobase for local testing
+# Layer it on top of venv, i.e. code from wheel file
+export PYTHONPATH="/opt/r8:/var/tmp/.venv/lib/python$MONOBASE_PYTHON_VERSION/site-packages"
 exec /var/tmp/.venv/bin/python3 -m "$module" "$@"
