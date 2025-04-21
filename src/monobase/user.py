@@ -157,6 +157,9 @@ def build_user_venv(args: argparse.Namespace) -> None:
             elif type(v) is Version:
                 majors.add(v.major)
                 minors.add(v.minor)
+        # Do not this because we install a custom hf_transfer with metrics
+        if k == 'hf-transfer':
+            continue
         if len(majors) == 1 and len(minors) > 1:
             log.warning(
                 f'possible incompatible versions for {k}: cog=={cvs}, mono=={mvs}, user=={uvs}'
@@ -170,7 +173,8 @@ def build_user_venv(args: argparse.Namespace) -> None:
     with open(user_req_path, 'w') as f:
         for k, uvs in sorted(user_versions.items()):
             mvs = mono_versions.get(k)
-            if mvs is not None:
+            # Only warn exclusions if base and user layers have different versions
+            if mvs is not None and mvs != uvs:
                 log.warning(f'excluding {k} from user venv: mono=={mvs}, user=={uvs}')
                 continue
             if k == uvs and type(uvs) is str and os.path.exists(uvs):
