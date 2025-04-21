@@ -40,6 +40,7 @@ libxml2
 libxrender1
 llvm
 make
+ninja-build
 rdfind
 rsync
 sox
