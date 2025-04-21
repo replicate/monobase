@@ -53,6 +53,10 @@ if ! [ -d /var/tmp/.venv ]; then
     VIRTUAL_ENV=/var/tmp/.venv uv pip install --link-mode=copy "$(find /opt/r8 -name '*.whl' | head -1)"
 fi
 
+if [ "$module" == monobase.user ]; then
+    source /opt/r8/monobase/activate.sh
+fi
+
 log "Running $module..."
 export PATH="$PATH:/var/tmp/.venv/bin"
 exec /var/tmp/.venv/bin/python3 -m "$module" "$@"
