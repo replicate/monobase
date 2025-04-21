@@ -20,7 +20,7 @@ cd "$(git rev-parse --show-toplevel)"
 # Build base venv
 env="$R8_CUDA_VERSION:$R8_CUDNN_VERSION:$R8_PYTHON_VERSION:$R8_TORCH_VERSION"
 if ! [ -f build/.env ] || [ "$(cat build/.env)" != "$env" ]; then
-    rm -rf build/monobase build/src
+    sudo rm -rf build/monobase build/src
     mkdir -p build/monobase build/cache build/src
     docker run --rm \
         --env R8_COG_VERSION=coglet \
@@ -28,7 +28,6 @@ if ! [ -f build/.env ] || [ "$(cat build/.env)" != "$env" ]; then
         --env R8_CUDNN_VERSION="$R8_CUDNN_VERSION" \
         --env R8_PYTHON_VERSION="$R8_PYTHON_VERSION" \
         --env R8_TORCH_VERSION="$R8_TORCH_VERSION" \
-        --env CI_SKIP_CUDA=1 \
         --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
         --volume "$PWD/build/monobase:/srv/r8/monobase" \
         --volume "$PWD/build/cache:/var/cache/monobase" \
@@ -63,19 +62,17 @@ docker run --rm \
     --volume "$tmp/root:/root" \
     --workdir /src \
     monobase:latest \
-    /opt/r8/monobase/run.sh \
-    monobase.user \
-    --requirements /tmp/requirements.txt
+    bash -c 'source /opt/r8/monobase/activate.sh && /opt/r8/monobase/run.sh monobase.user --requirements /tmp/requirements.txt'
 
-# Run Python shell with all venvs
-docker run --rm -it \
-    --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
-    --volume "$PWD/build/monobase:/srv/r8/monobase:ro" \
-    --volume "$tmp/root:/root" \
-    --env R8_CUDA_VERSION="$R8_CUDA_VERSION" \
-    --env R8_CUDNN_VERSION="$R8_CUDNN_VERSION" \
-    --env R8_PYTHON_VERSION="$R8_PYTHON_VERSION" \
-    --env R8_TORCH_VERSION="$R8_TORCH_VERSION" \
-    monobase:latest \
-    '/opt/r8/monobase/exec.sh' \
-    python3
+# # Run Python shell with all venvs
+# docker run --rm -it \
+#     --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
+#     --volume "$PWD/build/monobase:/srv/r8/monobase:ro" \
+#     --volume "$tmp/root:/root" \
+#     --env R8_CUDA_VERSION="$R8_CUDA_VERSION" \
+#     --env R8_CUDNN_VERSION="$R8_CUDNN_VERSION" \
+#     --env R8_PYTHON_VERSION="$R8_PYTHON_VERSION" \
+#     --env R8_TORCH_VERSION="$R8_TORCH_VERSION" \
+#     monobase:latest \
+#     '/opt/r8/monobase/exec.sh' \
+#     python3
