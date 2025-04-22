@@ -8,6 +8,7 @@ binutils
 bzip2
 build-essential
 ca-certificates
+clang
 cmake
 curl
 ffmpeg
