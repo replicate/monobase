@@ -37,10 +37,6 @@ RUN --mount=type=bind,src=.,dst=/src,ro \
     apt-get update \
     && apt-get install -y $(grep -v '^#' </src/apt-dependencies.txt) \
     && rm -rf /var/lib/apt/lists/*
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 120 \
-    && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 120 \
-    && update-alternatives --config gcc \
-    && update-alternatives --config g++
 
 RUN --mount=type=bind,from=build,target=/tmp/build-layer,ro \
     ln -sv /usr/bin/tini /sbin/tini \
