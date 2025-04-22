@@ -121,22 +121,6 @@ if [ -n "${R8_CUDA_VERSION:-}" ] && [ -n "${R8_CUDNN_VERSION:-}" ]; then
     cp -f "$LD_CACHE_PATH" /etc/ld.so.cache
 
     TORCH_CUDA_SUFFIX="cu$(echo "$R8_CUDA_VERSION" | sed 's/\.//')"
-
-    # List of supported Torch CUDA architecture, based on Torch build
-    # but narrowed down to CUDA versions we supprt: 11.7, 11.8, 12.1, 12.4
-    # These are needed when building Torch extensions
-    # https://github.com/pytorch/pytorch/blob/main/torch/utils/cpp_extension.py
-    # https://github.com/pytorch/pytorch/blob/main/.ci/manywheel/build_cuda.sh
-    TORCH_CUDA_ARCH_LIST="5.0;6.0;7.0;7.5;8.0;8.6"
-    case "$R8_CUDA_VERSION" in
-        12.4|12.1)
-            TORCH_CUDA_ARCH_LIST="$TORCH_CUDA_ARCH_LIST;9.0"
-            ;;
-        11.8|11.7)
-            TORCH_CUDA_ARCH_LIST="$TORCH_CUDA_ARCH_LIST;3.7;9.0"
-            ;;
-    esac
-    export TORCH_CUDA_ARCH_LIST
 else
     TORCH_CUDA_SUFFIX="cpu"
 fi
