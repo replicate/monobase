@@ -56,7 +56,11 @@ if ! [ -d /var/tmp/.venv ]; then
 fi
 
 if [ "$module" == monobase.user ]; then
+    # shellcheck disable=SC1091
     source /opt/r8/monobase/activate.sh
+    # PYTHONPATH of Cog + monobase + user venvs after activation
+    # Save it before it's overriden below before running monobase.$module
+    export R8_PYTHONPATH="$PYTHONPATH"
 fi
 
 log "Running $module..."
@@ -64,5 +68,6 @@ export PATH="$PATH:/var/tmp/.venv/bin"
 
 # We mount $PWD/src/monobase:/opt/r8/monobase for local testing
 # Layer it on top of venv, i.e. code from wheel file
+# monobase.user restores it with R8_PYTHONPATH when working with user venv
 export PYTHONPATH="/opt/r8:/var/tmp/.venv/lib/python$MONOBASE_PYTHON_VERSION/site-packages"
 exec /var/tmp/.venv/bin/python3 -m "$module" "$@"

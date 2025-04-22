@@ -65,7 +65,6 @@ def build_user_venv(args: argparse.Namespace) -> None:
         f.write(cog_req)
     cog_versions = parse_requirements(cog_req)
 
-    uv_install_env = {}
     if torch_version is None:
         # Missing Torch version, skipping monobase venv
         mono_req = ''
@@ -82,19 +81,9 @@ def build_user_venv(args: argparse.Namespace) -> None:
             f.write(mono_req)
         mono_versions = parse_requirements(mono_req)
 
-        # Extra envs for uv install
-        # flash-attn needs torch at build time, expose monobase venv to user venv
-        uv_install_env['PYTHONPATH'] = os.path.join(
-            vdir, 'lib', f'python{python_version}', 'site-packages'
-        )
-        # flash-attn also needs CUDA for compilation
-        if cuda_version != 'cpu':
-            uv_install_env['CUDA_HOME'] = os.path.join(gdir, f'cuda{cuda_version}')
-
     log.info(f'Creating user venv {udir}...')
-    env = os.environ.copy()
     cmd = ['uv', 'venv', '--python', python_version, udir]
-    subprocess.run(cmd, check=True, env=env)
+    subprocess.run(cmd, check=True)
 
     with open(args.requirements, 'r') as f:
         user_req = f.read()
@@ -119,8 +108,12 @@ def build_user_venv(args: argparse.Namespace) -> None:
     # PyPI is inconsistent with Torch index and may include nvidia packages for CPU torch
     # Use the same Torch index instead
     cmd = cmd + index_args(torch_version, cuda_version, True) + ['-']
+    env = os.environ.copy()
     env['VIRTUAL_ENV'] = udir
-    env.update(uv_install_env)
+    if 'R8_PYTHONPATH' in env:
+        # R8_PYTHON_PATH is from activate.sh and contains Cog + monobase + user venvs
+        # Restore it before working on user venv
+        env['PYTHONPATH'] = env['R8_PYTHONPATH']
     try:
         proc = subprocess.run(
             cmd, check=True, env=env, input=combined_req, capture_output=True, text=True

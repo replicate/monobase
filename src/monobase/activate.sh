@@ -105,16 +105,17 @@ fi
 MONOBASE_PATH="$MONOBASE_PREFIX/monobase/$(printf 'g%05d' "$MONOBASE_GEN_ID")"
 
 if [ -n "${R8_CUDA_VERSION:-}" ] && [ -n "${R8_CUDNN_VERSION:-}" ]; then
-    CUDA_PATH="$MONOBASE_PATH/cuda$R8_CUDA_VERSION"
-    export LIBRARY_PATH="$CUDA_PATH/lib64/stubs"
-    PATH="$CUDA_PATH/bin${PATH:+:${PATH}}"
+    # flash-attn, etc. needs CUDA_HOME for compilation
+    export CUDA_HOME="$MONOBASE_PATH/cuda$R8_CUDA_VERSION"
+    export LIBRARY_PATH="$CUDA_HOME/lib64/stubs"
+    PATH="$CUDA_HOME/bin${PATH:+:${PATH}}"
 
     CUDA_MAJOR="$(echo "$R8_CUDA_VERSION" | sed 's/\..\+//')"
-    CUDNN_PATH="$MONOBASE_PATH/cudnn$R8_CUDNN_VERSION-cuda${CUDA_MAJOR}"
+    CUDNN_HOME="$MONOBASE_PATH/cudnn$R8_CUDNN_VERSION-cuda${CUDA_MAJOR}"
 
     # NVIDIA Container Toolkit mounts drivers here
     NCT_PATH=/usr/lib/x86_64-linux-gnu
-    LD_LIBRARY_PATH="$NCT_PATH:$CUDA_PATH/lib64:$CUDNN_PATH/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+    LD_LIBRARY_PATH="$NCT_PATH:$CUDA_HOME/lib64:$CUDNN_HOME/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 
     LD_CACHE_PATH="$MONOBASE_PATH/ld.so.cache.d/cuda$R8_CUDA_VERSION-cudnn$R8_CUDNN_VERSION-python$R8_PYTHON_VERSION"
     cp -f "$LD_CACHE_PATH" /etc/ld.so.cache
