@@ -13,9 +13,7 @@ curl
 ffmpeg
 findutils
 g++
-g++-12
 gcc
-gcc-12
 git
 jq
 libavcodec-dev
