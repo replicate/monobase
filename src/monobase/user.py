@@ -166,9 +166,12 @@ def build_user_venv(args: argparse.Namespace) -> None:
     with open(user_req_path, 'w') as f:
         for k, uvs in sorted(user_versions.items()):
             mvs = mono_versions.get(k)
-            # Only warn exclusions if base and user layers have different versions
-            if mvs is not None and mvs != uvs:
-                log.warning(f'excluding {k} from user venv: mono=={mvs}, user=={uvs}')
+            if mvs is not None:
+                # Only warn exclusions if base and user layers have different versions
+                if mvs != uvs:
+                    log.warning(
+                        f'excluding {k} from user venv: mono=={mvs}, user=={uvs}'
+                    )
                 continue
             if k == uvs and type(uvs) is str and os.path.exists(uvs):
                 # Local path, always include, even if it might conflict with monobase, e.g. ./torch-2.6.0.dev*.whl
