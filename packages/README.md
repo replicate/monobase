@@ -55,6 +55,9 @@ uv build
 # Or vanilla python build if UV fails
 python3 setup.py bdist_wheel
 
+# Minimum test to check that the package installs and imports
+/build/test.sh 'import <pkg>' dist/<pkg>-*.whl
+
 # Copy tarball and wheel to output directory
 cp -r dist/* /dst
 ```
