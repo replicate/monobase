@@ -69,6 +69,7 @@ def generate_dockerfile(args: argparse.Namespace, env: dict[str, str]) -> str:
             f'ENV UV_PYTHON={env["R8_PYTHON_VERSION"]}',
             'RUN mkdir /build /src /dst',
             'WORKDIR /build',
+            # Activate first in bash
             'ENTRYPOINT ["/bin/bash", "--rcfile", "/opt/r8/monobase/activate.sh"]',
         ]
     )
@@ -111,7 +112,11 @@ def run(args: argparse.Namespace) -> None:
     if args.script:
         with open(args.script, 'r') as f:
             script = f.read()
-        run_cmd = run_cmd + ['-c', script]
+        # Activate before running script
+        run_cmd = run_cmd + [
+            '-c',
+            f'source /opt/r8/monobase/activate.sh; bash -c "{script}"',
+        ]
     os.execvp('docker', run_cmd)
 
 
