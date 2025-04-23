@@ -109,7 +109,6 @@ def run(args: argparse.Namespace) -> None:
         with open(args.script, 'r') as f:
             script = f.read()
         run_cmd = run_cmd + ['-c', script]
-    print(run_cmd)
     os.execvp('docker', run_cmd)
 
 
