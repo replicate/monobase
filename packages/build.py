@@ -62,6 +62,9 @@ def generate_dockerfile(args: argparse.Namespace, env: dict[str, str]) -> str:
         + [f'ENV {k}={v}' for k, v in env.items()]
         + [
             build_cmd,
+            # Create an empty user venv
+            f'RUN uv venv --python {env["R8_PYTHON_VERSION"]} /root/.venv',
+            'ENV VIRTUAL_ENV=/root/.venv',
             # Python version for uv build, etc.
             f'ENV UV_PYTHON={env["R8_PYTHON_VERSION"]}',
             'RUN mkdir /build /src /dst',
