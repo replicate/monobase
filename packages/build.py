@@ -107,16 +107,19 @@ def run(args: argparse.Namespace) -> None:
         '-it',
         '--volume',
         f'{os.path.abspath(args.dst)}:/dst:rw',
-        tag,
     ]
     if args.script:
-        with open(args.script, 'r') as f:
-            script = f.read()
         # Activate before running script
         run_cmd = run_cmd + [
+            '--volume',
+            f'{os.path.abspath(args.script)}:/build.sh:ro',
+            tag,
             '-c',
-            f'source /opt/r8/monobase/activate.sh; bash -c "{script}"',
+            'source /opt/r8/monobase/activate.sh; bash /build.sh',
         ]
+    else:
+        run_cmd = run_cmd + [tag]
+    print(run_cmd)
     os.execvp('docker', run_cmd)
 
 
