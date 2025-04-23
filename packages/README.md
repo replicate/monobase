@@ -26,8 +26,11 @@ Build a package with a given script:
 
 ```
 
-`--dst .` mounts the current working directory as `/dst` where the build
-artifacts should be copied to.
+Current working directory is mounted read-only as `/src` inside the container.
+
+Host `/tmp` is mounted as `/dst` inside the container where build artifacts
+should be copied to. Use `--dst .` to mount the current working directory
+instead.
 
 # Build Script
 
@@ -44,9 +47,13 @@ git checkout <tag>
 
 # Other customization, e.g. patches
 
+# Build with UV
 # UV uses clang/clang++ by default
 # Add CC=gcc CXX=g++ to override
 uv build
+
+# Or vanilla python build if UV fails
+python3 setup.py bdist_wheel
 
 # Copy tarball and wheel to output directory
 cp -r dist/* /dst

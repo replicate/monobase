@@ -4,7 +4,9 @@ import argparse
 import os
 import subprocess
 
-parser = argparse.ArgumentParser(description='Run a script in a monobase environment')
+parser = argparse.ArgumentParser(
+    description='Build a custom package in a monobase environment'
+)
 parser.add_argument(
     '--from-tag',
     metavar='TAG',
@@ -39,7 +41,7 @@ parser.add_argument(
     'script',
     metavar='SCRIPT',
     nargs='?',
-    help='Script to run in monobase',
+    help='Build script to run in monobase',
 )
 
 
@@ -68,9 +70,9 @@ def generate_dockerfile(args: argparse.Namespace, env: dict[str, str]) -> str:
             # Python version for uv build, etc.
             f'ENV UV_PYTHON={env["R8_PYTHON_VERSION"]}',
             'RUN mkdir /build /src /dst',
+            'COPY test.sh /build/',
             'WORKDIR /build',
-            # Activate first in bash
-            'ENTRYPOINT ["/bin/bash", "--rcfile", "/opt/r8/monobase/activate.sh"]',
+            'ENTRYPOINT ["/bin/bash"]',
         ]
     )
     return '\n'.join(dockerfile)
@@ -88,6 +90,10 @@ def run(args: argparse.Namespace) -> None:
     if args.cuda is not None:
         env['R8_CUDA_VERSION'] = args.cuda
         env['R8_CUDNN_VERSION'] = '9'
+        # CUDA_HOME is needed for compiling some packages
+        # This is normally set in activate.sh
+        # But we want to avoid setting PYTHONPATH, etc. and interfere with the build
+        env['CUDA_HOME'] = f'CUDA_HOME=/srv/r8/monobase/monobase/latest/cuda{args.cuda}'
         tag = f'{tag}-cuda{args.cuda}'
 
     print(f'Building monobase {tag}')
@@ -97,6 +103,7 @@ def run(args: argparse.Namespace) -> None:
     print('Dockerfile:')
     print(dockerfile)
 
+    os.chdir(os.path.dirname(__file__))
     build_cmd = ['docker', 'build', '--tag', tag, '--file', '-', '.']
     subprocess.run(build_cmd, check=True, input=dockerfile.encode('utf-8'))
 
@@ -106,20 +113,19 @@ def run(args: argparse.Namespace) -> None:
         '--rm',
         '-it',
         '--volume',
+        f'{os.getcwd()}:/src:ro',
+        '--volume',
         f'{os.path.abspath(args.dst)}:/dst:rw',
     ]
     if args.script:
-        # Activate before running script
         run_cmd = run_cmd + [
             '--volume',
             f'{os.path.abspath(args.script)}:/build.sh:ro',
             tag,
-            '-c',
-            'source /opt/r8/monobase/activate.sh; bash /build.sh',
+            '/build.sh',
         ]
     else:
         run_cmd = run_cmd + [tag]
-    print(run_cmd)
     os.execvp('docker', run_cmd)
 
 
