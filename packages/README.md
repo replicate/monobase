@@ -55,9 +55,12 @@ uv build
 # Or vanilla python build if UV fails
 python3 setup.py bdist_wheel
 
-# Minimum test to check that the package installs and imports
-/build/test.sh 'import <pkg>' dist/<pkg>-*.whl
+# Add wheel files to a requirements.txt
+find . -name '*.whl' > requirements.txt
 
-# Copy tarball and wheel to output directory
-cp -r dist/* /dst
+# Test install & import the packages
+/build/test.sh requirements.txt 'import <pkg>'
+
+# Copy wheel files to output directory
+find . -name '*.whl' -exec cp {} /dst \;
 ```

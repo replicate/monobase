@@ -24,9 +24,8 @@ python3 setup.py bdist_wheel
 cd "$project_dir/submodules/simple-knn"
 python3 setup.py bdist_wheel
 
-/build/test.sh \
-    'import diff_gaussian_rasterization; import simple_knn' \
-    "$project_dir/submodules/diff-gaussian-rasterization/dist/"*.whl \
-    "$project_dir/submodules/simple-knn/dist/"*.whl \
+cd "$project_dir"
+find . -name '*.whl' > requirements.txt
+/build/test.sh requirements.txt 'import diff_gaussian_rasterization; import simple_knn'
 
-cp dist/* /dst
+find . -name '*.whl' -exec cp {} /dst \;
