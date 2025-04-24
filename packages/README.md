@@ -19,7 +19,7 @@ Start an interactive shell in a container with the specific base environment:
 ./build.py --python 3.10 --torch 2.3.1 --cuda 12.1
 ```
 
-Build a package with a given script:
+Build a package with a given script, write wheel files to `.`:
 
 ```
 ./build.py --python 3.10 --torch 2.3.1 --cuda 12.1 --dst . fairseq.sh
@@ -29,8 +29,7 @@ Build a package with a given script:
 Current working directory is mounted read-only as `/src` inside the container.
 
 Host `/tmp` is mounted as `/dst` inside the container where build artifacts
-should be copied to. Use `--dst .` to mount the current working directory
-instead.
+should be copied to. Use `--dst .` to mount `$PWD` instead.
 
 # Build Script
 
@@ -52,7 +51,7 @@ git checkout <tag>
 # Add CC=gcc CXX=g++ to override
 uv build
 
-# Or vanilla python build if UV fails
+# Or vanilla setuptools if UV fails
 python3 setup.py bdist_wheel
 
 # Add wheel files to a requirements.txt
@@ -63,4 +62,27 @@ find . -name '*.whl' > requirements.txt
 
 # Copy wheel files to output directory
 find . -name '*.whl' -exec cp {} /dst \;
+```
+
+# Verify the build
+
+After building the wheel files we can verify them with the same image again.
+
+```
+# Start the container
+./build.py --python 3.10 --torch 2.3.1 --cuda 12.1
+
+# Activate the environment
+source /opt/r8/monobase/activate.sh
+
+# Host $PWD is mounted as /src
+# Add wheel files to a requirements.txt
+find /src -name '*.whl' > requirements.txt
+
+# Install wheel files and start a Python shell
+./build/test.sh requirements.txt
+
+# Test library functionality
+import <pkg>
+...
 ```
