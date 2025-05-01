@@ -18,9 +18,12 @@ class TorchDeps:
 
 
 # https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix
+# See: Minimum Required Driver Version for CUDA Minor Version Compatibility
+# https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html
 torch_specs_dict = {
     # Releases
-    '2.6': ('3.11', '3.13', ['cpu', '11.8', '12.4']),
+    '2.7': ('3.9', '3.13', ['cpu', '11.8', '12.6', '12.8']),
+    '2.6': ('3.9', '3.13', ['cpu', '11.8', '12.4', '12.6']),
     '2.5': ('3.9', '3.12', ['cpu', '11.8', '12.1', '12.4']),
     '2.4': ('3.8', '3.12', ['cpu', '11.8', '12.1', '12.4']),
     '2.3': ('3.8', '3.11', ['cpu', '11.8', '12.1']),
@@ -31,6 +34,7 @@ torch_specs_dict = {
 
 torch_deps_dict = {
     # Releases
+    '2.7.0': TorchDeps('2.7.0', '0.22.0'),
     '2.6.0': TorchDeps('2.6.0', '0.21.0'),
     '2.5.1': TorchDeps('2.5.1', '0.20.1'),
     '2.5.0': TorchDeps('2.5.0', '0.20.0'),
