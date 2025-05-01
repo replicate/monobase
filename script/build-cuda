@@ -12,9 +12,9 @@ mkdir -p build/monobase build/cache
 
 docker run --rm \
     --user "$(id -u):$(id -g)" \
-    --volume "$PWD/src/monobase:/opt/r8/monobase" \
-    --volume "$PWD/build/monobase:/srv/r8/monobase" \
-    --volume "$PWD/build/cache:/var/cache/monobase" \
+    --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase:rw" \
+    --volume "$PWD/build/cache:/var/cache/monobase:rw" \
     monobase:latest \
     /opt/r8/monobase/run.sh \
     monobase.cuda \
