@@ -7,4 +7,22 @@ set -euo pipefail
 MONOBASE_PYTHON='3.13'
 
 cd "$(git rev-parse --show-toplevel)"
-uv run --python "$MONOBASE_PYTHON" python -m monobase.update --environment prod "$@"
+
+read -r -d '' SCRIPT << EOF || :
+# Running as non-privileged user, set HOME to a writable directory
+export HOME=/tmp
+
+# Create venv outside of project directory to avoid polluting host .venv
+uv venv --python $MONOBASE_PYTHON /tmp/.venv
+source /tmp/.venv/bin/activate
+uv pip install --requirements /monobase/pyproject.toml
+
+cd /monobase/src
+python3 -m monobase.update $*
+EOF
+
+docker run --rm \
+    --user "$(id -u):$(id -g)" \
+    --volume "$PWD:/monobase:rw" \
+    ghcr.io/astral-sh/uv:debian \
+    bash -c "$SCRIPT"

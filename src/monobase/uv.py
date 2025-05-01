@@ -136,9 +136,7 @@ def update_venv(
         '--emit-build-options',
         '--emit-index-annotation',
     ]
-    # We specify --python-platform here because update is usually ran outside the container
-    # e.g. on a developer's Mac
-    cmd = ['uv', 'pip', 'compile', '--python-platform', 'x86_64-unknown-linux-gnu']
+    cmd = ['uv', 'pip', 'compile']
     cmd = cmd + emit_args + index_args(torch_version, cuda_version, False) + ['-']
     pkgs = pip_packages(t, python_version, cuda_version, pip_pkgs)
     env = os.environ.copy()
