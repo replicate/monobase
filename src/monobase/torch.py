@@ -19,9 +19,6 @@ class TorchDeps:
 
 # https://github.com/pytorch/pytorch/blob/main/RELEASE.md#release-compatibility-matrix
 torch_specs_dict = {
-    # Nightly with a subset of Python and CUDA combinations
-    '2.6.0.dev20241121': ('3.11', '3.12', ['12.4']),
-    '2.6.0.dev20240918': ('3.11', '3.12', ['12.4']),
     # Releases
     '2.6': ('3.11', '3.13', ['cpu', '11.8', '12.4']),
     '2.5': ('3.9', '3.12', ['cpu', '11.8', '12.1', '12.4']),
@@ -33,9 +30,6 @@ torch_specs_dict = {
 }
 
 torch_deps_dict = {
-    # Nightly
-    '2.6.0.dev20241121': TorchDeps('2.5.0.dev20241121', '0.20.0.dev20241121'),
-    '2.6.0.dev20240918': TorchDeps('2.5.0.dev20240918', '0.20.0.dev20240918'),
     # Releases
     '2.6.0': TorchDeps('2.6.0', '0.21.0'),
     '2.5.1': TorchDeps('2.5.1', '0.20.1'),

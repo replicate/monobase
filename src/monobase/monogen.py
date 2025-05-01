@@ -35,8 +35,6 @@ TEST_MONOGENS: list[MonoGen] = [
         python={'3.12': '3.12.8'},
         torch=[
             '2.4.1',
-            # Nightly
-            '2.6.0.dev20240918',
         ],
         pip_pkgs=SEED_PKGS,
     ),
@@ -48,8 +46,6 @@ TEST_MONOGENS: list[MonoGen] = [
         torch=[
             '2.4.1',
             '2.5.1',
-            # Nightly
-            '2.6.0.dev20240918',
         ],
         pip_pkgs=SEED_PKGS,
     ),
