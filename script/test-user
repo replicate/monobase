@@ -65,11 +65,19 @@ test() {
         --requirements /tmp/requirements.txt \
         --override /tmp/override.txt
 
-    read -r -d '' SCRIPT << EOF || :
+    if [ -z "$version" ]; then
+        # Packages with no __version__, skip version check
+        read -r -d '' SCRIPT << EOF || :
+import $package
+print('PASS: requirements $requirements')
+EOF
+    else
+        read -r -d '' SCRIPT << EOF || :
 import $package
 assert $package.__version__ == '$version', f'$package.__version__ is not $version: {$package.__version__}'
 print('PASS: requirements $requirements')
 EOF
+    fi
 
     docker run --rm \
         --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
@@ -118,3 +126,6 @@ test requests 2.28.1 '/src/requests.zip'
 git clone --depth 1 --branch v2.28.1 https://github.com/psf/requests.git build/src/requests.git
 test requests 2.28.1 './requests.git'
 test requests 2.28.1 '/src/requests.git'
+
+# youtokentome requires cython, has no __version__
+test youtokentome '' youtokentome==1.0.6

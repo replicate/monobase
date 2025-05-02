@@ -21,11 +21,16 @@ class MonoGen:
         return {f'monogen_{k}': str(v) for k, v in self.__dict__.items()}
 
 
-# uv venv --seed does not install deprecated setuptools or wheel for Python 3.12
-# Packaging is needed for flash-attn, etc.
-# Explicitly declare them here
-# Versions are not pinned and we will use whatever Torch index has
-SEED_PKGS = ['pip', 'packaging', 'setuptools', 'wheel']
+# Common build dependencies when installing packages in user layer
+# Base layer is exposed in PYTHONPATH so we don't need to install the same
+# pacakges in user layer with --no-build-isolation
+SEED_PKGS = [
+    'cython',
+    'pip',
+    'packaging',
+    'setuptools',
+    'wheel',
+]
 
 TEST_MONOGENS: list[MonoGen] = [
     MonoGen(
