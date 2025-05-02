@@ -106,9 +106,15 @@ test requests 2.28.1 'git+https://github.com/psf/requests@4d394574f5555a8ddcc38f
 
 # Local files
 rm -rf build/src/requests*
+
 curl -fsSL 'https://github.com/psf/requests/releases/download/v2.28.1/requests-2.28.1-py3-none-any.whl' -o build/src/requests-2.28.1-py3-none-any.whl
 test requests 2.28.1 './requests-2.28.1-py3-none-any.whl'
+test requests 2.28.1 '/src/requests-2.28.1-py3-none-any.whl'
+
 curl -fsSL 'https://github.com/psf/requests/archive/4d394574f5555a8ddcc38f707e0c9f57f55d9a3b.zip' -o build/src/requests.zip
 test requests 2.28.1 './requests.zip'
+test requests 2.28.1 '/src/requests.zip'
+
 git clone --depth 1 --branch v2.28.1 https://github.com/psf/requests.git build/src/requests.git
 test requests 2.28.1 './requests.git'
+test requests 2.28.1 '/src/requests.git'
