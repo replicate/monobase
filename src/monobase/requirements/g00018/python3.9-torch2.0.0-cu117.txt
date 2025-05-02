@@ -12,6 +12,8 @@ charset-normalizer==2.1.1
 cmake==3.25.0
     # via triton
     # from https://download.pytorch.org/whl/cu117
+cython==3.0.12
+    # from https://pypi.org/simple
 filelock==3.13.1
     # via
     #   torch
@@ -49,7 +51,7 @@ nvidia-cuda-nvrtc-cu11==11.8.89
     # from https://pypi.org/simple
 nvidia-cuda-runtime-cu11==11.8.89
     # from https://pypi.org/simple
-nvidia-cudnn-cu11==9.8.0.87
+nvidia-cudnn-cu11==9.9.0.52
     # from https://pypi.org/simple
 nvidia-cufft-cu11==10.9.0.58
     # from https://pypi.org/simple
@@ -68,7 +70,7 @@ packaging==24.1
 pillow==11.0.0
     # via torchvision
     # from https://download.pytorch.org/whl/cu117
-pip==25.1
+pip==25.1.1
     # from https://pypi.org/simple
 requests==2.28.1
     # via torchvision

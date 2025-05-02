@@ -3,6 +3,8 @@
 --index-url https://pypi.org/simple
 --extra-index-url https://download.pytorch.org/whl/cu124
 
+cython==3.0.12
+    # from https://pypi.org/simple
 filelock==3.13.1
     # via torch
     # from https://download.pytorch.org/whl/cu124
@@ -76,7 +78,7 @@ packaging==24.1
 pillow==11.0.0
     # via torchvision
     # from https://download.pytorch.org/whl/cu124
-pip==25.1
+pip==25.1.1
     # from https://pypi.org/simple
 setuptools==70.2.0
     # from https://download.pytorch.org/whl/cu124
