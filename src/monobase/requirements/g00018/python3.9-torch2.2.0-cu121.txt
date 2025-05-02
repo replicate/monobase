@@ -9,6 +9,8 @@ certifi==2022.12.7
 charset-normalizer==2.1.1
     # via requests
     # from https://download.pytorch.org/whl/cu121
+cython==3.0.12
+    # from https://pypi.org/simple
 filelock==3.13.1
     # via
     #   torch
@@ -83,7 +85,7 @@ packaging==24.1
 pillow==11.0.0
     # via torchvision
     # from https://download.pytorch.org/whl/cu121
-pip==25.1
+pip==25.1.1
     # from https://pypi.org/simple
 requests==2.28.1
     # via torchvision

@@ -3,6 +3,8 @@
 --index-url https://pypi.org/simple
 --extra-index-url https://download.pytorch.org/whl/cu118
 
+cython==3.0.12
+    # from https://pypi.org/simple
 filelock==3.13.1
     # via
     #   torch
