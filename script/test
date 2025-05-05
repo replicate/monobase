@@ -239,6 +239,9 @@ read -r -d '' SCRIPT << EOF || :
 import coglet
 assert coglet.__file__.startswith('/srv/r8/monobase/cog'), f'coglet is not pre-installed: {coglet.__file__}'
 assert coglet.__version__ == '0.1.0a2', f'coglet.__version__ is not 0.1.0a2: {coglet.__version__}'
+import importlib.metadata
+v = importlib.metadata.version('cog')
+assert v == '0.1.0a2', f'importlib.metadata.version(\'cog\') is not 0.1.0a2: {v}'
 print('PASS: Pre-installed coglet==0.1.0-alpha2')
 EOF
 docker run --rm \
@@ -257,6 +260,10 @@ read -r -d '' SCRIPT << EOF || :
 import coglet
 assert coglet.__file__.startswith('/root/cog'), f'coglet is not installed on the fly: {coglet.__file__}'
 assert coglet.__version__ == '0.1.0a2', f'coglet.__version__ is not 0.1.0a2: {coglet.__version__}'
+# On-demand install happens in activate.sh, which skips cog-*.dist-info/METADATA for simplicity
+# import importlib.metadata
+# v = importlib.metadata.version('cog')
+# assert v == '0.1.0a2', f'importlib.metadata.version(\'cog\') is not 0.1.0a2: {v}'
 print('PASS: On-demand coglet==0.1.0-alpha2')
 EOF
 docker run --rm \
