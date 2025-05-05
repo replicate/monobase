@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 import urllib.request
+from pathlib import Path
 from typing import Any
 
 from opentelemetry import trace
@@ -129,6 +130,19 @@ def install_cog(
         spec,
     ] + extra_packages
     subprocess.run(cmd, check=True, env=env)
+
+    # Some predictor code checks for Cog version via importlib.metadata.version("cog")
+    # Create cog-*.dist-info/METADATA to support this
+    if cog_name.startswith('coglet'):
+        sp = os.path.join(vdir, 'lib', f'python{python_version}', 'site-packages')
+        # There should only be one glob match
+        for src in Path(sp).glob('coglet-*.dist-info'):
+            dst = src.parent / src.name.replace('coglet', 'cog', 1)
+            dst.mkdir(parents=True, exist_ok=True)
+            md = (src / 'METADATA').open().read()
+            # "Name: coglet" is usually the 2nd line
+            md = md.replace('\nName: coglet\n', '\nName: cog\n')
+            (dst / 'METADATA').write_text(md, encoding='utf-8')
 
     if is_default:
         default = os.path.join(gdir, f'default-python{python_version}')
