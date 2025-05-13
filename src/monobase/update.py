@@ -7,7 +7,14 @@ import pathlib
 from tempfile import TemporaryDirectory
 
 from monobase.monogen import MONOGENS, MonoGen
-from monobase.util import add_arguments, desc_version, desc_version_key, setup_logging
+from monobase.torch import get_torch_spec
+from monobase.util import (
+    Version,
+    add_arguments,
+    desc_version,
+    desc_version_key,
+    setup_logging,
+)
 from monobase.uv import update_venv
 
 parser = argparse.ArgumentParser(description='Update monobase requirements')
@@ -38,6 +45,12 @@ def update_generation(
             venvs.append({'python': p, 'torch': t, 'cuda': c})
 
     if latest:
+        torch_cudas: dict[str, list[str]] = {}
+        for tv in mg.torch:
+            spec = get_torch_spec(Version.parse(tv))
+            if spec is None:
+                continue
+            torch_cudas[tv] = [c for c in spec.cudas if c != 'cpu']
         # Write a version matrix for cog build, etc.
         matrix = {
             'id': mg.id,
@@ -45,6 +58,7 @@ def update_generation(
             'cudnn_versions': list(mg.cudnn.keys()),
             'python_versions': list(mg.python.keys()),
             'torch_versions': mg.torch,
+            'torch_cudas': torch_cudas,
             'venvs': venvs,
         }
         project_dir = pathlib.Path(__file__).absolute().parent.parent.parent
