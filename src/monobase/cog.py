@@ -19,28 +19,23 @@ LINK_REGEX = re.compile(r'<(?P<url>https://[^>]+)>; rel="next"')
 
 log = logging.getLogger(__name__)
 
+# CDN for matrix.json with version & URL for custom packages, e.g. coglet, hf_transfer
+# To work around GitHub rate limit
+matrx_json_url = 'https://monobase-packages.replicate.delivery/matrix.json'
+matrix = json.loads(urllib.request.urlopen(matrx_json_url).read())
+
 
 def hash_str(s: str) -> str:
     return hashlib.sha256(s.encode('utf-8')).hexdigest()
 
 
 def get_coglet_release(part: str) -> dict[str, Any]:
+    if part == 'latest':
+        return matrix['latest_coglet']
     url = f'https://api.github.com/repos/replicate/cog-runtime/releases/{part}'
     content = urllib.request.urlopen(url).read()
-    return json.loads(content)
-
-
-def get_hf_transfer_wheel() -> str:
-    url = 'https://api.github.com/repos/replicate/hf_transfer/releases/latest'
-    content = urllib.request.urlopen(url).read()
     blob = json.loads(content)
-    for a in blob['assets']:
-        # We build 2 wheels, abi3 for Python 3.8+ and cp313t for free threaded Python
-        if a['name'].endswith('.whl') and '-abi3-' in a['name']:
-            return a['browser_download_url']
-    # Fallback to upstream hf_transfer
-    log.warning('could not find hf_transfer wheel')
-    return 'hf_transfer'
+    return {'version': blob['name'], 'url': blob['assets'][0]['browser_download_url']}
 
 
 def cog_gen_hash(
@@ -53,7 +48,7 @@ def cog_gen_hash(
         # Hash actual coglet version instead of 'coglet'
         # So that new releases trigger hash change and re-install
         if cv == 'coglet':
-            v = get_coglet_release('latest')['name']
+            v = get_coglet_release('latest')['version']
             cv = f'coglet=={v}'
         cvs.append(cv)
     j = {
@@ -94,9 +89,8 @@ def install_cog(
                 log.error(f'Unsupported cog version {cog_version}')
                 return
             cog_name = f'coglet{v}'
-            blob = get_coglet_release(part)
-            whl = next(filter(lambda a: a['name'].endswith('.whl'), blob['assets']))
-            spec = f'coglet@{whl["browser_download_url"]}'
+            release = get_coglet_release(part)
+            spec = f'coglet@{release["url"]}'
         except Exception as e:
             log.error('Failed to fetch cog-runtime assets: %s', e)
             return
@@ -184,7 +178,7 @@ def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     # Since we only the site-packages, not Python interpreters
     uv = os.path.join(args.prefix, 'bin', 'uv')
 
-    hf_transfer = f'hf_transfer@{get_hf_transfer_wheel()}'
+    hf_transfer = f'hf_transfer@{matrix["latest_hf_transfer"]["url"]}'
 
     for c, pv in itertools.product(cog_versions, pvs):
         is_default = c == args.default_cog_version
