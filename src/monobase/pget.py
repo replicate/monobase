@@ -16,6 +16,7 @@ PGET_BIN = os.environ.get('PGET_BIN', os.path.join(MONOBASE_PREFIX, 'bin/pget-bi
 PGET_METRICS_ENDPOINT = os.environ.get('PGET_METRICS_ENDPOINT')
 FUSE_MOUNT = os.environ.get('FUSE_MOUNT', '/srv/r8/fuse-rpc')
 PROC_FILE = os.path.join(FUSE_MOUNT, 'proc', 'pget')
+PGET_CACHED_PREFIXES = os.environ.get('PGET_CACHE_URI_PREFIX', '')
 
 HF_HOSTS = {
     'cdn-lfs-us-1.hf.co',
@@ -121,6 +122,12 @@ def multi_pget(manifest: str, force: bool) -> None:
 def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
     if not force:
         assert not os.path.exists(dest)
+
+    for prefix in PGET_CACHED_PREFIXES.split(" "):
+        # If the URL has a prefix that matches one of the
+        # cached prefixes, fall back to pget directly
+        if url.startswith(prefix):
+            assert False
 
     req = urllib.request.Request(url, method='HEAD')
     resp = urllib.request.urlopen(req)
