@@ -123,7 +123,7 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
     if not force:
         assert not os.path.exists(dest)
 
-    for prefix in PGET_CACHED_PREFIXES.split(" "):
+    for prefix in PGET_CACHED_PREFIXES.split(' '):
         # If the URL has a prefix that matches one of the
         # cached prefixes, fall back to pget directly
         if url.startswith(prefix):
