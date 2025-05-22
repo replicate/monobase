@@ -157,3 +157,5 @@ fi
 export PATH
 export PYTHONPATH
 export LD_LIBRARY_PATH
+
+export PYTHONUNBUFFERED=1
