@@ -65,9 +65,11 @@ def main(url, upstream) -> None:
         sys.exit(1)
 
     p = find_pget_exe()
+    file_set = set([])
     # pget each of the files into the new directory
     for file in body['files']:
         h = hashlib.sha256(file.encode())
+        file_set.add(h.hexdigest())
         # If we have an upstream, make the URL <upstream>/<file> but strip http(s)://
         # from the <file> URL
         if upstream:
@@ -83,6 +85,10 @@ def main(url, upstream) -> None:
         except Exception as e:
             print(f'Error downloading {file}: {e}')
             # Continue on anyways to get the rest of the files
+
+    for file in os.listdir(KNOWN_WEIGHTS_DIR):
+        if file not in file_set:
+            os.remove(os.path.join(KNOWN_WEIGHTS_DIR, file))
 
 
 if __name__ == '__main__':
