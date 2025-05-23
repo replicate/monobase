@@ -125,7 +125,7 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
         assert not os.path.exists(dest)
 
     m = hashlib.sha256()
-    m.update(url.encode()) # default encoding of utf-8
+    m.update(url.encode())  # default encoding of utf-8
     fpath = os.path.join(KNOWN_WEIGHTS_PREFIX, m.hexdigest())
     if os.path.exists(fpath):
         if extract:
