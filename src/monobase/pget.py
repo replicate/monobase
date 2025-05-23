@@ -126,8 +126,7 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
     for prefix in PGET_CACHED_PREFIXES.split(' '):
         # If the URL has a prefix that matches one of the
         # cached prefixes, fall back to pget directly
-        if url.startswith(prefix):
-            assert False
+        assert not url.startswith(prefix)
 
     req = urllib.request.Request(url, method='HEAD')
     resp = urllib.request.urlopen(req)
