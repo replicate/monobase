@@ -136,6 +136,8 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
             cmd = ['tar', '-xf', fpath, '-C', dest]
             subprocess.run(cmd, check=True)
         else:
+            if force and os.path.exists(dest):
+                os.unlink(dest)
             os.symlink(fpath, dest)
 
     for prefix in PGET_CACHED_PREFIXES.split(' '):

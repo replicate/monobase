@@ -74,12 +74,12 @@ def main(url, upstream) -> None:
         # from the <file> URL
         if upstream:
             if file.startswith('http'):
-                file = re.sub(r'https?:\\', '', file)
+                file = re.sub(r'https?://', '', file)
             file = f'{upstream}/{file}'
         try:
-            subprocess.run([p, file, os.path.join('/tmp', h.hexdigest())])
+            subprocess.run([p, file, os.path.join(KNOWN_WEIGHTS_DIR, 'tmp', h.hexdigest())], check=True)
             shutil.move(
-                os.path.join('/tmp', h.hexdigest()),
+                os.path.join(KNOWN_WEIGHTS_DIR, 'tmp', h.hexdigest()),
                 os.path.join(KNOWN_WEIGHTS_DIR, h.hexdigest()),
             )
         except Exception as e:
