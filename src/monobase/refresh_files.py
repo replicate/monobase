@@ -17,7 +17,7 @@ PGET_BIN = os.environ.get('PGET_BIN', os.path.join(MONOBASE_PREFIX, 'bin/pget-bi
 KNOWN_WEIGHTS_DIR = os.environ.get('KNOWN_WEIGHTS_DIR', '')
 
 parser = argparse.ArgumentParser('refresh_files')
-parser.add_argument('-f', '--file-stats-url', type=str)
+parser.add_argument('-q', '--query-url', type=str)
 parser.add_argument('-u', '--upstream-url', type=str)
 parser.add_argument('-a', '--auth-token', type=str)
 
@@ -109,4 +109,4 @@ def main(url, upstream, auth_token) -> None:
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    main(args.file_stats_url, args.upstream_url, args.auth_token)
+    main(args.query_url, args.upstream_url, args.auth_token)
