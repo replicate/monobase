@@ -19,6 +19,7 @@ KNOWN_WEIGHTS_DIR = os.environ.get('KNOWN_WEIGHTS_DIR', '')
 
 parser = argparse.ArgumentParser('refresh_files')
 parser.add_argument('-q', '--query-url', type=str, required=True)
+parser.add_argument('-q', '--query-id', type=str, required=True)
 parser.add_argument('-u', '--upstream-url', type=str)
 parser.add_argument('-a', '--auth-token', type=str, required=True)
 parser.add_argument('-m', '--max-size', type=int, required=True)
@@ -37,14 +38,20 @@ def find_pget_exe() -> str:
     sys.exit(1)
 
 
-def main(url, upstream, auth_token, max_size) -> None:
-    if not url:
-        print('Misconfigured files URL, exiting')
-        sys.exit(1)
-
+def main(query_url, query_id, upstream, auth_token, max_size) -> None:
     try:
         create_req = urllib.request.Request(
-            url, method='GET', headers={'X-Honeycomb-Team': auth_token}
+            query_url,
+            method='POST',
+            headers={'X-Honeycomb-Team': auth_token},
+            data=urllib.parse.urlencode(
+                {
+                    'query_id': query_id,
+                    'disable_series': True,
+                    'disable_total_by_aggregate': True,
+                    'disable_other_by_aggregate': True,
+                }
+            ).encode(),
         )
         create_resp = urllib.request.urlopen(create_req)
 
@@ -54,17 +61,17 @@ def main(url, upstream, auth_token, max_size) -> None:
             sys.exit(1)
 
         req = urllib.request.Request(
-            urllib.parse.urljoin(url, create_body['id']),
+            urllib.parse.urljoin(query_url, create_body['id']),
             method='GET',
             headers={'X-Honeycomb-Team': auth_token},
         )
         resp = urllib.request.urlopen(req)
     except urllib.error.HTTPError as e:
-        print(f'Failed request to {url}: {e.read().decode()}; exiting')
+        print(f'Failed request to {query_url}: {e.read().decode()}; exiting')
         sys.exit(1)
 
     if resp.status != HTTPStatus.OK:
-        print(f'Failed request to {url}: {resp.read().decode()}; exiting')
+        print(f'Failed request to {query_url}: {resp.read().decode()}; exiting')
         sys.exit(1)
 
     # The expectation for response from the file-stats-url is that
@@ -142,4 +149,6 @@ def main(url, upstream, auth_token, max_size) -> None:
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    main(args.query_url, args.upstream_url, args.auth_token, args.max_size)
+    main(
+        args.query_url, args.query_id, args.upstream_url, args.auth_token, args.max_size
+    )
