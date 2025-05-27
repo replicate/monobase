@@ -17,7 +17,7 @@ PGET_METRICS_ENDPOINT = os.environ.get('PGET_METRICS_ENDPOINT')
 FUSE_MOUNT = os.environ.get('FUSE_MOUNT', '/srv/r8/fuse-rpc')
 PROC_FILE = os.path.join(FUSE_MOUNT, 'proc', 'pget')
 PGET_CACHED_PREFIXES = os.environ.get('PGET_CACHE_URI_PREFIX', '')
-KNOWN_WEIGHTS_DIR = os.environ.get('KNOWN_WEIGHTS_DIR', '')
+PGET_KNOWN_WEIGHTS_DIR = os.environ.get('PGET_KNOWN_WEIGHTS_DIR', '')
 
 HF_HOSTS = {
     'cdn-lfs-us-1.hf.co',
@@ -126,12 +126,9 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
 
     m = hashlib.sha256()
     m.update(url.encode())  # default encoding of utf-8
-    fpath = os.path.join(KNOWN_WEIGHTS_DIR, m.hexdigest())
+    fpath = os.path.join(PGET_KNOWN_WEIGHTS_DIR, m.hexdigest())
     if os.path.exists(fpath):
         if extract:
-            # rm -rf if -xf
-            if force:
-                os.rmdir(fpath)
             # dest is a directory
             os.makedirs(dest, exist_ok=True)
             # pget does not support zip

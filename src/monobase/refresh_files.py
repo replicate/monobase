@@ -15,7 +15,7 @@ from http import HTTPStatus
 
 MONOBASE_PREFIX = os.environ.get('MONOBASE_PREFIX', '/srv/r8/monobase')
 PGET_BIN = os.environ.get('PGET_BIN', os.path.join(MONOBASE_PREFIX, 'bin/pget-bin'))
-KNOWN_WEIGHTS_DIR = os.environ.get('KNOWN_WEIGHTS_DIR', '')
+PGET_KNOWN_WEIGHTS_DIR = os.environ.get('PGET_KNOWN_WEIGHTS_DIR', '')
 
 parser = argparse.ArgumentParser('refresh_files')
 parser.add_argument('-q', '--query-url', type=str, required=True)
@@ -119,9 +119,9 @@ def main(query_url, query_id, upstream, auth_token, max_size) -> None:
         total_size += size
 
     # Delete files that should no longer be here so we keep the directory clean
-    for file in os.listdir(KNOWN_WEIGHTS_DIR):
+    for file in os.listdir(PGET_KNOWN_WEIGHTS_DIR):
         if file not in file_set:
-            os.remove(os.path.join(KNOWN_WEIGHTS_DIR, file))
+            os.remove(os.path.join(PGET_KNOWN_WEIGHTS_DIR, file))
 
     p = find_pget_exe()
     # pget each of the files into the new directory
@@ -133,14 +133,14 @@ def main(query_url, query_id, upstream, auth_token, max_size) -> None:
                 file = re.sub(r'https?://', '', file)
             file = f'{upstream}/{file}'
         try:
-            # Download to tmp directory, then move into KNOWN_WEIGHTS_DIR directory
+            # Download to tmp directory, then move into PGET_KNOWN_WEIGHTS_DIR directory
             subprocess.run(
-                [p, file, os.path.join(KNOWN_WEIGHTS_DIR, 'tmp', h.hexdigest())],
+                [p, file, os.path.join(PGET_KNOWN_WEIGHTS_DIR, 'tmp', h.hexdigest())],
                 check=True,
             )
             shutil.move(
-                os.path.join(KNOWN_WEIGHTS_DIR, 'tmp', h.hexdigest()),
-                os.path.join(KNOWN_WEIGHTS_DIR, h.hexdigest()),
+                os.path.join(PGET_KNOWN_WEIGHTS_DIR, 'tmp', h.hexdigest()),
+                os.path.join(PGET_KNOWN_WEIGHTS_DIR, h.hexdigest()),
             )
         except Exception as e:
             print(f'Error downloading {file}: {e}')
