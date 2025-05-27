@@ -49,12 +49,14 @@ def main(url, upstream, auth_token, max_size) -> None:
         create_resp = urllib.request.urlopen(create_req)
 
         create_body = json.loads(create_resp.read().decode())
-        if "id" not in create_body:
-            print(f"Malformatted response from create endpoint: {create_body}; exiting")
+        if 'id' not in create_body:
+            print(f'Malformatted response from create endpoint: {create_body}; exiting')
             sys.exit(1)
 
         req = urllib.request.Request(
-            urllib.parse.urljoin(url, create_body["id"]), method='GET', headers={'X-Honeycomb-Team': auth_token}
+            urllib.parse.urljoin(url, create_body['id']),
+            method='GET',
+            headers={'X-Honeycomb-Team': auth_token},
         )
         resp = urllib.request.urlopen(req)
     except urllib.error.HTTPError as e:
@@ -100,10 +102,10 @@ def main(url, upstream, auth_token, max_size) -> None:
         file_set.add(h.hexdigest())
 
         # Check we won't violate the total size by downloading this file
-        if "cache.response.object_size" not in data:
+        if 'cache.response.object_size' not in data:
             print(f'Malformatted result: {result}; continuing')
             continue
-        size = data["cache.response.object_size"]
+        size = data['cache.response.object_size']
         if (total_size + size) > max_size:
             print(f'Downloading file would be violate size limit, skipping file {file}')
             continue
