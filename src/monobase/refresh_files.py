@@ -19,6 +19,7 @@ KNOWN_WEIGHTS_DIR = os.environ.get('KNOWN_WEIGHTS_DIR', '')
 parser = argparse.ArgumentParser('refresh_files')
 parser.add_argument('-f', '--file-stats-url', type=str)
 parser.add_argument('-u', '--upstream-url', type=str)
+parser.add_argument('-a', '--auth-token', type=str)
 
 
 def find_pget_exe() -> str:
@@ -34,13 +35,15 @@ def find_pget_exe() -> str:
     sys.exit(1)
 
 
-def main(url, upstream) -> None:
+def main(url, upstream, auth_token) -> None:
     if not url:
         print('Misconfigured files URL, exiting')
         sys.exit(1)
 
     try:
-        req = urllib.request.Request(url, method='GET')
+        req = urllib.request.Request(
+            url, method='GET', headers={'X-Honeycomb-Team': auth_token}
+        )
         resp = urllib.request.urlopen(req)
     except urllib.error.HTTPError as e:
         print(f'Failed request to {url}: {e.read().decode()}; exiting')
@@ -53,21 +56,31 @@ def main(url, upstream) -> None:
     # The expectation for response from the file-stats-url is that
     # it is a GET request that returns a list of files, like
     # {
-    #   "files": [
-    #     "URL1",
-    #     "URL2",
-    #     "...",
-    #   ]
+    #   "data": {
+    #       "results": [
+    #           {
+    #               "cache.request.resolved_url": "URL1",
+    #           },
+    #           {
+    #               "cache.request.resolved_url": "URL2",
+    #           },
+    #           ...,
+    #       ],
+    #   }
     # }
     body = json.loads(resp.read().decode())
-    if 'files' not in body:
+    results = body.get('data', {}).get('results', [])
+    if len(results) == 0:
         print(f'Malformatted response: {body}; exiting')
         sys.exit(1)
 
     p = find_pget_exe()
     file_set = set([])
     # pget each of the files into the new directory
-    for file in body['files']:
+    for result in results:
+        if 'cache.request.resolved_url' not in result:
+            print(f'Malformatted result: {result}; exiting')
+        file = result['cache.request.resolved_url']
         h = hashlib.sha256(file.encode())
         file_set.add(h.hexdigest())
         # If we have an upstream, make the URL <upstream>/<file> but strip http(s)://
@@ -77,7 +90,10 @@ def main(url, upstream) -> None:
                 file = re.sub(r'https?://', '', file)
             file = f'{upstream}/{file}'
         try:
-            subprocess.run([p, file, os.path.join(KNOWN_WEIGHTS_DIR, 'tmp', h.hexdigest())], check=True)
+            subprocess.run(
+                [p, file, os.path.join(KNOWN_WEIGHTS_DIR, 'tmp', h.hexdigest())],
+                check=True,
+            )
             shutil.move(
                 os.path.join(KNOWN_WEIGHTS_DIR, 'tmp', h.hexdigest()),
                 os.path.join(KNOWN_WEIGHTS_DIR, h.hexdigest()),
@@ -93,4 +109,4 @@ def main(url, upstream) -> None:
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    main(args.file_stats_url, args.upstream_url)
+    main(args.file_stats_url, args.upstream_url, args.auth_token)
