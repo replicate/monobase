@@ -129,6 +129,9 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
     fpath = os.path.join(KNOWN_WEIGHTS_DIR, m.hexdigest())
     if os.path.exists(fpath):
         if extract:
+            # rm -rf if -xf
+            if force:
+                os.rmdir(fpath)
             # dest is a directory
             os.makedirs(dest, exist_ok=True)
             # pget does not support zip

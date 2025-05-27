@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import urllib
+import urllib.parse
 import urllib.request
 from http import HTTPStatus
 
@@ -17,9 +18,10 @@ PGET_BIN = os.environ.get('PGET_BIN', os.path.join(MONOBASE_PREFIX, 'bin/pget-bi
 KNOWN_WEIGHTS_DIR = os.environ.get('KNOWN_WEIGHTS_DIR', '')
 
 parser = argparse.ArgumentParser('refresh_files')
-parser.add_argument('-q', '--query-url', type=str)
+parser.add_argument('-q', '--query-url', type=str, required=True)
 parser.add_argument('-u', '--upstream-url', type=str)
-parser.add_argument('-a', '--auth-token', type=str)
+parser.add_argument('-a', '--auth-token', type=str, required=True)
+parser.add_argument('-m', '--max-size', type=int, required=True)
 
 
 def find_pget_exe() -> str:
@@ -35,14 +37,24 @@ def find_pget_exe() -> str:
     sys.exit(1)
 
 
-def main(url, upstream, auth_token) -> None:
+def main(url, upstream, auth_token, max_size) -> None:
     if not url:
         print('Misconfigured files URL, exiting')
         sys.exit(1)
 
     try:
-        req = urllib.request.Request(
+        create_req = urllib.request.Request(
             url, method='GET', headers={'X-Honeycomb-Team': auth_token}
+        )
+        create_resp = urllib.request.urlopen(create_req)
+
+        create_body = json.loads(create_resp.read().decode())
+        if "id" not in create_body:
+            print(f"Malformatted response from create endpoint: {create_body}; exiting")
+            sys.exit(1)
+
+        req = urllib.request.Request(
+            urllib.parse.urljoin(url, create_body["id"]), method='GET', headers={'X-Honeycomb-Team': auth_token}
         )
         resp = urllib.request.urlopen(req)
     except urllib.error.HTTPError as e:
@@ -74,15 +86,37 @@ def main(url, upstream, auth_token) -> None:
         print(f'Malformatted response: {body}; exiting')
         sys.exit(1)
 
-    p = find_pget_exe()
     file_set = set([])
-    # pget each of the files into the new directory
+    total_size = 0
+
+    # Parse results to figure out what files to download
     for result in results:
-        if 'cache.request.resolved_url' not in result:
-            print(f'Malformatted result: {result}; exiting')
-        file = result['cache.request.resolved_url']
+        data = result.get('data', {})
+        if 'cache.request.resolved_url' not in data:
+            print(f'Malformatted result: {result}; continuing')
+            continue
+        file = data['cache.request.resolved_url']
         h = hashlib.sha256(file.encode())
         file_set.add(h.hexdigest())
+
+        # Check we won't violate the total size by downloading this file
+        if "cache.response.object_size" not in data:
+            print(f'Malformatted result: {result}; continuing')
+            continue
+        size = data["cache.response.object_size"]
+        if (total_size + size) > max_size:
+            print(f'Downloading file would be violate size limit, skipping file {file}')
+            continue
+        total_size += size
+
+    # Delete files that should no longer be here so we keep the directory clean
+    for file in os.listdir(KNOWN_WEIGHTS_DIR):
+        if file not in file_set:
+            os.remove(os.path.join(KNOWN_WEIGHTS_DIR, file))
+
+    p = find_pget_exe()
+    # pget each of the files into the new directory
+    for file in file_set:
         # If we have an upstream, make the URL <upstream>/<file> but strip http(s)://
         # from the <file> URL
         if upstream:
@@ -90,6 +124,7 @@ def main(url, upstream, auth_token) -> None:
                 file = re.sub(r'https?://', '', file)
             file = f'{upstream}/{file}'
         try:
+            # Download to tmp directory, then move into KNOWN_WEIGHTS_DIR directory
             subprocess.run(
                 [p, file, os.path.join(KNOWN_WEIGHTS_DIR, 'tmp', h.hexdigest())],
                 check=True,
@@ -102,11 +137,7 @@ def main(url, upstream, auth_token) -> None:
             print(f'Error downloading {file}: {e}')
             # Continue on anyways to get the rest of the files
 
-    for file in os.listdir(KNOWN_WEIGHTS_DIR):
-        if file not in file_set:
-            os.remove(os.path.join(KNOWN_WEIGHTS_DIR, file))
-
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    main(args.query_url, args.upstream_url, args.auth_token)
+    main(args.query_url, args.upstream_url, args.auth_token, args.max_size)
