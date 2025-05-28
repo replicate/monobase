@@ -5,6 +5,7 @@ import hashlib
 import json
 import logging
 import os
+import random
 import shutil
 import subprocess
 import sys
@@ -155,14 +156,21 @@ def main(args: argparse.Namespace) -> None:
         args.auth_token = os.environ.get('HONEYCOMB_AUTH_TOKEN')
     if args.query_id is None:
         args.query_id = os.environ.get('HONEYCOMB_QUERY_ID')
+    # Start up jitter
+    jitter = random.randint(0, 5) * 60
+    log.info('Sleeping for %d seconds', jitter)
+    time.sleep(jitter)
     while True:
         try:
             sync(args)
-        except Exception as e:
-            log.error('Sync failed: %s', e)
-        finally:
             log.info('Sleeping for %d seconds', args.sleep_interval)
             time.sleep(args.sleep_interval)
+        except Exception as e:
+            log.error('Sync failed: %s', e)
+            # Possibly rate limited, back off for a random period as jitter
+            bo = random.randint(5, 60) * 60
+            log.info('Sleeping for %d seconds', bo)
+            time.sleep(bo * 60)
 
 
 if __name__ == '__main__':
