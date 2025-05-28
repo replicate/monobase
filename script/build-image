@@ -5,6 +5,4 @@
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
-rm -vf ./dist/monobase*.*
-uv build --sdist --wheel
 exec docker build --tag monobase:latest --platform=linux/amd64 .

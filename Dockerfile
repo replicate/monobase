@@ -1,21 +1,4 @@
 # vi: filetype=dockerfile
-FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS build
-
-RUN apt-get update \
-    && apt-get install -y git \
-    && rm -rf /var/lib/apt/lists/*
-WORKDIR /src
-ADD . .
-ENV UV_LINK_MODE=copy
-RUN if $(git rev-parse --is-shallow-repository); then git fetch --unshallow; fi  \
-    && GIT_DESC="$(git describe --always --dirty --tags)" \
-    && if [ "$(echo "${GIT_DESC}" | cut -c1-10)" = 'refs/pull/' ]; then \
-         export SETUPTOOLS_SCM_PRETEND_VERSION='v0.0.0.dev+pr'; \
-       fi \
-    && echo "GIT_DESC=${GIT_DESC}" \
-    && echo "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}" \
-    && uv build --sdist --wheel
-
 FROM ubuntu:jammy
 
 ARG PREFIX=/srv/r8/monobase
@@ -39,15 +22,10 @@ RUN --mount=type=bind,src=.,dst=/src,ro \
     && apt-get install -y $(grep -v '^#' </src/apt-dependencies.txt) \
     && rm -rf /var/lib/apt/lists/*
 
-RUN --mount=type=bind,from=build,target=/tmp/build-layer,ro \
+RUN --mount=type=bind,src=.,dst=/src,ro \
     ln -sv /usr/bin/tini /sbin/tini \
-    && mkdir -p /opt/r8/monobase /tmp/r8 \
-    && tar --strip-components=1 -C /tmp/r8 -xf $(find /tmp/build-layer/src/dist -name '*.tar.gz' | head -1) \
-    && cp -v /tmp/r8/src/monobase/*.sh /tmp/r8/src/monobase/pget.py /opt/r8/monobase/ \
-    && rsync -av /tmp/r8/src/monobase/requirements /opt/r8/monobase/ \
-    && find /tmp/build-layer/src/dist/ -type f \
-    && cp -v $(find /tmp/build-layer/src/dist/ -name '*.whl' | head -1) /opt/r8/ \
-    && rm -rf /tmp/r8
+    && mkdir -p /opt/r8/monobase \
+    && cp -r /src/src/monobase/*.sh /src/src/monobase/*.py /src/src/monobase/requirements /opt/r8/monobase/
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/opt/r8/monobase/run.sh", "monobase.build", "--help"]

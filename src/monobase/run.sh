@@ -40,11 +40,6 @@ if [ "$module" == "monobase.build" ] || ! [ -f "$MONOBASE_PREFIX/bin/uv" ] || ! 
 
     # PGET FUSE wrapper
     cp /opt/r8/monobase/pget.py "$MONOBASE_PREFIX/bin/pget"
-
-    # Remove venv for pget that didn't work
-    if [ -d "$MONOBASE_PREFIX/venv" ]; then
-        rm -rf "$MONOBASE_PREFIX/venv"
-    fi
 fi
 
 MONOBASE_PYTHON_VERSION=3.13
@@ -52,7 +47,6 @@ MONOBASE_PYTHON_VERSION=3.13
 if ! [ -d /var/tmp/.venv ]; then
     log "Installing monobase..."
     uv venv /var/tmp/.venv --python="$MONOBASE_PYTHON_VERSION"
-    VIRTUAL_ENV=/var/tmp/.venv uv pip install --link-mode=copy "$(find /opt/r8 -name '*.whl' | head -1)"
 fi
 
 if [ "$module" == monobase.user ]; then
@@ -66,8 +60,8 @@ fi
 log "Running $module..."
 export PATH="$PATH:/var/tmp/.venv/bin"
 
-# We mount $PWD/src/monobase:/opt/r8/monobase for local testing
-# Layer it on top of venv, i.e. code from wheel file
+# $PWD/src/monobase is copied to /opt/r8/monbase in Dockerfile
+# and mounted for local testing
 # monobase.user restores it with R8_PYTHONPATH when working with user venv
-export PYTHONPATH="/opt/r8:/var/tmp/.venv/lib/python$MONOBASE_PYTHON_VERSION/site-packages"
+export PYTHONPATH="/opt/r8"
 exec /var/tmp/.venv/bin/python3 -m "$module" "$@"
