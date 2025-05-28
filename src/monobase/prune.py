@@ -4,12 +4,9 @@ import os.path
 import shutil
 import subprocess
 
-from monobase.util import tracer
-
 log = logging.getLogger(__name__)
 
 
-@tracer.start_as_current_span('prune_old_gen')
 def prune_old_gen(args: argparse.Namespace) -> None:
     for gid in range(args.min_gen_id):
         gdir = os.path.join(args.prefix, 'monobase', f'g{gid:05d}')
@@ -18,7 +15,6 @@ def prune_old_gen(args: argparse.Namespace) -> None:
             shutil.rmtree(gdir, ignore_errors=True)
 
 
-@tracer.start_as_current_span('prune_cuda')
 def prune_cuda(args: argparse.Namespace) -> None:
     cmd = [
         'find',
@@ -53,14 +49,12 @@ def prune_cuda(args: argparse.Namespace) -> None:
             shutil.rmtree(src, ignore_errors=True)
 
 
-@tracer.start_as_current_span('prune_uv_cache')
 def prune_uv_cache() -> None:
     log.info('Pruning uv cache...')
     cmd = ['uv', 'cache', 'prune']
     subprocess.run(cmd, check=True)
 
 
-@tracer.start_as_current_span('clean_uv_cache')
 def clean_uv_cache() -> None:
     log.info('Cleaning uv cache...')
     cmd = ['uv', 'cache', 'clean']

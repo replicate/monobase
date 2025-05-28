@@ -11,9 +11,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from opentelemetry import trace
-
-from monobase.util import Version, mark_done, require_done_or_rm, tracer
+from monobase.util import Version, mark_done, require_done_or_rm
 
 LINK_REGEX = re.compile(r'<(?P<url>https://[^>]+)>; rel="next"')
 
@@ -59,7 +57,6 @@ def cog_gen_hash(
     return hash_str(json.dumps(j))
 
 
-@tracer.start_as_current_span('install_cog')
 def install_cog(
     uv: str,
     gdir: str,
@@ -97,15 +94,6 @@ def install_cog(
     else:
         cog_name = f'cog{cog_version}'
         spec = f'cog=={cog_version}'
-
-    trace.get_current_span().set_attributes(
-        {
-            'uv': uv,
-            'cog_version': cog_version,
-            'cog_version_is_default': str(is_default),
-            'python_version': python_version,
-        }
-    )
 
     venv = f'{cog_name}-python{python_version}'
     vdir = os.path.join(gdir, venv)
@@ -145,7 +133,6 @@ def install_cog(
         os.symlink(venv, default)
 
 
-@tracer.start_as_current_span('install_cogs')
 def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     cdir = os.path.join(args.prefix, 'cog')
     os.makedirs(cdir, exist_ok=True)
@@ -158,13 +145,6 @@ def install_cogs(args: argparse.Namespace, python_versions: list[str]) -> None:
     )[:8]
     gid = f'g{sha256}'
     gdir = os.path.join(cdir, gid)
-
-    trace.get_current_span().set_attributes(
-        {
-            'generation_id': gid,
-            'cog_versions': str(cog_versions),
-        }
-    )
 
     if require_done_or_rm(gdir):
         log.info(f'Cog generation {gid} is complete')

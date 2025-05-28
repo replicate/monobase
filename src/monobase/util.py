@@ -15,10 +15,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 import structlog
-from opentelemetry import trace
 from structlog.typing import EventDict
-
-tracer = trace.get_tracer('monobase')
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 IN_KUBERNETES = os.environ.get('KUBERNETES_SERVICE_HOST') is not None
@@ -110,15 +107,12 @@ def _is_done(d: str) -> bool:
         return False
 
 
-@tracer.start_as_current_span('require_done_or_rm')
 def require_done_or_rm(d: str) -> bool:
     """
     This function checks for the presence of a 'done file', and, if one is not found, or
     if the directory tree "shape" sha1sum does not match, removes the tree at `d` so that
     the code requiring the done file can re-run.
     """
-    trace.get_current_span().set_attribute('done_dir', d)
-
     if _is_done(d):
         return True
 
@@ -128,16 +122,7 @@ def require_done_or_rm(d: str) -> bool:
     return False
 
 
-@tracer.start_as_current_span('mark_done')
 def mark_done(d: str, *, kind: str, **attributes) -> None:
-    trace.get_current_span().set_attributes(
-        {
-            'done_dir': d,
-            'kind': kind,
-        }
-        | attributes
-    )
-
     with open(os.path.join(d, DONE_FILE_BASENAME), 'w') as f:
         json.dump(
             {
@@ -190,7 +175,6 @@ def parse_requirements(req: str) -> dict[str, str | Version]:
     return versions
 
 
-@tracer.start_as_current_span('du')
 def du(d: str) -> None:
     subprocess.run(['du', '-ch', '-d', '1', d], check=True)
 
@@ -263,27 +247,3 @@ def setup_logging() -> None:
     root = logging.getLogger()
     root.addHandler(handler)
     root.setLevel(logging.DEBUG)
-
-
-def setup_opentelemetry():
-    if os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT') is None:
-        return
-
-    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-    from opentelemetry.sdk.resources import Resource
-    from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor
-
-    resource = Resource.create(_default_opentelemetry_attributes())
-    tracer_provider = TracerProvider(resource=resource)
-    tracer_provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
-    trace.set_tracer_provider(tracer_provider)
-
-    log.info('Set up OpenTelemetry')
-
-
-def _default_opentelemetry_attributes() -> dict[str, str]:
-    return {
-        'pid': str(os.getpid()),
-        'service.version': __version__,
-    }
