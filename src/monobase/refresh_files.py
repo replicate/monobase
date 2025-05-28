@@ -21,8 +21,8 @@ MONOBASE_PREFIX = os.environ.get('MONOBASE_PREFIX', '/srv/r8/monobase')
 PGET_BIN = os.environ.get('PGET_BIN', os.path.join(MONOBASE_PREFIX, 'bin/pget-bin'))
 
 parser = argparse.ArgumentParser('refresh_files')
-parser.add_argument('--query-id', type=str, required=True)
-parser.add_argument('--auth-token', type=str, required=True)
+parser.add_argument('--query-id', type=str)
+parser.add_argument('--auth-token', type=str)
 parser.add_argument('--weights-dir', type=str, required=True)
 parser.add_argument('--max-size', type=int, default=1024 * 1024 * 1024 * 1024)  # 1TiB
 parser.add_argument('--sleep-interval', type=int, default=60 * 60 * 24)  # 24 hours
@@ -151,6 +151,10 @@ def sync(args: argparse.Namespace) -> None:
 
 
 def main(args: argparse.Namespace) -> None:
+    if args.auth_token is None:
+        args.auth_token = os.environ.get('HONEYCOMB_AUTH_TOKEN')
+    if args.query_id is None:
+        args.query_id = os.environ.get('HONEYCOMB_QUERY_ID')
     while True:
         try:
             sync(args)
