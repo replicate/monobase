@@ -6,8 +6,6 @@ import os
 import os.path
 import re
 
-from opentelemetry import trace
-
 from monobase.cog import install_cogs
 from monobase.cuda import install_cuda, install_cudnn
 from monobase.monogen import MONOGENS, MonoGen
@@ -25,8 +23,6 @@ from monobase.util import (
     mark_done,
     require_done_or_rm,
     setup_logging,
-    setup_opentelemetry,
-    tracer,
 )
 from monobase.uv import install_venv
 
@@ -108,14 +104,8 @@ parser.add_argument(
 )
 
 
-@tracer.start_as_current_span('build_generation')
 def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
-    span = trace.get_current_span()
-    span.set_attributes(mg.otel_attributes)
-
     gdir = os.path.join(args.prefix, 'monobase', f'g{mg.id:05d}')
-
-    span.set_attribute('generation_dir', gdir)
 
     if require_done_or_rm(gdir):
         log.info(f'Monobase generation {mg.id} is complete')
@@ -184,11 +174,7 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
     log.info(f'Generation {mg.id} installed in {gdir}')
 
 
-@tracer.start_as_current_span('build')
 def build(args: argparse.Namespace) -> None:
-    span = trace.get_current_span()
-    span.set_attributes({f'build_{k}': str(v) for k, v in args.__dict__.items()})
-
     start_time = datetime.datetime.now(datetime.UTC)
 
     monogens = sorted(MONOGENS[args.environment], reverse=True)
@@ -305,5 +291,4 @@ def build(args: argparse.Namespace) -> None:
 
 if __name__ == '__main__':
     setup_logging()
-    setup_opentelemetry()
     build(parser.parse_args())

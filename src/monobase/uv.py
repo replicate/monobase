@@ -4,10 +4,8 @@ import os.path
 import subprocess
 from typing import Optional
 
-from opentelemetry import trace
-
 from monobase.torch import get_torch_spec, torch_deps
-from monobase.util import Version, mark_done, require_done_or_rm, tracer
+from monobase.util import Version, mark_done, require_done_or_rm
 
 log = logging.getLogger(__name__)
 
@@ -91,7 +89,6 @@ def pip_packages(
     return pkgs + pip_pkgs + nvidia_pkgs
 
 
-@tracer.start_as_current_span('update_venv')
 def update_venv(
     rdir: str,
     tmp: str,
@@ -101,16 +98,6 @@ def update_venv(
     cuda_version: str,
     pip_pkgs: list[str],
 ) -> bool:
-    trace.get_current_span().set_attributes(
-        {
-            'requirements_dir': rdir,
-            'python_full_version': python_full_version,
-            'torch_version': torch_version if torch_version is not None else '',
-            'cuda_version': cuda_version,
-            'pip_pkgs': str(pip_pkgs),
-        }
-    )
-
     p = Version.parse(python_version)
     t = Version.parse(torch_version)
     spec = get_torch_spec(t)
@@ -161,7 +148,6 @@ def update_venv(
     return True
 
 
-@tracer.start_as_current_span('install_venv')
 def install_venv(
     args: argparse.Namespace,
     rdir: str,
@@ -171,15 +157,6 @@ def install_venv(
     torch_version: str,
     cuda_version: str,
 ) -> None:
-    trace.get_current_span().set_attributes(
-        {
-            'requirements_dir': rdir,
-            'python_full_version': python_full_version,
-            'torch_version': torch_version,
-            'cuda_version': cuda_version,
-        }
-    )
-
     p = Version.parse(python_version)
     t = Version.parse(torch_version)
     spec = get_torch_spec(t)
