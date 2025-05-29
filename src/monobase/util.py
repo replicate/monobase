@@ -1,8 +1,5 @@
 import argparse
-import contextlib
 import datetime
-import glob
-import hashlib
 import json
 import logging
 import os
@@ -80,26 +77,11 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def _get_tree_sha1sum(d: str) -> str:
-    with contextlib.chdir(d):
-        entries = glob.glob('./**', recursive=True, include_hidden=True)
-        entries = [
-            entry for entry in entries if not entry.endswith('/' + DONE_FILE_BASENAME)
-        ]
-        entries.sort()
-
-        tree_sha1sum = hashlib.sha1(usedforsecurity=False)
-        for entry in entries:
-            tree_sha1sum.update(entry.encode())
-
-        return tree_sha1sum.hexdigest()
-
-
 def _is_done(d: str) -> bool:
     try:
         with open(os.path.join(d, DONE_FILE_BASENAME)) as done_file:
             done_state = json.load(done_file)
-            return _get_tree_sha1sum(d) == done_state.get('sha1sum', '')
+            return 'timestamp' in done_state
     except Exception:
         return False
 
@@ -124,7 +106,6 @@ def mark_done(d: str, *, kind: str, **attributes) -> None:
         json.dump(
             {
                 'timestamp': datetime.datetime.now(datetime.UTC).isoformat(),
-                'sha1sum': _get_tree_sha1sum(d),
                 'attributes': {
                     'monobase_version': __version__,
                     'monobase_kind': kind,
