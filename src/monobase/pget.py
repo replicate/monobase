@@ -117,7 +117,12 @@ def send_pget_metrics(url: str, size: int) -> None:
 def multi_pget(manifest: str, force: bool) -> None:
     urls = parse_manifest(manifest)
     for dest, url in urls.items():
-        single_pget(url, dest, extract=False, force=force)
+        try:
+            single_pget(url, dest, extract=False, force=force)
+        except Exception:
+            # Fall back to regular pget, just for this file
+            p = find_pget_exe()
+            subprocess.run([p, url, dest])
 
 
 def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
