@@ -139,6 +139,7 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
             if force and os.path.exists(dest):
                 os.unlink(dest)
             os.symlink(fpath, dest)
+        return
 
     for prefix in PGET_CACHED_PREFIXES.split(' '):
         # If the URL has a prefix that matches one of the
