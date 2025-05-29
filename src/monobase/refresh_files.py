@@ -22,8 +22,6 @@ MONOBASE_PREFIX = os.environ.get('MONOBASE_PREFIX', '/srv/r8/monobase')
 PGET_BIN = os.environ.get('PGET_BIN', os.path.join(MONOBASE_PREFIX, 'bin/pget-bin'))
 
 parser = argparse.ArgumentParser('refresh_files')
-parser.add_argument('--query-id', type=str)
-parser.add_argument('--auth-token', type=str)
 parser.add_argument('--weights-dir', type=str, required=True)
 parser.add_argument('--max-size', type=int, default=1024 * 1024 * 1024 * 1024)  # 1TiB
 parser.add_argument('--sleep-interval', type=int, default=60 * 60 * 24)  # 24 hours
@@ -44,41 +42,8 @@ def find_pget_exe() -> str:
     sys.exit(1)
 
 
-def sync(args: argparse.Namespace) -> None:
-    create_req = urllib.request.Request(
-        'https://api.honeycomb.io/1/query_results/hermes',
-        method='POST',
-        headers={
-            'Content-Type': 'application/json',
-            'X-Honeycomb-Team': args.auth_token,
-        },
-        data=json.dumps(
-            {
-                'query_id': args.query_id,
-                'disable_series': True,
-                'disable_total_by_aggregate': True,
-                'disable_other_by_aggregate': True,
-            }
-        ).encode('utf-8'),
-    )
-    create_resp = urllib.request.urlopen(create_req)
-    assert create_resp.status >= 200 and create_resp.status < 300, (
-        f'failed to create query results: {create_resp.status}'
-    )
-    create_body = json.loads(create_resp.read().decode())
-    assert 'id' in create_body, (
-        f'missing id in create query results response: {create_body}'
-    )
-
-    req = urllib.request.Request(
-        f'https://api.honeycomb.io/1/query_results/hermes/{create_body["id"]}',
-        method='GET',
-        headers={
-            'Content-Type': 'application/json',
-            'X-Honeycomb-Team': args.auth_token,
-        },
-    )
-    resp = urllib.request.urlopen(req)
+def sync(args: argparse.Namespace, endpoint: str) -> None:
+    resp = urllib.request.urlopen(endpoint)
     assert resp.status == HTTPStatus.OK, 'failed to get query result'
 
     # The expectation for response from the file-stats-url is that
@@ -152,25 +117,20 @@ def sync(args: argparse.Namespace) -> None:
 
 
 def main(args: argparse.Namespace) -> None:
-    if args.auth_token is None:
-        args.auth_token = os.environ.get('HONEYCOMB_AUTH_TOKEN')
-    if args.query_id is None:
-        args.query_id = os.environ.get('HONEYCOMB_QUERY_ID')
-    # Start up jitter
-    jitter = random.randint(0, 5) * 60
-    log.info('Sleeping for %d seconds', jitter)
-    time.sleep(jitter)
+    host = os.environ.get('PGET_CACHE_SERVICE_HOSTNAME')
+    assert host is not None, 'PGET_CACHE_SERVICE_HOSTNAME not set'
+    endpoint = f'{host}/topk'
     while True:
         try:
-            sync(args)
+            sync(args, endpoint)
             log.info('Sleeping for %d seconds', args.sleep_interval)
             time.sleep(args.sleep_interval)
         except Exception as e:
             log.error('Sync failed: %s', e)
             # Possibly rate limited, back off for a random period as jitter
-            bo = random.randint(5, 60) * 60
+            bo = random.randint(60, 600)
             log.info('Sleeping for %d seconds', bo)
-            time.sleep(bo * 60)
+            time.sleep(bo)
 
 
 if __name__ == '__main__':
