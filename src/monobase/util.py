@@ -22,11 +22,6 @@ VERSION_REGEX = re.compile(
 
 log = logging.getLogger(__name__)
 
-try:
-    from monobase._version import __version__
-except ImportError:
-    __version__ = 'dev'
-
 
 @dataclass(frozen=True, order=True)
 class Version:
@@ -107,7 +102,6 @@ def mark_done(d: str, *, kind: str, **attributes) -> None:
             {
                 'timestamp': datetime.datetime.now(datetime.UTC).isoformat(),
                 'attributes': {
-                    'monobase_version': __version__,
                     'monobase_kind': kind,
                 }
                 | {
