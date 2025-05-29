@@ -21,7 +21,7 @@ MONOBASE_PREFIX = os.environ.get('MONOBASE_PREFIX', '/srv/r8/monobase')
 PGET_BIN = os.environ.get('PGET_BIN', os.path.join(MONOBASE_PREFIX, 'bin/pget-bin'))
 
 parser = argparse.ArgumentParser('refresh_files')
-parser.add_argument('--query-id', type=str)
+parser.add_argument('--query-url', type=str)
 parser.add_argument('--auth-token', type=str)
 parser.add_argument('--weights-dir', type=str, required=True)
 parser.add_argument('--max-size', type=int, default=1024 * 1024 * 1024 * 1024)  # 1TiB
@@ -44,38 +44,9 @@ def find_pget_exe() -> str:
 
 
 def sync(args: argparse.Namespace) -> None:
-    create_req = urllib.request.Request(
-        'https://api.honeycomb.io/1/query_results/hermes',
-        method='POST',
-        headers={
-            'Content-Type': 'application/json',
-            'X-Honeycomb-Team': args.auth_token,
-        },
-        data=json.dumps(
-            {
-                'query_id': args.query_id,
-                'disable_series': True,
-                'disable_total_by_aggregate': True,
-                'disable_other_by_aggregate': True,
-            }
-        ).encode('utf-8'),
-    )
-    create_resp = urllib.request.urlopen(create_req)
-    assert create_resp.status >= 200 and create_resp.status < 300, (
-        f'failed to create query results: {create_resp.status}'
-    )
-    create_body = json.loads(create_resp.read().decode())
-    assert 'id' in create_body, (
-        f'missing id in create query results response: {create_body}'
-    )
-
     req = urllib.request.Request(
-        f'https://api.honeycomb.io/1/query_results/hermes/{create_body["id"]}',
+        args.query_url,
         method='GET',
-        headers={
-            'Content-Type': 'application/json',
-            'X-Honeycomb-Team': args.auth_token,
-        },
     )
     resp = urllib.request.urlopen(req)
     assert resp.status == HTTPStatus.OK, 'failed to get query result'
@@ -86,10 +57,16 @@ def sync(args: argparse.Namespace) -> None:
     #   "data": {
     #       "results": [
     #           {
-    #               "cache.request.resolved_url": "URL1",
+    #               "data": {                
+    #                   "cache.request.resolved_url": "URL1",
+    #                   "cache.request.object_size": "URL1",
+    #               }
     #           },
     #           {
-    #               "cache.request.resolved_url": "URL2",
+    #               "data": {                
+    #                   "cache.request.resolved_url": "URL2",
+    #                   "cache.request.object_size": "URL2",
+    #               }
     #           },
     #           ...,
     #       ],
