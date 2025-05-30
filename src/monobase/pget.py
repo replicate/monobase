@@ -145,7 +145,7 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
                 # We already checked force vs dest exists, safe to overwrite
                 # pget does not support zip
                 # tar will overwrite existing files
-                cmd = ['tar', '-xf', fpath, '-C', dest]
+                cmd = ['tar', '-xf', fpath, '-b', '1024', '-C', dest]
                 subprocess.run(cmd, check=True)
             else:
                 if force and os.path.exists(dest):
