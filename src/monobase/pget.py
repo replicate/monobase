@@ -17,7 +17,7 @@ PGET_METRICS_ENDPOINT = os.environ.get('PGET_METRICS_ENDPOINT')
 FUSE_MOUNT = os.environ.get('FUSE_MOUNT', '/srv/r8/fuse-rpc')
 PROC_FILE = os.path.join(FUSE_MOUNT, 'proc', 'pget')
 PGET_CACHED_PREFIXES = os.environ.get('PGET_CACHE_URI_PREFIX', '')
-PGET_KNOWN_WEIGHTS_DIR = os.environ.get('PGET_KNOWN_WEIGHTS_DIR', '')
+PGET_KNOWN_WEIGHTS_DIR = os.environ.get('PGET_KNOWN_WEIGHTS_DIR')
 
 HF_HOSTS = {
     'cdn-lfs-us-1.hf.co',
@@ -129,22 +129,25 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
     if not force:
         assert not os.path.exists(dest)
 
-    m = hashlib.sha256()
-    m.update(url.encode())  # default encoding of utf-8
-    fpath = os.path.join(PGET_KNOWN_WEIGHTS_DIR, m.hexdigest())
-    if os.path.exists(fpath):
-        if extract:
-            # dest is a directory
-            os.makedirs(dest, exist_ok=True)
-            # pget does not support zip
-            # tar will overwrite existing files
-            cmd = ['tar', '-xf', fpath, '-C', dest]
-            subprocess.run(cmd, check=True)
-        else:
-            if force and os.path.exists(dest):
-                os.unlink(dest)
-            os.symlink(fpath, dest)
-        return
+    if PGET_KNOWN_WEIGHTS_DIR is not None:
+        # File might be in the local known weights volume mount
+        m = hashlib.sha256()
+        m.update(url.encode('utf-8'))
+        fpath = os.path.join(PGET_KNOWN_WEIGHTS_DIR, m.hexdigest())
+        if os.path.exists(fpath):
+            if extract:
+                # dest is a directory
+                os.makedirs(dest, exist_ok=True)
+                # We already checked force vs dest exists, safe to overwrite
+                # pget does not support zip
+                # tar will overwrite existing files
+                cmd = ['tar', '-xf', fpath, '-C', dest]
+                subprocess.run(cmd, check=True)
+            else:
+                if force and os.path.exists(dest):
+                    os.unlink(dest)
+                os.symlink(fpath, dest)
+            return
 
     for prefix in PGET_CACHED_PREFIXES.split(' '):
         # If the URL has a prefix that matches one of the
@@ -205,11 +208,6 @@ def smart_pget() -> None:
         multi_pget(vargs[1], args.force)
     else:
         url, dst = vargs
-        u = urllib.parse.urlparse(url)
-
-        # Prevent `pget <URL> <dst.tar>` without --extract
-        assert not u.path.endswith('.tar')
-
         single_pget(url, dst, args.extract, args.force)
 
 
@@ -217,5 +215,5 @@ if __name__ == '__main__':
     try:
         smart_pget()
     except Exception:
-        p = find_pget_exe()
-        os.execv(p, [p] + sys.argv[1:])
+        pget = find_pget_exe()
+        os.execv(pget, [pget] + sys.argv[1:])
