@@ -17,6 +17,7 @@ import urllib.request
 from dataclasses import dataclass
 from datetime import datetime
 from http import HTTPStatus
+from pathlib import Path
 from typing import Optional
 
 from monobase.util import setup_logging
@@ -29,6 +30,7 @@ parser = argparse.ArgumentParser('refresh_files')
 parser.add_argument('--weights-dir', type=str, required=True)
 parser.add_argument('--max-size', type=int, default=1024 * 1024 * 1024 * 1024)  # 1TiB
 parser.add_argument('--sleep-interval', type=int, default=60 * 60 * 24)  # 24 hours
+parser.add_argument('--clean-cache', default=False, action='store_true')
 
 log = logging.getLogger(__name__)
 
@@ -84,6 +86,13 @@ def write_metadata(weights_dir: str, metadata: dict[str, Object]) -> None:
         json.dump(j, f, indent=2)
 
 
+def size(p: str) -> int:
+    if os.path.isfile(p):
+        return os.stat(p).st_size
+    else:
+        return sum(f.stat().st_size for f in Path(p).glob('**/*') if f.is_file())
+
+
 def sync(args: argparse.Namespace, endpoint: str) -> None:
     start = datetime.now()
 
@@ -135,6 +144,9 @@ def sync(args: argparse.Namespace, endpoint: str) -> None:
         h = hashlib.sha256(url.encode()).hexdigest()
         new_meta[h] = obj
 
+    if args.clean_cache:
+        log.info('Cleaning cache')
+        shutil.rmtree(args.weights_dir)
     os.makedirs(args.weights_dir, exist_ok=True)
 
     # Delete files that should no longer be here so we keep the directory clean
@@ -149,8 +161,14 @@ def sync(args: argparse.Namespace, endpoint: str) -> None:
         if new_obj is None or old_obj != new_obj:
             log.info('Deleting stale file: %s', file)
             p = os.path.join(args.weights_dir, file)
-            deleted += os.stat(p).st_size
-            os.remove(p)
+            deleted += size(p)
+            # Files and directories are symlinked into model file system
+            # So this is not atomic and models might fail if still reading the files
+            # But that is OK as long as they recover on restart
+            if os.path.isdir(p):
+                shutil.rmtree(p)
+            else:
+                os.remove(p)
 
     p = find_pget_exe()
     # pget each of the files into the new directory
@@ -160,10 +178,14 @@ def sync(args: argparse.Namespace, endpoint: str) -> None:
         if os.path.exists(dst):
             continue
         try:
-            # Download to tmp directory, then move into PGET_KNOWN_WEIGHTS_DIR directory
-            subprocess.run([p, obj.url, tmp], check=True)
+            # Download as a temp file or directory, then move (almost) atomically
+            if obj.url.endswith('.tar'):
+                cmd = [p, '--extract', obj.url, tmp]
+            else:
+                cmd = [p, obj.url, tmp]
+            subprocess.run(cmd, check=True)
             shutil.move(tmp, dst)
-            downloaded += os.stat(dst).st_size
+            downloaded += size(p)
         except Exception as e:
             log.error('Error downloading %s: %s', obj.url, e)
             # Continue on anyways to get the rest of the files

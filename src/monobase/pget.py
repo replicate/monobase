@@ -9,6 +9,7 @@ import subprocess
 import sys
 import urllib.parse
 import urllib.request
+from pathlib import Path
 from typing import Dict
 
 MONOBASE_PREFIX = os.environ.get('MONOBASE_PREFIX', '/srv/r8/monobase')
@@ -95,6 +96,13 @@ def normalize_url(url: str) -> str:
     return url
 
 
+def size(p: str) -> int:
+    if os.path.isfile(p):
+        return os.stat(p).st_size
+    else:
+        return sum(f.stat().st_size for f in Path(p).glob('**/*') if f.is_file())
+
+
 def send_pget_metrics(src: str, url: str, size: int) -> None:
     if PGET_METRICS_ENDPOINT is None:
         return
@@ -137,20 +145,15 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
         if os.path.exists(fpath):
             print(f'pget via local cache: {url} {dest}', file=sys.stderr)
             # Send metrics since we're not falling back to regular pget-bin which also sends metrics
-            send_pget_metrics('pget-topk', url, os.stat(fpath).st_size)
+            send_pget_metrics('pget-topk', url, size(fpath))
 
-            if extract:
-                # dest is a directory
-                os.makedirs(dest, exist_ok=True)
-                # We already checked force vs dest exists, safe to overwrite
-                # pget does not support zip
-                # tar will overwrite existing files
-                cmd = ['tar', '-xf', fpath, '-b', '1024', '-C', dest]
-                subprocess.run(cmd, check=True)
-            else:
-                if force and os.path.exists(dest):
-                    os.unlink(dest)
-                os.symlink(fpath, dest)
+            if os.path.isdir(fpath):
+                # We pre-extract all tarballs so that they can be symlinked directly
+                # Fail if --extract is not specified
+                assert extract
+            if force and os.path.exists(dest):
+                os.unlink(dest)
+            os.symlink(fpath, dest)
             return
 
     for prefix in PGET_CACHED_PREFIXES.split(' '):
