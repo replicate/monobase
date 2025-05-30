@@ -95,11 +95,11 @@ def normalize_url(url: str) -> str:
     return url
 
 
-def send_pget_metrics(url: str, size: int) -> None:
+def send_pget_metrics(src: str, url: str, size: int) -> None:
     if PGET_METRICS_ENDPOINT is None:
         return
     payload = {
-        'source': 'pget-fuse',
+        'source': src,
         'type': 'download',
         'data': {
             'url': url,
@@ -135,6 +135,10 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
         m.update(url.encode('utf-8'))
         fpath = os.path.join(PGET_KNOWN_WEIGHTS_DIR, m.hexdigest())
         if os.path.exists(fpath):
+            print(f'pget via local cache: {url} {dest}', file=sys.stderr)
+            # Send metrics since we're not falling back to regular pget-bin which also sends metrics
+            send_pget_metrics('pget-topk', url, os.stat(fpath).st_size)
+
             if extract:
                 # dest is a directory
                 os.makedirs(dest, exist_ok=True)
@@ -170,13 +174,13 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
     name = f'pget/sha256/{sha}'
     payload = {'name': name, 'size': length, 'url': url}
 
-    print(f'pget {url} {dest}', file=sys.stderr)
+    print(f'pget via lazy loading: {url} {dest}', file=sys.stderr)
     with open(PROC_FILE, 'w') as f:
         json.dump(payload, f)
 
     # Send metrics if endpoint is set
     # Send after writing proc file, i.e. no FUSE error
-    send_pget_metrics(url, length)
+    send_pget_metrics('pget-fuse', url, length)
 
     src = os.path.join(FUSE_MOUNT, name)
     if extract:
