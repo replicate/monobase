@@ -91,7 +91,20 @@ def sync(args: argparse.Namespace, endpoint: str) -> None:
     assert resp.status == HTTPStatus.OK, 'failed to get query result'
 
     if args.honeycomb_api_key:
-        subprocess.run(["honeymarker", "-k", args.honeycomb_api_key, "add", "-d", args.dataset, "-e", str(int(start.timestamp())), "-m", "Start on-node cached files sync script"])
+        subprocess.run(
+            [
+                'honeymarker',
+                '-k',
+                args.honeycomb_api_key,
+                'add',
+                '-d',
+                args.dataset,
+                '-e',
+                str(int(start.timestamp())),
+                '-m',
+                'Start on-node cached files sync script',
+            ]
+        )
 
     # The expectation for response from the file-stats-url is that
     # it is a GET request that returns a list of files, like
@@ -182,7 +195,20 @@ def sync(args: argparse.Namespace, endpoint: str) -> None:
     )
 
     if args.honeycomb_api_key:
-        subprocess.run(["honeymarker", "-k", args.honeycomb_api_key, "add", "-d", args.dataset, "-e", str(int(end.timestamp())), "-m", "Start on-node cached files sync script"])
+        subprocess.run(
+            [
+                'honeymarker',
+                '-k',
+                args.honeycomb_api_key,
+                'add',
+                '-d',
+                args.dataset,
+                '-e',
+                str(int(end.timestamp())),
+                '-m',
+                'Start on-node cached files sync script',
+            ]
+        )
 
 
 def main(args: argparse.Namespace) -> None:
