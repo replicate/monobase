@@ -96,7 +96,9 @@ def normalize_url(url: str) -> str:
     return url
 
 
-def send_pget_metrics(src: str, url: str, size: int, elapsed_time_seconds: int) -> None:
+def send_pget_metrics(
+    src: str, url: str, size: int, elapsed_time_seconds: float
+) -> None:
     if PGET_METRICS_ENDPOINT is None:
         return
     payload = {
@@ -105,7 +107,7 @@ def send_pget_metrics(src: str, url: str, size: int, elapsed_time_seconds: int) 
         'data': {
             'url': url,
             'size': size,
-            'throughput': size/elapsed_time_seconds,
+            'throughput': size / elapsed_time_seconds,
         },
     }
     data = json.dumps(payload).encode('utf-8')
@@ -153,7 +155,12 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
                 if force and os.path.exists(dest):
                     os.unlink(dest)
                 os.symlink(fpath, dest)
-            send_pget_metrics('pget-topk', url, os.stat(fpath).st_size, (datetime.datetime.now() - start).total_seconds())
+            send_pget_metrics(
+                'pget-topk',
+                url,
+                os.stat(fpath).st_size,
+                (datetime.datetime.now() - start).total_seconds(),
+            )
             return
 
     for prefix in PGET_CACHED_PREFIXES.split(' '):
@@ -201,7 +208,9 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
 
     # Send metrics if endpoint is set
     # Send after writing proc file, i.e. no FUSE error
-    send_pget_metrics('pget-fuse', url, length, (datetime.datetime.now() - start).total_seconds())
+    send_pget_metrics(
+        'pget-fuse', url, length, (datetime.datetime.now() - start).total_seconds()
+    )
 
 
 def smart_pget() -> None:
