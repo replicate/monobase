@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import datetime
 import hashlib
 import json
 import os
@@ -95,7 +96,7 @@ def normalize_url(url: str) -> str:
     return url
 
 
-def send_pget_metrics(src: str, url: str, size: int) -> None:
+def send_pget_metrics(src: str, url: str, size: int, elapsed_time_seconds: int) -> None:
     if PGET_METRICS_ENDPOINT is None:
         return
     payload = {
@@ -104,6 +105,7 @@ def send_pget_metrics(src: str, url: str, size: int) -> None:
         'data': {
             'url': url,
             'size': size,
+            'throughput': size/elapsed_time_seconds,
         },
     }
     data = json.dumps(payload).encode('utf-8')
@@ -137,7 +139,7 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
         if os.path.exists(fpath):
             print(f'pget via local cache: {url} {dest}', file=sys.stderr)
             # Send metrics since we're not falling back to regular pget-bin which also sends metrics
-            send_pget_metrics('pget-topk', url, os.stat(fpath).st_size)
+            start = datetime.datetime.now()
 
             if extract:
                 # dest is a directory
@@ -151,6 +153,7 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
                 if force and os.path.exists(dest):
                     os.unlink(dest)
                 os.symlink(fpath, dest)
+            send_pget_metrics('pget-topk', url, os.stat(fpath).st_size, (datetime.datetime.now() - start).total_seconds())
             return
 
     for prefix in PGET_CACHED_PREFIXES.split(' '):
@@ -178,9 +181,7 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
     with open(PROC_FILE, 'w') as f:
         json.dump(payload, f)
 
-    # Send metrics if endpoint is set
-    # Send after writing proc file, i.e. no FUSE error
-    send_pget_metrics('pget-fuse', url, length)
+    start = datetime.datetime.now()
 
     src = os.path.join(FUSE_MOUNT, name)
     if extract:
@@ -197,6 +198,10 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
         if force and os.path.exists(dest):
             os.unlink(dest)
         os.symlink(src, dest)
+
+    # Send metrics if endpoint is set
+    # Send after writing proc file, i.e. no FUSE error
+    send_pget_metrics('pget-fuse', url, length, (datetime.datetime.now() - start).total_seconds())
 
 
 def smart_pget() -> None:
