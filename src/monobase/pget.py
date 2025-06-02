@@ -155,6 +155,7 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
                 os.unlink(dest)
 
             if os.path.isdir(fpath):
+                os.makedirs(dest, exist_ok=True)
                 # Symlink all files, not directories in case user code writes into them
                 # cp -rs <src>/. <dst> copies everything inside <src>, not itself
                 subprocess.run(
@@ -170,6 +171,9 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
                     os.unlink(tgt)
                     shutil.copy(p, tgt)
             else:
+                d = os.path.dirname(dest)
+                if d != '':
+                    os.makedirs(d, exist_ok=True)
                 os.symlink(fpath, dest)
             return
 
