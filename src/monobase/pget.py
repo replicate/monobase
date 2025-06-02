@@ -153,7 +153,8 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
                 assert extract
             if force and os.path.exists(dest):
                 os.unlink(dest)
-            os.symlink(fpath, dest)
+            # cp -rs <src>/. <dst> copies everything inside <src>, not itself
+            subprocess.run(['cp', '-rs', os.path.join(fpath, '.'), dest], check=True)
             return
 
     for prefix in PGET_CACHED_PREFIXES.split(' '):
