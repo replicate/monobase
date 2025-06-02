@@ -153,8 +153,18 @@ def single_pget(url: str, dest: str, extract: bool, force: bool) -> None:
                 assert extract
             if force and os.path.exists(dest):
                 os.unlink(dest)
+            # Symlink all files, not directories in case user code writes into them
             # cp -rs <src>/. <dst> copies everything inside <src>, not itself
             subprocess.run(['cp', '-rs', os.path.join(fpath, '.'), dest], check=True)
+            w_src = Path(fpath)
+            w_dst = Path(dest)
+            # HF code might mutate potential Git ref files, hard copy instead
+            for p in w_src.glob('**/refs/*'):
+                if not p.is_file():
+                    continue
+                tgt = w_dst / p.relative_to(w_src)
+                os.unlink(tgt)
+                shutil.copy(p, tgt)
             return
 
     for prefix in PGET_CACHED_PREFIXES.split(' '):
