@@ -26,6 +26,10 @@ python3 setup.py bdist_wheel
 
 find . -name '*.whl' > requirements.txt
 # import torchspase fails without GPU device
-/build/test.sh requirements.txt 'print()' # 'import torchsparse.backend; "count_cuda" in torchsparse.backend.__dict__'
+if [ -e /dev/nvidiactl ]; then
+    /build/test.sh requirements.txt 'import torchsparse.backend; "count_cuda" in torchsparse.backend.__dict__'
+else
+    echo 'GPU not found, add "--gpus all"'
+fi
 
 find . -name '*.whl' -exec cp {} /dst \;

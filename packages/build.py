@@ -38,6 +38,11 @@ parser.add_argument(
     help='Directory to mount read-write as /dst inside the container',
 )
 parser.add_argument(
+    '--gpus',
+    metavar='GPU',
+    help='docker run --gpus argument',
+)
+parser.add_argument(
     'script',
     metavar='SCRIPT',
     nargs='?',
@@ -117,6 +122,8 @@ def run(args: argparse.Namespace) -> None:
         '--volume',
         f'{os.path.abspath(args.dst)}:/dst:rw',
     ]
+    if args.gpus is not None:
+        run_cmd = run_cmd + ['--gpus', args.gpus]
     if args.script:
         run_cmd = run_cmd + [
             '--volume',
