@@ -210,9 +210,10 @@ def main(args: argparse.Namespace) -> None:
         delta = abs(int(time.time() - os.stat(meta_path).st_mtime))
         # Skip if just refreshed in case of crash loop
         if delta < args.sleep_interval:
+            sleep = args.sleep_interval - delta
             jitter = random.randint(0, 3600)
-            log.info('Skipping first sync, sleeping for %d + %d seconds', delta, jitter)
-            time.sleep(delta + jitter)
+            log.info('Skipping first sync, sleeping for %d + %d seconds', sleep, jitter)
+            time.sleep(sleep + jitter)
     while True:
         try:
             sync(args, endpoint)
