@@ -205,15 +205,24 @@ def main(args: argparse.Namespace) -> None:
     host = os.environ.get('PGET_CACHE_SERVICE_HOSTNAME')
     assert host is not None, 'PGET_CACHE_SERVICE_HOSTNAME not set'
     endpoint = f'{host}/topk'
+    meta_path = os.path.join(args.weights_dir, METADATA_FILE)
+    if os.path.exists(meta_path):
+        delta = abs(int(time.time() - os.stat(meta_path).st_mtime))
+        # Skip if just refreshed in case of crash loop
+        if delta < args.sleep_interval:
+            jitter = random.randint(0, 3600)
+            log.info('Skipping first sync, sleeping for %d + %d seconds', delta, jitter)
+            time.sleep(delta + jitter)
     while True:
         try:
             sync(args, endpoint)
-            log.info('Sleeping for %d seconds', args.sleep_interval)
-            time.sleep(args.sleep_interval)
+            jitter = random.randint(0, 3600)
+            log.info('Sleeping for %d + %d seconds', args.sleep_interval, jitter)
+            time.sleep(args.sleep_interval + jitter)
         except Exception as e:
             log.error('Sync failed: %s', e)
             # Possibly rate limited, back off for a random period as jitter
-            bo = random.randint(1, 60)
+            bo = random.randint(900, 1800)
             log.info('Sleeping for %d seconds', bo)
             time.sleep(bo)
 
