@@ -185,7 +185,7 @@ def sync(args: argparse.Namespace, endpoint: str) -> None:
                 cmd = [p, obj.url, tmp]
             subprocess.run(cmd, check=True)
             shutil.move(tmp, dst)
-            downloaded += size(p)
+            downloaded += size(dst)
         except Exception as e:
             log.error('Error downloading %s: %s', obj.url, e)
             # Continue on anyways to get the rest of the files
