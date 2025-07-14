@@ -34,6 +34,7 @@ torch_specs_dict = {
 
 torch_deps_dict = {
     # Releases
+    '2.7.1': TorchDeps('2.7.1', '0.22.1'),
     '2.7.0': TorchDeps('2.7.0', '0.22.0'),
     '2.6.0': TorchDeps('2.6.0', '0.21.0'),
     '2.5.1': TorchDeps('2.5.1', '0.20.1'),
