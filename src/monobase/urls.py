@@ -18,6 +18,8 @@ cuda_prefix = getenv_or(
 )
 
 cuda_urls = [
+    f'{cuda_prefix}/cuda_12.9.1_575.57.08_linux.run',
+    f'{cuda_prefix}/cuda_12.9.0_575.51.03_linux.run',
     f'{cuda_prefix}/cuda_12.8.1_570.124.06_linux.run',
     f'{cuda_prefix}/cuda_12.8.0_570.86.10_linux.run',
     f'{cuda_prefix}/cuda_12.6.3_560.35.05_linux.run',
@@ -53,6 +55,18 @@ cudnn_prefix = getenv_or(
 )
 
 cudnn_urls = [
+    # 9.12 supports CUDA 12 + 13
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.12.0.46_cuda12-archive.tar.xz',
+    # 9.11 supports CUDA 12 only
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.11.0.98_cuda12-archive.tar.xz',
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.10.2.21_cuda12-archive.tar.xz',
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.10.2.21_cuda11-archive.tar.xz',
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.10.1.4_cuda12-archive.tar.xz',
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.10.1.4_cuda11-archive.tar.xz',
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.10.0.56_cuda12-archive.tar.xz',
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.10.0.56_cuda11-archive.tar.xz',
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.9.0.52_cuda12-archive.tar.xz',
+    f'{cudnn_prefix}/cudnn-linux-x86_64-9.9.0.52_cuda11-archive.tar.xz',
     f'{cudnn_prefix}/cudnn-linux-x86_64-9.8.0.87_cuda12-archive.tar.xz',
     f'{cudnn_prefix}/cudnn-linux-x86_64-9.8.0.87_cuda11-archive.tar.xz',
     f'{cudnn_prefix}/cudnn-linux-x86_64-9.7.1.26_cuda12-archive.tar.xz',
