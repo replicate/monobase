@@ -22,6 +22,7 @@ class TorchDeps:
 # https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html
 torch_specs_dict = {
     # Releases
+    '2.8': ('3.9', '3.13', ['cpu', '12.6', '12.8', '12.9']),
     '2.7': ('3.9', '3.13', ['cpu', '11.8', '12.6', '12.8']),
     '2.6': ('3.9', '3.13', ['cpu', '11.8', '12.4', '12.6']),
     '2.5': ('3.9', '3.12', ['cpu', '11.8', '12.1', '12.4']),
@@ -34,6 +35,7 @@ torch_specs_dict = {
 
 torch_deps_dict = {
     # Releases
+    '2.8.0': TorchDeps('2.8.0', '0.23.0'),
     '2.7.1': TorchDeps('2.7.1', '0.22.1'),
     '2.7.0': TorchDeps('2.7.0', '0.22.0'),
     '2.6.0': TorchDeps('2.6.0', '0.21.0'),
