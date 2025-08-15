@@ -136,6 +136,10 @@ def build_generation(args: argparse.Namespace, mg: MonoGen) -> None:
         desc_version_key(cudnns), desc_version(cuda_majors)
     ):
         assert m is not None
+        # CuDNN >= 9.11 dropped CUDA 11 support
+        # CuDNN 9.10 is the last release with CUDA 11 + 12 support
+        if k == '9' and m == '11':
+            v = '9.10.2.21'
         src = install_cudnn(args, v, m)
         dst = f'{gdir}/cudnn{k}-cuda{m}'
         reldst = os.path.relpath(src, gdir)
