@@ -28,6 +28,9 @@ jobs:
 
   test:
     name: Test
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest-4-cores
     env:
       R8_CUDA_PREFIX: ${{ secrets.R8_CUDA_PREFIX }}
@@ -35,20 +38,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
+      # NOTE: the Dockerfile copies the CA bundle from a private ECR image, so every
+      # job that builds it needs ECR pull access.
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::851725545228:role/GitHubBuilder
+          aws-region: us-east-1
+      - run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 851725545228.dkr.ecr.us-east-1.amazonaws.com
       - run: ./script/build-image
       - run: ./script/test
 
   test-apt:
     name: Test APT
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
+      # NOTE: the Dockerfile copies the CA bundle from a private ECR image, so every
+      # job that builds it needs ECR pull access.
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::851725545228:role/GitHubBuilder
+          aws-region: us-east-1
+      - run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 851725545228.dkr.ecr.us-east-1.amazonaws.com
       - run: ./script/build-image
       - run: ./script/test-apt
 
   test-mini:
     name: Test Mini
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest-4-cores
     env:
       R8_CUDA_PREFIX: ${{ secrets.R8_CUDA_PREFIX }}
@@ -56,11 +79,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
+      # NOTE: the Dockerfile copies the CA bundle from a private ECR image, so every
+      # job that builds it needs ECR pull access.
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::851725545228:role/GitHubBuilder
+          aws-region: us-east-1
+      - run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 851725545228.dkr.ecr.us-east-1.amazonaws.com
       - run: ./script/build-image
       - run: ./script/test-mini
 
   test-user:
     name: Test User
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest-4-cores
     env:
       R8_CUDA_PREFIX: ${{ secrets.R8_CUDA_PREFIX }}
@@ -68,6 +101,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
+      # NOTE: the Dockerfile copies the CA bundle from a private ECR image, so every
+      # job that builds it needs ECR pull access.
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::851725545228:role/GitHubBuilder
+          aws-region: us-east-1
+      - run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 851725545228.dkr.ecr.us-east-1.amazonaws.com
       - run: ./script/build-image
       - run: ./script/test-user
 
@@ -96,6 +136,13 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
+    # NOTE: the Dockerfile copies the CA bundle from a private ECR image, so the
+    # build needs ECR pull access in addition to the GAR push login below.
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::851725545228:role/GitHubBuilder
+        aws-region: us-east-1
+    - run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 851725545228.dkr.ecr.us-east-1.amazonaws.com
     - name: Set Docker metadata
       id: meta
       uses: docker/metadata-action@v5
