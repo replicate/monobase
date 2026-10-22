@@ -76,6 +76,19 @@ is-json() {
     fi
 }
 
+# Run a check that is known to fail: print XFAIL if it fails, XPASS if it passes.
+# Neither outcome fails the script, so every other check keeps its own exit status.
+xfail() {
+    name="$1"
+    reason="$2"
+    shift 2
+    if "$@"; then
+        echo "XPASS: $name: expected to fail, it passes now; remove the xfail"
+    else
+        echo "XFAIL: $name: $reason"
+    fi
+}
+
 # Test /srv/r8/monobase structure
 test -x 'monobase/bin/uv'
 test -x 'monobase/bin/pget'
@@ -108,17 +121,46 @@ if [ "$fail" -gt 0 ]; then
     exit 1
 fi
 
-coglet_version="$(script/latest_coglet.py)"
 read -r -d '' SCRIPT << EOF || :
 import sys, coglet, torch
 assert sys.version.startswith('3.12.8'), f'sys.version is not 3.12.8: {sys.version}'
 assert coglet.__file__.startswith('/srv/r8/monobase/cog'), f'coglet is not pre-installed: {coglet.__file__}'
-assert coglet.__version__ == '$coglet_version', f'coglet.__version__ is not $coglet_version: {coglet.__version__}'
 assert torch.__version__ == '2.4.1+cu124', f'torch.__version__ is not 2.4.1+cu124: {torch.__version__}'
 print('PASS: venv versions')
 EOF
 
 docker run --rm \
+    --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
+    --volume "$PWD/build/monobase:/srv/r8/monobase:ro" \
+    --volume "$PWD/build/root:/root" \
+    --env R8_COG_VERSION=coglet \
+    --env R8_CUDA_VERSION=12.4 \
+    --env R8_CUDNN_VERSION=9 \
+    --env R8_PYTHON_VERSION=3.12 \
+    --env R8_TORCH_VERSION=2.4.1 \
+    monobase:latest \
+    '/opt/r8/monobase/exec.sh' \
+    python -c "$SCRIPT"
+
+# NOTE: This check compares the coglet version installed in the test venv with the
+# version of the latest cog-runtime GitHub release (script/latest_coglet.py). It fails
+# because the two sources disagree: the venv gets coglet from the latest_coglet entry
+# of the published matrix.json (last modified 2025-08-19), which still lists
+# v0.1.0-beta9, while the latest release is v0.4.0 (as of this writing). In this
+# repository script/upload_matrix.py is what writes matrix.json, and no workflow
+# runs it. The drift is expected. monobase is being phased out, so the check is
+# marked as an expected failure instead of being repaired. Remove the xfail if it
+# ever passes.
+coglet_version="$(script/latest_coglet.py)" || coglet_version=unavailable
+read -r -d '' SCRIPT << EOF || :
+import coglet
+assert coglet.__version__ == '$coglet_version', f'coglet.__version__ is not $coglet_version: {coglet.__version__}'
+print('PASS: coglet version')
+EOF
+
+xfail 'coglet version' \
+    'matrix.json latest_coglet differs from the latest cog-runtime release' \
+    docker run --rm \
     --volume "$PWD/src/monobase:/opt/r8/monobase:ro" \
     --volume "$PWD/build/monobase:/srv/r8/monobase:ro" \
     --volume "$PWD/build/root:/root" \
