@@ -5,16 +5,19 @@
 set -euo pipefail
 
 MONOBASE_PYTHON='3.13'
+# NOTE: ruff 0.16.0 enabled a much larger default rule set, which this repo's code
+# was not written for. Pin the last release before it.
+RUFF='ruff@0.15.22'
 
 cd "$(git rev-parse --show-toplevel)"
 
 uv run --python "$MONOBASE_PYTHON" python -m monobase.monogen
 
 if [[ -z "${CI:-}" ]]; then
-    uv tool run ruff check --fix
-    uv tool run ruff format
+    uv tool run "$RUFF" check --fix
+    uv tool run "$RUFF" format
 else
-    uv tool run ruff check
-    uv tool run ruff format --check
+    uv tool run "$RUFF" check
+    uv tool run "$RUFF" format --check
 fi
 uv run --python "$MONOBASE_PYTHON" --with mypy mypy src
