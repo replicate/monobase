@@ -24,6 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
+        # NOTE: uv 0.10.0 made `uv venv` fail when the directory already exists, which
+        # breaks the monobase update scripts. Pin the last release with the old
+        # behavior until they pass `--clear`.
+        with:
+          version: "0.9.30"
       - run: ./script/check
 
   test:
@@ -38,6 +43,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.9.30"
       # NOTE: the Dockerfile copies the CA bundle from a private ECR image, so every
       # job that builds it needs ECR pull access.
       - uses: aws-actions/configure-aws-credentials@v4
@@ -57,6 +64,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.9.30"
       # NOTE: the Dockerfile copies the CA bundle from a private ECR image, so every
       # job that builds it needs ECR pull access.
       - uses: aws-actions/configure-aws-credentials@v4
@@ -79,6 +88,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.9.30"
       # NOTE: the Dockerfile copies the CA bundle from a private ECR image, so every
       # job that builds it needs ECR pull access.
       - uses: aws-actions/configure-aws-credentials@v4
@@ -101,6 +112,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.9.30"
       # NOTE: the Dockerfile copies the CA bundle from a private ECR image, so every
       # job that builds it needs ECR pull access.
       - uses: aws-actions/configure-aws-credentials@v4
@@ -117,6 +130,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.9.30"
       - run: ./script/test-pget
 
   build-release:

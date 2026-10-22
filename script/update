@@ -5,6 +5,11 @@
 set -euo pipefail
 
 MONOBASE_PYTHON='3.13'
+# NOTE: uv 0.10.0 made `uv venv` fail when the directory already exists, which
+# breaks monobase.update. Pin the last release with the old behavior until it
+# passes `--clear`.
+UV_IMAGE='ghcr.io/astral-sh/uv:0.9.30-debian'
+UV_DIGEST='sha256:4235807341a7224b41bbe2206c7b0d6bf998c17e296f217aef45da59f1204b63'
 
 cd "$(git rev-parse --show-toplevel)"
 
@@ -24,5 +29,5 @@ EOF
 docker run --rm \
     --user "$(id -u):$(id -g)" \
     --volume "$PWD:/monobase:rw" \
-    ghcr.io/astral-sh/uv:debian \
+    "$UV_IMAGE@$UV_DIGEST" \
     bash -c "$SCRIPT"
